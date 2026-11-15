@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moreh Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--wrap:1200px;--pad:clamp(16px,3vw,40px);--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--ink:#14213d;
+--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif;--serif:Georgia,'Times New Roman',serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:120px}
+body{margin:0;font:400 clamp(15px,.35vw + 12.5px,18px)/1.6 var(--body);color:var(--ink);background:#fff;overflow-x:hidden}
+h1,h2,h3{font-family:var(--head);margin:0}a{color:inherit}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.wrap{width:100%;max-width:var(--wrap);margin:0 auto;padding:0 var(--pad)}
+@media(min-width:1600px){:root{--wrap:1440px}}@media(min-width:2200px){:root{--wrap:1680px}}
+img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflow-wrap:anywhere}.ids{min-width:0}
+/* masthead */
+.mast{background:#fff}.mast .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+.ids{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.id{display:flex;align-items:center;gap:10px;padding:0 18px;border-left:1px solid #c9d6ee;font:600 15px/1.2 var(--head);color:var(--navy);text-decoration:none}
+.id:first-child{padding-left:0;border-left:0}
+.logo{width:44px;height:44px;border-radius:50%;object-fit:contain;background:var(--navy);color:#fff;display:grid;place-items:center;font:700 14px var(--head);flex:none}
+.tag{font:italic 700 22px var(--serif);color:var(--navy)}
+.soc{display:flex;gap:8px;align-items:center}.soc a{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font:700 12px var(--head);text-decoration:none}
+/* nav */
+.nav{background:var(--navy);position:sticky;top:0;z-index:50}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.menu{display:flex;list-style:none;margin:0;padding:0;align-items:center}
+.menu>li{position:relative}
+.menu>li>a,.menu>li>button{display:flex;align-items:center;gap:6px;white-space:nowrap;background:none;border:0;color:#fff;font:600 clamp(12px,.22vw + 9.6px,14.5px) var(--head);padding:15px clamp(6px,.7vw,12px);cursor:pointer;text-decoration:none}
+.menu>li>button::after{content:"▾";font-size:10px;margin-left:-2px}
+.sub{display:none;position:absolute;left:0;top:100%;min-width:250px;background:#fff;list-style:none;margin:0;padding:8px 0;border-radius:0 0 10px 10px;box-shadow:0 12px 28px rgba(6,46,112,.25)}
+.sub a{display:block;padding:9px 18px;font:600 14px var(--head);color:var(--navy);text-decoration:none}
+.sub a:hover{background:var(--light);color:var(--blue)}
+.menu>li:hover>.sub,.menu>li.open>.sub{display:block}
+.btn{display:inline-block;border:2px solid var(--orange);background:var(--orange);color:#fff;font:700 14px var(--head);padding:11px 22px;border-radius:10px;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;border-color:#fff}.btn.blue{background:var(--blue);border-color:var(--blue)}
+.nav .loginbtn{white-space:nowrap;flex:none;padding:9px 18px!important;margin-left:8px}.menu{flex:1 1 auto;min-width:0}.burger{display:none;background:none;border:0;color:#fff;font-size:26px;padding:10px;cursor:pointer}
+/* hero */
+.hero{position:relative;color:#fff;min-height:clamp(380px,62vh,700px);overflow:hidden;background:var(--navy)}
+.slides{position:absolute;inset:0;display:flex;transition:transform .7s ease;touch-action:pan-y}
+.slide{flex:0 0 100%;background-size:cover;background-position:center}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(6,46,112,.92) 0%,rgba(6,46,112,.7) 45%,rgba(6,46,112,.1) 100%)}
+.hero .wrap{position:relative;z-index:2;padding-top:54px;padding-bottom:84px}
+.hero h1{font-size:clamp(36px,6vw,68px);font-weight:800;line-height:1.05}.hero h1 span{color:var(--orange);display:block}
+.hero .sub2{font:italic 700 clamp(20px,3vw,32px) var(--serif);margin:14px 0 6px}
+.hero .desc{max-width:480px;margin:0 0 22px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+.ctl{position:absolute;z-index:3;right:20px;bottom:20px;display:flex;align-items:center;gap:10px}
+.ctl button.arrow{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.9);color:var(--navy);font-size:18px;cursor:pointer}
+.dots{display:flex;gap:8px}.dots button{width:11px;height:11px;border-radius:50%;border:0;background:#fff;opacity:.6;cursor:pointer;padding:0}.dots button.on{background:var(--orange);opacity:1}
+/* values */
+.values{background:var(--light)}.values ul{list-style:none;margin:0;padding:18px 20px;display:grid;grid-template-columns:repeat(5,1fr);max-width:1200px;margin:auto}
+.values li{display:flex;align-items:center;gap:12px;padding:8px 16px;border-left:2px solid #c9d6ee;font:600 15px/1.25 var(--head);color:var(--navy)}
+.values li:first-child{border-left:0}.values .ic{font-size:28px;line-height:1}
+/* sections */
+.sec{padding:clamp(40px,6vw,88px) 0}.sec:nth-of-type(even){background:var(--light)}
+.sec h2{color:var(--navy);font-size:clamp(26px,4vw,38px);margin-bottom:6px}
+.sec .lead{max-width:640px;margin:0 0 28px}.bar{width:56px;height:4px;background:var(--orange);margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.card{background:#fff;border:1px solid #d8e3f8;border-top:4px solid var(--blue);border-radius:10px;padding:20px}
+.card h3{color:var(--blue);font-size:17px;margin-bottom:6px}.card p{margin:0;font-size:15px}
+.empty{background:var(--navy);color:#fff;border-radius:14px;padding:24px}
+/* academic cards: five across on desktop, balanced rows below */
+.grid.five{display:flex;flex-wrap:wrap;gap:18px}.grid.five .card{flex:0 1 calc(20% - 14.4px)}
+@media(max-width:1099px){.grid.five .card{flex:1 1 calc(33.333% - 12px)}}
+@media(max-width:699px){.grid.five .card{flex:1 1 calc(50% - 9px)}}
+@media(max-width:459px){.grid.five .card{flex:1 1 100%}}
+/* shared building blocks for admission forms, dashboards, admin screens */
+.table-wrap{overflow-x:auto;max-width:100%}.table-wrap table{border-collapse:collapse;min-width:520px;width:100%}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px}
+.dash{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,1fr);gap:20px}.dash>aside{position:sticky;top:70px;align-self:start}
+.chart{width:100%;aspect-ratio:16/9;max-height:60vh}
+@media(max-width:900px){.dash{grid-template-columns:minmax(0,1fr)}.dash>aside{position:static}}
+@media(max-height:700px){.nav{position:static}.hero{min-height:340px}.hero .wrap{padding-top:28px;padding-bottom:70px}.sub{max-height:60vh;overflow:auto}}
+/* landing sections */
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;list-style:none;padding:0;margin:0 0 24px;position:relative}
+.steps::before{content:"";position:absolute;left:8%;right:8%;top:38px;border-top:2px dashed #9db5e3;z-index:0}
+.step{position:relative;z-index:1;background:#fff;border:1px solid #d8e3f8;border-radius:16px;padding:16px 12px;text-align:center;transition:transform .2s,box-shadow .2s}
+.step:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(6,46,112,.15)}
+.step .n{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;font:700 18px/44px var(--head);margin:0 auto 8px}
+.step .si{font-size:22px}.step h3{font-size:15px;color:var(--navy);margin:4px 0}.step p{margin:0;font-size:13px;line-height:1.4}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+.photo{min-height:260px;border-radius:14px;background:linear-gradient(135deg,#0648AD,#062E70);background-size:cover;background-position:center}
+.card a.more{display:inline-block;margin-top:10px;color:var(--blue);font:600 14px var(--head);text-decoration:none}
+.crumb{font-size:14px;margin-bottom:12px}.crumb a{color:var(--blue)}
+.page{padding:48px 0 64px;min-height:50vh}
+@media(max-width:1000px){.steps{grid-template-columns:repeat(3,1fr)}.steps::before{display:none}}
+@media(max-width:700px){.steps{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:72%;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}.step{scroll-snap-align:start}.split{grid-template-columns:1fr}}
+/* wave + footer */
+.wave{display:block;width:100%;height:70px;margin-bottom:-1px}
+.foot{background:var(--navy);color:#fff;padding:34px 0 20px}
+.foot .wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:28px}
+.foot a{text-decoration:none}.foot h3{font-size:16px;margin-bottom:8px;color:var(--orange)}.foot p{margin:4px 0}
+.copy{text-align:center;font-size:13px;opacity:.75;padding-top:20px}
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(6,20,50,.65);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal.show{display:flex}.box{background:#fff;border-radius:14px;max-width:420px;width:100%;padding:clamp(18px,4vw,28px);position:relative;max-height:92vh;max-height:calc(100dvh - 32px);overflow:auto}
+.box h2{color:var(--navy);font-size:24px}.x{position:absolute;right:12px;top:8px;background:none;border:0;font-size:28px;cursor:pointer;color:var(--navy)}
+.f{margin-top:12px}.f label{display:block;font:600 13px var(--head);color:var(--navy)}
+.f input{width:100%;padding:10px 12px;border:1px solid #b9c8e6;border-radius:8px;font:inherit}.f input.bad{border-color:#c0392b}
+.err{color:#c0392b;font-size:13px;min-height:18px}.swap{background:none;border:0;color:var(--blue);font-weight:600;cursor:pointer;margin-top:12px;padding:0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;z-index:200;display:none;max-width:90vw}
+#toast.bad{background:#c0392b}
+@media(max-width:1100px){
+.burger{display:block}.menu{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;align-items:stretch;background:var(--navy);max-height:calc(100vh - 130px);overflow:auto}
+.menu.show{display:flex}.menu>li>a,.menu>li>button{width:100%;justify-content:space-between;font-size:15px;padding:14px 18px}
+.menu>li:hover>.sub{display:none}.menu>li.open>.sub{display:block}.sub{position:static;box-shadow:none;border-radius:0;background:#0a3a8a}.sub a{color:#fff}
+.nav .wrap{position:relative}.nav .loginbtn{margin-left:auto}}
+@media(max-width:900px){.values ul{grid-template-columns:1fr 1fr}.values li:nth-child(odd){border-left:0}.foot .wrap{grid-template-columns:1fr}.tag{font-size:18px}.id{padding:6px 12px}}
+@media(max-width:520px){.values ul{grid-template-columns:1fr}.values li{border-left:0}.hero .wrap{padding-bottom:96px}.logo{width:36px;height:36px}.id{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.slides{transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="mast"><div class="wrap">
+  <div class="ids" id="ids"></div>
+  <div style="display:flex;align-items:center;gap:16px"><span class="tag" id="tag"></span><div class="soc" id="soc"></div></div>
+</div></header>
+
+<nav class="nav" aria-label="Main"><div class="wrap">
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">☰</button>
+  <ul class="menu" id="menu"></ul>
+  <a class="btn loginbtn" id="loginBtn" href="#" style="padding:8px 18px">Portal Login</a>
+</div></nav>
+
+<main id="home">
+  <section class="hero" id="hero" aria-roledescription="carousel" aria-label="Campus photos">
+    <div class="slides" id="slides"></div>
+    <div class="wrap">
+      <h1 id="hTitle"></h1><p class="sub2" id="hSub"></p><p class="desc" id="hDesc"></p>
+      <div class="cta"><a class="btn" id="hEnroll" href="#"></a><a class="btn ghost" id="hDiscover" href="#"></a></div>
+    </div>
+    <div class="ctl"><button class="arrow" id="prev" aria-label="Previous slide">‹</button><div class="dots" id="dots"></div><button class="arrow" id="next" aria-label="Next slide">›</button></div>
+  </section>
+  <section class="values" id="homepage-values" aria-label="Our values"><ul id="values"></ul></section>
+  <div id="sections"></div>
+</main>
+
+<svg class="wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C240 0 480 70 720 36 S1200 4 1440 38 V70 H0Z" fill="#FF941F"/><path d="M0 52 C300 18 560 72 860 44 S1260 24 1440 50 V70 H0Z" fill="#0648AD"/><path d="M0 62 C360 36 700 70 1000 54 S1320 44 1440 60 V70 H0Z" fill="#062E70"/></svg>
+<footer class="foot" id="homepage-contact"><div class="wrap">
+  <div><h3>Moreh Academy</h3><p id="fLoc"></p></div>
+  <div><h3>Contact</h3><p id="fPhone"></p><p><a id="fMail"></a></p></div>
+  <div><h3>Follow Us</h3><div class="soc" id="fSoc"></div></div>
+</div><p class="copy" id="fCopy"></p></footer>
+
+<div class="modal" id="mSignin" role="dialog" aria-modal="true" aria-labelledby="siT"><div class="box">
+  <button class="x" data-close aria-label="Close">×</button><h2 id="siT">Sign in</h2>
+  <div class="f"><label for="siUser">Email or username</label><input id="siUser" autocomplete="username"></div>
+  <div class="f"><label for="siPass">Password</label><input id="siPass" type="password" autocomplete="current-password"></div>
+  <p class="err" id="siErr" role="alert"></p>
+  <button class="btn blue" id="siGo" style="width:100%">Sign in</button>
+  <button class="swap" data-swap="mCreate">No account yet? Create one</button>
+</div></div>
+<div class="modal" id="mCreate" role="dialog" aria-modal="true" aria-labelledby="caT"><div class="box">
+  <button class="x" data-close aria-label="Close">×</button><h2 id="caT">Create account</h2>
+  <div class="f"><label for="caName">Full name</label><input id="caName" autocomplete="name"></div>
+  <div class="f"><label for="caMail">Email</label><input id="caMail" type="email" autocomplete="email"></div>
+  <div class="f"><label for="caPass">Password (8+ characters)</label><input id="caPass" type="password" autocomplete="new-password"></div>
+  <div class="f"><label for="caPass2">Confirm password</label><input id="caPass2" type="password" autocomplete="new-password"></div>
+  <p class="err" id="caErr" role="alert"></p>
+  <button class="btn blue" id="caGo" style="width:100%">Create account</button>
+  <button class="swap" data-swap="mSignin">Already registered? Sign in</button>
+</div></div>
+<div id="toast" role="status"></div>
+
+<script>
+/* ===== Backend hooks: rename to your real Code.gs functions ===== */
+var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',signIn:'signInUser',createAccount:'createApplicantAccount'};
+
+/* ===== Content model (Phase 2 will load this from Sheets, published copy) ===== */
+var DEFAULT_HOME={
+ ids:[{name:'Moreh Academy',short:'MA',logo:'',fb:'https://facebook.com/ilovemoreh'},
+      {name:'Moreh Global Innovative College',short:'MG',logo:'',fb:'https://facebook.com/MorehGlobal2019'},
+      {name:'Moreh College',short:'MC',logo:'',fb:'https://facebook.com/morehcollege'}],
+ tagline:'Learn · Grow · Excel',
+ hero:{title:'Welcome to',name:'Moreh Academy',subtitle:'School of Righteousness and Excellence.',
+  desc:'Welcome to Moreh Academy. School of Righteousness and Excellence.',
+  enroll:{label:'Enroll Now!',to:'#create'},discover:{label:'Discover Moreh Academy',to:'route:about'},
+  slides:['','',''],intervalMs:6500},
+ values:[{label:'Quality Education',icon:'📘',on:true},{label:'Holistic Development',icon:'🧍',on:true},{label:'Academic Excellence',icon:'🏆',on:true},{label:'Supportive Community',icon:'🤝',on:true},{label:'A Brighter Future',icon:'⭐',on:true}],
+ footer:{loc:'Moreh Academy, Taguig City, Philippines',phone:'Admissions: 0961 876 6886',email:'registrar@morehacademy.com',fb:'https://facebook.com/ilovemoreh',yt:'https://youtube.com/'},
+sectionTitle:'Your Journey to Moreh Academy',sectionSub:'Six simple steps toward becoming a Moreh Academy student.',
+ steps:[{t:'Create an Account',d:'Register your applicant account.',i:'👤'},{t:'Complete Application',d:'Fill out the application form.',i:'📝'},{t:'Submit Requirements',d:'Upload the required documents.',i:'📎'},{t:'Application Review',d:'Application assessment by the school.',i:'🔍'},{t:'Admission Decision',d:'Receive your application result.',i:'📬'},{t:'Enrollment Confirmation',d:'Complete your enrollment.',i:'✅'}],
+ aboutPreview:{heading:'Building a Strong Foundation for Lifelong Success',linkLabel:'Learn More',text:'Moreh Academy is a learning community committed to providing excellent and values-driven education from Kindergarten to Grade 12.',photo:''},
+ progDesc:{'Kindergarten':'A caring start to learning.','Elementary':'Strong foundations in core subjects.','Junior High School':'Skills and character for adolescence.','Senior High School':'Clusters that prepare for college and career.','College Program':'Higher education pathways.'},
+ pages:{},
+ nav:[
+  {id:'about',label:'About Us',lead:'Who we are and what we believe.',subs:[['Vision, Mission & Core Values'],['History'],['School Leadership']]},
+  {id:'admissions',label:'Admissions',lead:'Everything you need to enroll.',subs:[['Enrollment Procedure'],['Admission Requirements'],['Scholarships'],['Frequently Asked Questions']]},
+  {id:'academics',label:'Academics',lead:'Learning programs from Kindergarten to College.',subs:[['Kindergarten'],['Elementary'],['Junior High School'],['Senior High School'],['College Program']]},
+  {id:'campus-life',label:'Campus Life',lead:'Life beyond the classroom.',subs:[['Student Organizations'],['School Activities & Events'],['Sports & Athletics'],['Clubs & Societies'],['Campus Facilities & Tour']]},
+  {id:'forms',label:'Downloadable Forms',lead:'Forms you can download and print.',subs:[['TLC Student Application Form'],['Consent Form']]},
+  {id:'news',label:'News & Updates',lead:'The latest from Moreh Academy.',subs:[['School Announcements'],['Latest News'],['Upcoming Events'],['Enrollment Announcements'],['School Achievements']]}]
+};
+var APP_BASE='<?= baseUrl ?>';
+var APP_PAGE='<?= page ?>';
+var APP_PREVIEW='<?= preview ?>';
+var HOME=DEFAULT_HOME,$=function(i){return document.getElementById(i)};
+function safeUrl(u){return /^(https?:|mailto:|#|route:)/i.test(u||'')?u:'#'}
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
+function slug(s){return s.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+function toast(m,bad){var t=$('toast');t.textContent=m;t.className=bad?'bad':'';t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display='none'},3500)}
+function call(fn,args,ok,fail){
+ if(typeof google==='undefined'||!google.script){fail&&fail('Backend not connected (preview mode).');return}
+ google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail&&fail(e&&e.message||'Something went wrong. Try again.')})[fn].apply(null,args)}
+
+/* ===== Routing: home + dedicated pages (server doGet passes APP_PAGE; hash used in preview) ===== */
+function link(r){return APP_BASE?APP_BASE+'?page='+r:'#/'+r}
+function tgt(){return APP_BASE?' target="_top"':''}
+function cur_route(){return APP_PAGE||location.hash.replace(/^#\/?/,'')||'home'}
+function routeHref(to){return to.indexOf('route:')===0?link(to.slice(6)):safeUrl(to)}
+function pageInfo(r){
+ var parts=r.split('/'),n=HOME.nav.filter(function(x){return x.id===parts[0]})[0],sub=null,title='';
+ if(r==='contact')title='Contact Information';
+ else if(n){if(parts[1]){sub=n.subs.filter(function(s){return slug(s[0])===parts[1]})[0];title=sub?sub[0]:''}else title=n.label}
+ return {n:n,sub:sub,title:title,body:(HOME.pages&&HOME.pages[r])||''}}
+function renderPage(r){
+ var i=pageInfo(r),f=HOME.footer,out;
+ if(!i.title){out='<h2>Page not found</h2><p class="lead">This page does not exist. <a href="'+link('home')+'"'+tgt()+'>Return home</a>.</p>'}
+ else{
+  var crumb='<div class="crumb"><a href="'+link('home')+'"'+tgt()+'>Home</a>'+(i.n?' › <a href="'+link(i.n.id)+'"'+tgt()+'>'+esc(i.n.label)+'</a>':'')+(i.sub?' › '+esc(i.title):'')+'</div>';
+  var body=i.body?'<div>'+esc(i.body)+'</div>':(i.n&&!i.sub?'<div class="grid">'+i.n.subs.map(function(s){return '<article class="card"><h3>'+esc(s[0])+'</h3><a class="more" href="'+link(i.n.id+'/'+slug(s[0]))+'"'+tgt()+'>Open page</a></article>'}).join('')+'</div>':
+   r==='contact'?'<div class="empty"><p style="margin:0">'+esc(f.loc)+'<br>'+esc(f.phone)+'<br>'+esc(f.email)+'</p></div>':'<div class="empty"><p style="margin:0">Content coming soon. Administrators will add it through Website Pages Management (Phase 3).</p></div>');
+  out=crumb+'<div class="bar"></div><h2>'+esc(i.title)+'</h2><p class="lead">'+esc(i.sub?'':(i.n?i.n.lead:''))+'</p>'+body}
+ return '<section class="page"><div class="wrap">'+out+'</div></section>'}
+function renderHome(){
+ var h=HOME,d=h.display||{},T=tgt(),ab=h.aboutPreview,nw=h.newsPreview||{title:'News & Announcements',items:[]},
+ ac=h.nav.filter(function(n){return n.id==='academics'})[0],
+ prog=((h.programs&&h.programs.items)||ac.subs.map(function(x){return {name:x[0],desc:h.progDesc[x[0]]||'',on:true}})).filter(function(x){return x.on!==false}),
+ items=(nw.items||[]).filter(function(x){return x.title});
+ var S={
+ admission:'<section class="sec" id="admission-process"><div class="wrap"><div class="bar"></div><h2>'+esc(h.sectionTitle)+'</h2><p class="lead">'+esc(h.sectionSub)+'</p><ol class="steps">'+h.steps.map(function(s,k){return '<li class="step"><div class="n">'+(k+1)+'</div><div class="si" aria-hidden="true">'+esc(s.i)+'</div><h3>'+esc(s.t)+'</h3><p>'+esc(s.d)+'</p></li>'}).join('')+'</ol><a class="btn blue" href="#create">Enroll Now!</a></div></section>',
+ about:'<section class="sec" id="about-preview"><div class="wrap split"><div class="photo" style="'+(ab.photo?'background-image:url('+esc(ab.photo)+')':'')+'" role="img" aria-label="Moreh Academy students"></div><div><div class="bar"></div><h2>'+esc(ab.heading)+'</h2><p>'+esc(ab.text)+'</p><a class="btn blue" href="'+link('about')+'"'+T+'>'+esc(ab.linkLabel||'Learn More')+'</a></div></div></section>',
+ programs:'<section class="sec" id="academics-preview"><div class="wrap"><div class="bar"></div><h2>'+esc((h.programs&&h.programs.title)||'Academic Programs')+'</h2><p class="lead">'+esc(ac.lead)+'</p><div class="grid five">'+prog.map(function(x){return '<article class="card"><h3>'+esc(x.name)+'</h3><p>'+esc(x.desc)+'</p><a class="more" href="'+link('academics/'+slug(x.name))+'"'+T+'>Learn more</a></article>'}).join('')+'</div></div></section>',
+ news:'<section class="sec" id="news-preview"><div class="wrap"><div class="bar"></div><h2>'+esc(nw.title||'News & Announcements')+'</h2>'+(items.length?'<div class="grid">'+items.map(function(x){return '<article class="card"><h3>'+esc(x.title)+'</h3>'+(x.date?'<p style="font-size:13px;opacity:.7">'+esc(x.date)+'</p>':'')+'<p>'+esc(x.summary)+'</p>'+(x.link?'<a class="more" href="'+esc(routeHref(x.link))+'"'+T+'>Read more</a>':'')+'</article>'}).join('')+'</div><p style="margin-top:18px"><a class="btn blue" href="'+link('news/latest-news')+'"'+T+'>View all news</a></p>':'<div class="empty"><strong>No announcements yet.</strong><p style="margin:4px 0 12px">Follow Moreh Academy for future updates.</p><a class="btn" href="'+link('news/latest-news')+'"'+T+'>View all news</a></div>')+'</div></section>'};
+ var order=(d.order||[]).filter(function(k){return S[k]});Object.keys(S).forEach(function(k){if(order.indexOf(k)<0)order.push(k)});
+ return order.filter(function(k){return (d.hidden||[]).indexOf(k)<0}).map(function(k){return S[k]}).join('')}
+
+/* ===== Published / draft content from the backend ===== */
+function applyContent(c){
+ if(!c||!c.sections)return;var s=c.sections,H=HOME;
+ if(s.masthead){if(Array.isArray(s.masthead.ids)&&s.masthead.ids.length)H.ids=s.masthead.ids;if(s.masthead.tagline!=null)H.tagline=s.masthead.tagline}
+ if(s.hero){var o=s.hero;['title','name','subtitle','desc','intervalMs'].forEach(function(k){if(o[k]!=null&&o[k]!=='')H.hero[k]=o[k]});['enroll','discover'].forEach(function(k){if(o[k])H.hero[k]=Object.assign({},H.hero[k],o[k])});if(Array.isArray(o.slides)&&o.slides.length)H.hero.slides=o.slides}
+ if(s.values&&Array.isArray(s.values.items))H.values=s.values.items;
+ if(s.admission){var a=s.admission;if(a.title)H.sectionTitle=a.title;if(a.sub!=null)H.sectionSub=a.sub;if(Array.isArray(a.steps))H.steps=a.steps.filter(function(x){return x.on!==false})}
+ if(s.about)H.aboutPreview=Object.assign({},H.aboutPreview,s.about);
+ if(s.programs)H.programs=s.programs;if(s.news)H.newsPreview=s.news;
+ if(s.footer)H.footer=Object.assign({},H.footer,s.footer);if(s.display)H.display=s.display}
+
+/* ===== Render ===== */
+function render(){
+ var h=HOME;
+ $('ids').innerHTML=h.ids.map(function(i){return '<a class="id" href="'+esc(safeUrl(i.fb))+'" target="_blank" rel="noopener">'+(i.logo?'<img class="logo" src="'+esc(i.logo)+'" alt="">':'<span class="logo">'+esc(i.short)+'</span>')+'<span>'+esc(i.name)+'</span></a>'}).join('');
+ $('tag').textContent=h.tagline;
+ var soc='<a href="'+esc(safeUrl(h.footer.fb))+'" target="_blank" rel="noopener" aria-label="Facebook">f</a><a href="'+esc(safeUrl(h.footer.yt))+'" target="_blank" rel="noopener" aria-label="YouTube">▶</a><a href="mailto:'+esc(h.footer.email)+'" aria-label="Email">✉</a>';
+ $('soc').innerHTML=soc;$('fSoc').innerHTML=soc;
+ $('menu').innerHTML='<li><a href="'+link('home')+'"'+tgt()+'>Home</a></li>'+h.nav.map(function(n){
+  return '<li><button aria-haspopup="true" aria-expanded="false">'+esc(n.label)+'</button><ul class="sub">'+n.subs.map(function(s){return '<li><a href="'+link(n.id+'/'+slug(s[0]))+'"'+tgt()+'>'+esc(s[0])+'</a></li>'}).join('')+'</ul></li>'}).join('')
+  +'<li><a href="'+link('contact')+'"'+tgt()+'>Contact Information</a></li>';
+ $('hTitle').innerHTML=esc(h.hero.title)+'<span>'+esc(h.hero.name)+'</span>';
+ $('hSub').textContent=h.hero.subtitle;$('hDesc').textContent=h.hero.desc;
+ $('hEnroll').textContent=h.hero.enroll.label;$('hEnroll').href=routeHref(h.hero.enroll.to);
+ $('hDiscover').textContent=h.hero.discover.label;$('hDiscover').href=routeHref(h.hero.discover.to);if(APP_BASE)$('hDiscover').target='_top';
+ var fall=['linear-gradient(135deg,#062E70,#0648AD)','linear-gradient(135deg,#0648AD,#062E70)','linear-gradient(135deg,#062E70,#FF941F)'];
+ $('slides').innerHTML=h.hero.slides.map(function(u,i){return '<div class="slide" style="background-image:'+(u?'url('+esc(u)+')':fall[i%3])+'"></div>'}).join('');
+ $('dots').innerHTML=h.hero.slides.map(function(_,i){return '<button aria-label="Go to slide '+(i+1)+'" data-i="'+i+'"></button>'}).join('');
+ $('values').innerHTML=h.values.filter(function(v){return v.on}).map(function(v){return '<li><span class="ic" aria-hidden="true">'+esc(v.icon)+'</span>'+esc(v.label)+'</li>'}).join('');
+ var r=cur_route(),home=(r==='home');$('hero').hidden=!home;$('homepage-values').hidden=!home||((HOME.display||{}).hidden||[]).indexOf('values')>-1;if(APP_PREVIEW&&!$('pvBar')){var pb=document.createElement('div');pb.id='pvBar';pb.textContent='Draft preview. Visitors do not see this version.';pb.style.cssText='background:#FF941F;color:#062E70;text-align:center;font:700 13px Poppins,sans-serif;padding:6px';document.body.insertBefore(pb,document.body.firstChild)}$('sections').innerHTML=home?renderHome():renderPage(r);document.title=(home?'Moreh Academy':pageInfo(r).title+' | Moreh Academy');if(!home)window.scrollTo(0,0);
+ $('fLoc').textContent=h.footer.loc;$('fPhone').textContent=h.footer.phone;$('fMail').textContent=h.footer.email;$('fMail').href='mailto:'+h.footer.email;
+ $('fCopy').textContent='© '+new Date().getFullYear()+' Moreh Academy. All rights reserved.';
+ bindNav();if(home)initCarousel();else clearInterval(timer);
+}
+
+/* ===== Navigation ===== */
+function bindNav(){
+ var menu=$('menu');
+ menu.querySelectorAll('li>button').forEach(function(b){b.onclick=function(e){
+  var li=b.parentNode,was=li.classList.contains('open');
+  menu.querySelectorAll('li.open').forEach(function(x){x.classList.remove('open');x.firstChild.setAttribute('aria-expanded','false')});
+  if(!was){li.classList.add('open');b.setAttribute('aria-expanded','true')}e.stopPropagation()}});
+ menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){menu.classList.remove('show');$('burger').setAttribute('aria-expanded','false')})});
+}
+$('burger').onclick=function(){var s=$('menu').classList.toggle('show');this.setAttribute('aria-expanded',s)};
+document.addEventListener('click',function(){document.querySelectorAll('#menu li.open').forEach(function(x){x.classList.remove('open')})});
+
+/* ===== Carousel ===== */
+var cur=0,timer=null,paused=false;
+function go(i){var n=HOME.hero.slides.length;cur=(i+n)%n;$('slides').style.transform='translateX(-'+cur*100+'%)';
+ document.querySelectorAll('#dots button').forEach(function(d,k){d.classList.toggle('on',k===cur)})}
+function restart(){clearInterval(timer);timer=setInterval(function(){if(!paused)go(cur+1)},HOME.hero.intervalMs||6500)}
+function initCarousel(){
+ go(0);restart();
+ $('prev').onclick=function(){go(cur-1);restart()};$('next').onclick=function(){go(cur+1);restart()};
+ $('dots').onclick=function(e){var i=e.target.dataset.i;if(i!=null){go(+i);restart()}};
+ var h=$('hero'),x0=null;
+ h.onmouseenter=function(){paused=true};h.onmouseleave=function(){paused=false};
+ h.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;paused=true},{passive:true});
+ h.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40){go(cur+(dx<0?1:-1));restart()}paused=false},{passive:true});
+}
+
+/* ===== Modals ===== */
+function openM(id){document.querySelectorAll('.modal').forEach(function(m){m.classList.remove('show')});$(id).classList.add('show');var f=$(id).querySelector('input');f&&f.focus()}
+function closeM(){document.querySelectorAll('.modal').forEach(function(m){m.classList.remove('show')})}
+document.querySelectorAll('[data-close]').forEach(function(b){b.onclick=closeM});
+document.querySelectorAll('[data-swap]').forEach(function(b){b.onclick=function(){openM(b.dataset.swap)}});
+document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('mousedown',function(e){if(e.target===m)closeM()})});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeM()});
+$('loginBtn').onclick=function(e){e.preventDefault();openM('mSignin')};
+document.addEventListener('click',function(e){var a=e.target.closest('a[href="#create"],a[href="#signin"]');if(a){e.preventDefault();openM(a.getAttribute('href')==='#create'?'mCreate':'mSignin')}});
+
+function mark(ids,bad){ids.forEach(function(i){$(i).classList.toggle('bad',bad.indexOf(i)>-1)})}
+$('siGo').onclick=function(){
+ var u=$('siUser').value.trim(),p=$('siPass').value,bad=[];if(!u)bad.push('siUser');if(!p)bad.push('siPass');
+ mark(['siUser','siPass'],bad);$('siErr').textContent=bad.length?'Enter your email or username and password.':'';if(bad.length)return;
+ var b=this;b.disabled=true;b.textContent='Signing in…';
+ call(API.signIn,[{user:u,password:p}],function(r){b.disabled=false;b.textContent='Sign in';
+  if(r&&r.ok===false){$('siErr').textContent=r.message||'Sign-in failed.';return}closeM();toast('Signed in.');
+  /* TODO: hand off to your existing post-login view here */},
+  function(m){b.disabled=false;b.textContent='Sign in';$('siErr').textContent=m})};
+$('caGo').onclick=function(){
+ var n=$('caName').value.trim(),m=$('caMail').value.trim(),p=$('caPass').value,p2=$('caPass2').value,bad=[],msg='';
+ if(!n)bad.push('caName');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))bad.push('caMail');if(p.length<8)bad.push('caPass');if(p2!==p)bad.push('caPass2');
+ if(bad.length)msg=bad.indexOf('caPass2')>-1&&bad.length===1?'Passwords do not match.':'Complete all fields. Use a valid email and a password of 8+ characters.';
+ mark(['caName','caMail','caPass','caPass2'],bad);$('caErr').textContent=msg;if(bad.length)return;
+ var b=this;b.disabled=true;b.textContent='Creating…';
+ call(API.createAccount,[{name:n,email:m,password:p}],function(r){b.disabled=false;b.textContent='Create account';
+  if(r&&r.ok===false){$('caErr').textContent=r.message||'Could not create account.';return}toast('Account created. You can sign in now.');openM('mSignin')},
+  function(e){b.disabled=false;b.textContent='Create account';$('caErr').textContent=e})};
+
+window.addEventListener('hashchange',function(){if(!APP_PAGE)render()});
+/* ===== Boot: published content from backend, falling back to defaults ===== */
+render();
+call(APP_PREVIEW?API.getDraft:API.getHomepage,[],function(d){applyContent(d);render()},function(m){if(APP_PREVIEW)toast(m,true)});
+</script>
+</body>
+</html>
