@@ -1,0 +1,269 @@
+/**
+ * Auth.gs - Auth foundation: Users sheet, sign-in, sessions, sign-out, password change, Owner bootstrap.
+ *
+ * Roles: Owner, Encoder, Student. This file only answers "who is this and what is their role".
+ * What each role may DO is decided by the feature files (e.g. HomepageMgmt.gs requires Owner).
+ *
+ * PUBLIC (callable from the browser):  authSignIn, authSignOut, authWhoAmI, authChangePassword
+ * EDITOR-ONLY (refuse to run from the web): authSetupOwner, authResetPasswordFromProperties, authBenchmark
+ * INTERNAL (trailing underscore, never callable from the browser): everything else, incl. authResolveSession_
+ *
+ * Sheet "Users":    Email | Role | Status | PasswordHash | TokenVersion | CreatedAt | LastLoginAt | PasswordChangedAt
+ * Sheet "AuthAudit": At | Email | Action | Detail      (never contains passwords or tokens)
+ *
+ * Password storage: PBKDF2-HMAC-SHA256 with a per-user salt, written by hand because Apps Script has no
+ * built-in password hasher. The iteration count is stored inside each hash, so it can be raised later
+ * without locking anyone out. Run authBenchmark() once to pick a count that signs in in about a second.
+ */
+var AUTH = {
+  USERS: 'Users', AUDIT: 'AuthAudit',
+  HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt'],
+  ROLES: ['Owner', 'Encoder', 'Student'],
+  ITER: 2000,                 // default for NEW hashes. Tune with authBenchmark().
+  MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
+  IDLE_SEC: 7200,             // a session dies after 2 hours without use
+  MAX_SEC: 21600,             // ...and after 6 hours no matter what (CacheService hard limit)
+  MAX_FAILS: 5, LOCK_SEC: 900 // 5 wrong passwords for one email -> 15 minute pause
+};
+
+/* ====================== PUBLIC (browser) ====================== */
+
+/** authSignIn(email, password) -> {success, message, data:{token, email, role}} */
+function authSignIn(email, password) {
+  try {
+    email = authEmail_(email);
+    if (!email || typeof password !== 'string' || !password || password.length > AUTH.MAX_PW) return authFail_('Enter your email and password.');
+    var failKey = 'af_' + authDigest_(email), cache = CacheService.getScriptCache();
+    if (Number(cache.get(failKey) || 0) >= AUTH.MAX_FAILS) return authFail_('Too many attempts. Please wait 15 minutes and try again.');
+
+    var u = authFindUser_(email), good = false;
+    if (u) {
+      good = authVerify_(password, u.hash);
+    } else {
+      authVerify_(password, authMakeHash_('dummy-password-for-timing'));   // same work whether or not the email exists
+    }
+    if (!good) {
+      var n = Number(cache.get(failKey) || 0) + 1;
+      cache.put(failKey, String(n), AUTH.LOCK_SEC);
+      if (u) authAudit_(email, n >= AUTH.MAX_FAILS ? 'locked' : 'sign-in-fail', 'attempt ' + n);
+      return authFail_('Incorrect email or password.');
+    }
+    if (u.status !== 'Active') { authAudit_(email, 'sign-in-blocked', u.status); return authFail_('This account is not active. Please contact the school.'); }
+
+    cache.remove(failKey);
+    authUpdateRow_(u.row, { LastLoginAt: new Date().toISOString() });
+    var token = authIssueSession_(u);
+    authAudit_(email, 'sign-in-ok', u.role);
+    return { success: true, message: 'Signed in.', data: { token: token, email: u.email, role: u.role } };
+  } catch (err) {
+    return authFail_('Sign-in is unavailable right now. Please try again.', err);
+  }
+}
+
+/** authSignOut(token) -> {success} Always succeeds from the caller's point of view. */
+function authSignOut(token) {
+  try {
+    var s = authResolveSession_(token);
+    if (authValidToken_(token)) CacheService.getScriptCache().remove('as_' + authDigest_(token));
+    if (s) authAudit_(s.email, 'sign-out', '');
+  } catch (err) { /* ignore */ }
+  return { success: true, message: 'Signed out.' };
+}
+
+/** authWhoAmI(token) -> {success, data:{email, role}}  Used by pages to restore state after a reload. */
+function authWhoAmI(token) {
+  try {
+    var s = authResolveSession_(token);
+    return s ? { success: true, message: 'OK', data: { email: s.email, role: s.role } } : authFail_('Session expired. Please sign in again.');
+  } catch (err) { return authFail_('Could not check your session.', err); }
+}
+
+/** authChangePassword(token, oldPassword, newPassword) -> {success, data:{token}}  All other sessions are ended. */
+function authChangePassword(token, oldPassword, newPassword) {
+  try {
+    var s = authResolveSession_(token);
+    if (!s) return authFail_('Session expired. Please sign in again.');
+    if (typeof oldPassword !== 'string' || typeof newPassword !== 'string') return authFail_('Enter your current and new password.');
+    var min = s.role === 'Owner' ? AUTH.MIN_PW_OWNER : AUTH.MIN_PW;
+    if (newPassword.length < min || newPassword.length > AUTH.MAX_PW) return authFail_('New password must be ' + min + ' to ' + AUTH.MAX_PW + ' characters.');
+    if (newPassword === oldPassword) return authFail_('Choose a password different from the current one.');
+    var u = authFindUser_(s.email);
+    if (!u || !authVerify_(oldPassword, u.hash)) return authFail_('Current password is incorrect.');
+    authUpdateRow_(u.row, { PasswordHash: authMakeHash_(newPassword), TokenVersion: u.tv + 1, PasswordChangedAt: new Date().toISOString() });
+    authAudit_(u.email, 'password-change', '');
+    var fresh = authFindUser_(u.email);
+    return { success: true, message: 'Password changed.', data: { token: authIssueSession_(fresh) } };
+  } catch (err) { return authFail_('Could not change the password.', err); }
+}
+
+/* ====================== INTERNAL: used by feature files ====================== */
+
+/**
+ * The portal's one session check. Returns {email, role} for a valid session, otherwise null. Fails closed.
+ * Role and status are read from the Users sheet on every call, so disabling a user or changing a role takes
+ * effect on their very next request.
+ */
+function authResolveSession_(token) {
+  if (!authValidToken_(token)) return null;
+  var cache = CacheService.getScriptCache(), key = 'as_' + authDigest_(token), raw = cache.get(key);
+  if (!raw) return null;
+  var s; try { s = JSON.parse(raw); } catch (e) { return null; }
+  var age = Math.floor(Date.now() / 1000) - s.iat;
+  if (age >= AUTH.MAX_SEC) { cache.remove(key); return null; }
+  var u = authFindUser_(s.e);
+  if (!u || u.status !== 'Active' || u.tv !== s.tv) { cache.remove(key); return null; }
+  cache.put(key, raw, Math.max(1, Math.min(AUTH.IDLE_SEC, AUTH.MAX_SEC - age)));   // sliding idle window
+  return { email: u.email, role: u.role };
+}
+
+/** For feature files: returns {email, role} if the session holds one of `roles`, otherwise throws 'Not authorized.' */
+function authRequireRole_(token, roles) {
+  var s = authResolveSession_(token);
+  if (!s || roles.indexOf(s.role) < 0) throw new Error('Not authorized.');
+  return s;
+}
+
+/* ====================== EDITOR-ONLY (run from the Apps Script editor) ====================== */
+
+/**
+ * Creates the first Owner. Refuses if an Owner already exists.
+ * 1) Project Settings > Script Properties: add AUTH_OWNER_EMAIL and AUTH_OWNER_PASSWORD (12+ characters).
+ * 2) Select authSetupOwner in the editor and click Run. 3) The password property is deleted automatically.
+ */
+function authSetupOwner() {
+  authRequireEditor_();
+  var props = PropertiesService.getScriptProperties();
+  var email = authEmail_(props.getProperty('AUTH_OWNER_EMAIL')), pw = props.getProperty('AUTH_OWNER_PASSWORD') || '';
+  if (!email) throw new Error('Set Script Property AUTH_OWNER_EMAIL to a valid email address.');
+  if (pw.length < AUTH.MIN_PW_OWNER) throw new Error('Set Script Property AUTH_OWNER_PASSWORD to at least ' + AUTH.MIN_PW_OWNER + ' characters.');
+  var lock = LockService.getScriptLock(); lock.waitLock(15000);
+  try {
+    var all = authAllUsers_();
+    if (all.some(function (u) { return u.role === 'Owner'; })) throw new Error('An Owner already exists. Use authResetPasswordFromProperties to reset a password.');
+    if (all.some(function (u) { return u.email === email; })) throw new Error('That email already has an account.');
+    var now = new Date().toISOString();
+    authSheet_().appendRow([email, 'Owner', 'Active', authMakeHash_(pw), 1, now, '', now]);
+  } finally { lock.releaseLock(); }
+  props.deleteProperty('AUTH_OWNER_PASSWORD');
+  authAudit_(email, 'owner-setup', 'by script owner');
+  Logger.log('Owner created for ' + email + '. AUTH_OWNER_PASSWORD was deleted from Script Properties.');
+}
+
+/**
+ * Recovery: sets a new password for the account in AUTH_OWNER_EMAIL, reactivates it, clears any sign-in lock
+ * and ends all of its sessions. Same two Script Properties as authSetupOwner; the password one is deleted after.
+ */
+function authResetPasswordFromProperties() {
+  authRequireEditor_();
+  var props = PropertiesService.getScriptProperties();
+  var email = authEmail_(props.getProperty('AUTH_OWNER_EMAIL')), pw = props.getProperty('AUTH_OWNER_PASSWORD') || '';
+  var u = email && authFindUser_(email);
+  if (!u) throw new Error('No account found for AUTH_OWNER_EMAIL.');
+  var min = u.role === 'Owner' ? AUTH.MIN_PW_OWNER : AUTH.MIN_PW;
+  if (pw.length < min) throw new Error('AUTH_OWNER_PASSWORD must be at least ' + min + ' characters.');
+  authUpdateRow_(u.row, { PasswordHash: authMakeHash_(pw), Status: 'Active', TokenVersion: u.tv + 1, PasswordChangedAt: new Date().toISOString() });
+  CacheService.getScriptCache().remove('af_' + authDigest_(email));
+  props.deleteProperty('AUTH_OWNER_PASSWORD');
+  authAudit_(email, 'password-reset', 'by script owner');
+  Logger.log('Password reset for ' + email + '. AUTH_OWNER_PASSWORD was deleted from Script Properties.');
+}
+
+/** Times one password hash so you can choose AUTH.ITER. Aim for roughly 0.5 to 1.5 seconds. Results go to the log. */
+function authBenchmark() {
+  authRequireEditor_();
+  [500, 1000, 2000, 4000].forEach(function (n) {
+    var t = Date.now(); authPbkdf2_('benchmark', 'benchmark-salt', n);
+    Logger.log(n + ' iterations: ' + (Date.now() - t) + ' ms');
+  });
+}
+
+/* ====================== helpers ====================== */
+
+function authRequireEditor_() {
+  var a = Session.getActiveUser().getEmail(), e = Session.getEffectiveUser().getEmail();
+  if (!a || a !== e) throw new Error('This function can only be run from the Apps Script editor by the script owner.');
+}
+function authFail_(msg, err) {
+  if (err) console.error('Auth error: ' + (err && err.message));
+  return { success: false, message: msg, error: msg };
+}
+function authEmail_(v) {
+  var e = String(v == null ? '' : v).trim().toLowerCase();
+  return (e.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) ? e : '';
+}
+function authValidToken_(t) { return typeof t === 'string' && /^[a-f0-9]{64}$/.test(t); }
+function authDigest_(s) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(s), Utilities.Charset.UTF_8)
+    .map(function (b) { return ('0' + ((b + 256) % 256).toString(16)).slice(-2); }).join('');
+}
+function authIssueSession_(u) {
+  var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');   // 64 hex chars, about 240 random bits
+  CacheService.getScriptCache().put('as_' + authDigest_(token),
+    JSON.stringify({ e: u.email, tv: u.tv, iat: Math.floor(Date.now() / 1000) }), AUTH.IDLE_SEC);
+  return token;
+}
+
+/* ---- password hashing: PBKDF2-HMAC-SHA256, one 32-byte block ---- */
+function authPbkdf2_(password, salt, iters) {
+  var pw = Utilities.newBlob(password).getBytes(), sb = Utilities.newBlob(salt).getBytes();
+  var u = Utilities.computeHmacSha256Signature(sb.concat([0, 0, 0, 1]), pw), t = u.slice();
+  for (var i = 1; i < iters; i++) {
+    u = Utilities.computeHmacSha256Signature(u, pw);
+    for (var j = 0; j < t.length; j++) t[j] = t[j] ^ u[j];
+  }
+  return Utilities.base64Encode(t);
+}
+function authMakeHash_(password) {
+  var salt = Utilities.getUuid();
+  return 'v1$' + AUTH.ITER + '$' + salt + '$' + authPbkdf2_(password, salt, AUTH.ITER);
+}
+function authVerify_(password, stored) {
+  var p = String(stored || '').split('$');
+  if (p.length !== 4 || p[0] !== 'v1') return false;
+  var iters = parseInt(p[1], 10);
+  if (!(iters >= 1 && iters <= 100000)) return false;
+  var a = authPbkdf2_(password, p[2], iters), b = p[3], diff = a.length ^ b.length;   // compare without stopping early
+  for (var i = 0; i < a.length && i < b.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/* ---- Users sheet (batch reads and writes only) ---- */
+function authSpreadsheet_() {
+  var id = PropertiesService.getScriptProperties().getProperty('DB_SHEET_ID');
+  return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+}
+function authSheet_() {
+  var ss = authSpreadsheet_(), sh = ss.getSheetByName(AUTH.USERS);
+  if (!sh) { sh = ss.insertSheet(AUTH.USERS); sh.appendRow(AUTH.HEADERS); sh.setFrozenRows(1); }
+  return sh;
+}
+function authAllUsers_() {
+  var v = authSheet_().getDataRange().getValues(), out = [];
+  for (var i = 1; i < v.length; i++) {
+    var r = v[i], email = String(r[0] || '').trim().toLowerCase();
+    if (!email) continue;
+    out.push({ row: i + 1, email: email, role: String(r[1] || ''), status: String(r[2] || ''), hash: String(r[3] || ''), tv: Number(r[4]) || 1 });
+  }
+  return out;
+}
+function authFindUser_(email) {
+  var all = authAllUsers_();
+  for (var i = 0; i < all.length; i++) if (all[i].email === email && AUTH.ROLES.indexOf(all[i].role) >= 0) return all[i];
+  return null;
+}
+/** changes = {HeaderName: value}. Reads the row once, writes the row once. */
+function authUpdateRow_(row, changes) {
+  var lock = LockService.getScriptLock(); lock.waitLock(15000);
+  try {
+    var sh = authSheet_(), range = sh.getRange(row, 1, 1, AUTH.HEADERS.length), vals = range.getValues();
+    Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
+    range.setValues(vals);
+  } finally { lock.releaseLock(); }
+}
+function authAudit_(email, action, detail) {
+  try {
+    var ss = authSpreadsheet_(), sh = ss.getSheetByName(AUTH.AUDIT);
+    if (!sh) { sh = ss.insertSheet(AUTH.AUDIT); sh.appendRow(['At', 'Email', 'Action', 'Detail']); sh.setFrozenRows(1); }
+    sh.appendRow([new Date().toISOString(), email, action, String(detail || '').slice(0, 300)]);
+  } catch (e) { /* auditing never blocks sign-in */ }
+}

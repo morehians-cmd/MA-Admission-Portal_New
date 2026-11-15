@@ -148,7 +148,7 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 
 <div class="modal" id="mSignin" role="dialog" aria-modal="true" aria-labelledby="siT"><div class="box">
   <button class="x" data-close aria-label="Close">×</button><h2 id="siT">Sign in</h2>
-  <div class="f"><label for="siUser">Email or username</label><input id="siUser" autocomplete="username"></div>
+  <div class="f"><label for="siUser">Email</label><input id="siUser" autocomplete="username"></div>
   <div class="f"><label for="siPass">Password</label><input id="siPass" type="password" autocomplete="current-password"></div>
   <p class="err" id="siErr" role="alert"></p>
   <button class="btn blue" id="siGo" style="width:100%">Sign in</button>
@@ -167,8 +167,8 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 <div id="toast" role="status"></div>
 
 <script>
-/* ===== Backend hooks: rename to your real Code.gs functions ===== */
-var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',signIn:'signInUser',createAccount:'createApplicantAccount'};
+/* ===== Backend hooks. Sign-in functions live in Auth.gs. createAccount is still a placeholder (item 3, later). ===== */
+var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',signIn:'authSignIn',signOut:'authSignOut',whoAmI:'authWhoAmI',createAccount:'createApplicantAccount'};
 
 /* ===== Content model (Phase 2 will load this from Sheets, published copy) ===== */
 var DEFAULT_HOME={
@@ -198,6 +198,7 @@ sectionTitle:'Your Journey to Moreh Academy',sectionSub:'Six simple steps toward
 var APP_BASE='<?= baseUrl ?>';
 var APP_PAGE='<?= page ?>';
 var APP_PREVIEW='<?= preview ?>';
+var APP_TICKET='<?= ticket ?>';
 var HOME=DEFAULT_HOME,$=function(i){return document.getElementById(i)};
 function safeUrl(u){return /^(https?:|mailto:|#|route:)/i.test(u||'')?u:'#'}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
@@ -311,14 +312,30 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeM()});
 $('loginBtn').onclick=function(e){e.preventDefault();openM('mSignin')};
 document.addEventListener('click',function(e){var a=e.target.closest('a[href="#create"],a[href="#signin"]');if(a){e.preventDefault();openM(a.getAttribute('href')==='#create'?'mCreate':'mSignin')}});
 
+/* ===== Session: the token lives in this tab only (sessionStorage, memory fallback). Never in a URL. ===== */
+var MEM_TOKEN='';
+function getToken(){try{return sessionStorage.getItem('ma_token')||MEM_TOKEN}catch(e){return MEM_TOKEN}}
+function saveToken(t){MEM_TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
+function clearToken(){MEM_TOKEN='';try{sessionStorage.removeItem('ma_token')}catch(e){}}
+function resetLoginBtn(){var b=$('loginBtn');b.textContent='Portal Login';b.removeAttribute('target');b.href='#';b.onclick=function(e){e.preventDefault();openM('mSignin')}}
+/* TEMPORARY post-login behaviour until the Phase 4 dashboard exists: Owner gets a link to Homepage Management;
+   Encoder and Student get a Sign out button. Replace this function when the dashboard is built. */
+function showSignedIn(u,quiet){
+ var b=$('loginBtn');
+ if(u.role==='Owner'){b.textContent='Homepage Management';b.onclick=null;if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
+  if(!quiet)toast('Signed in as Owner.')}
+ else{b.textContent='Sign out';b.href='#';b.onclick=function(e){e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');call(API.signOut,[t],function(){},function(){})};
+  if(!quiet)toast('Signed in as '+u.role+'. The portal dashboard is not built yet.')}
+}
+
 function mark(ids,bad){ids.forEach(function(i){$(i).classList.toggle('bad',bad.indexOf(i)>-1)})}
 $('siGo').onclick=function(){
  var u=$('siUser').value.trim(),p=$('siPass').value,bad=[];if(!u)bad.push('siUser');if(!p)bad.push('siPass');
- mark(['siUser','siPass'],bad);$('siErr').textContent=bad.length?'Enter your email or username and password.':'';if(bad.length)return;
+ mark(['siUser','siPass'],bad);$('siErr').textContent=bad.length?'Enter your email and password.':'';if(bad.length)return;
  var b=this;b.disabled=true;b.textContent='Signing in…';
- call(API.signIn,[{user:u,password:p}],function(r){b.disabled=false;b.textContent='Sign in';
-  if(r&&r.ok===false){$('siErr').textContent=r.message||'Sign-in failed.';return}closeM();toast('Signed in.');
-  /* TODO: hand off to your existing post-login view here */},
+ call(API.signIn,[u,p],function(r){b.disabled=false;b.textContent='Sign in';
+  if(!r||r.success!==true){$('siErr').textContent=(r&&r.message)||'Sign-in failed.';return}
+  $('siPass').value='';saveToken(r.data.token);closeM();showSignedIn(r.data,false)},
   function(m){b.disabled=false;b.textContent='Sign in';$('siErr').textContent=m})};
 $('caGo').onclick=function(){
  var n=$('caName').value.trim(),m=$('caMail').value.trim(),p=$('caPass').value,p2=$('caPass2').value,bad=[],msg='';
@@ -333,7 +350,8 @@ $('caGo').onclick=function(){
 window.addEventListener('hashchange',function(){if(!APP_PAGE)render()});
 /* ===== Boot: published content from backend, falling back to defaults ===== */
 render();
-call(APP_PREVIEW?API.getDraft:API.getHomepage,[],function(d){applyContent(d);render()},function(m){if(APP_PREVIEW)toast(m,true)});
+(function(){var t=getToken();if(t&&!APP_PREVIEW)call(API.whoAmI,[t],function(r){if(r&&r.success===true)showSignedIn(r.data,true);else clearToken()})})();
+call(APP_PREVIEW?API.getDraft:API.getHomepage,APP_PREVIEW?[APP_TICKET]:[],function(d){applyContent(d);render()},function(m){if(APP_PREVIEW)toast(m,true)});
 </script>
 </body>
 </html>

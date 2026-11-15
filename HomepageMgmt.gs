@@ -13,16 +13,42 @@ var HP = {
 
 /* ---------- Authorization ---------- */
 /**
- * INTEGRATION POINT. Fails closed. Default rule: the signed-in Google account must be listed in the
- * Script Property HP_ADMIN_EMAILS (comma separated). Replace the body with your portal's Owner/Encoder
- * session check once wired; keep it throwing when the caller is not an authorized administrator.
+ * The ONLY function in this file that knows the portal's session model. Delegates to Auth.gs, which returns
+ * { email, role } for a valid, unexpired session, else null. Fails closed.
  */
-function hpAssertAdmin_() {
+function hpResolveSession_(token) {
+  return authResolveSession_(token);   // Auth.gs: {email, role} or null
+}
+
+/**
+ * Owner only. Accepts (1) a valid portal session whose role is Owner, or (2) break-glass: a Google account
+ * listed in Script Property HP_ADMIN_EMAILS (comma separated). Every break-glass use is audited.
+ */
+function hpAssertAdmin_(token) {
+  var s = token ? hpResolveSession_(token) : null;
+  if (s && s.email && String(s.role).toLowerCase() === 'owner') return String(s.email).toLowerCase();
   var email = (Session.getActiveUser().getEmail() || '').toLowerCase();
   var list = (PropertiesService.getScriptProperties().getProperty('HP_ADMIN_EMAILS') || '')
     .toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(String);
-  if (!email || list.indexOf(email) < 0) throw new Error('Not authorized.');
-  return email;
+  if (email && list.indexOf(email) >= 0) { hpAudit_(email, 'break-glass', ''); return email; }
+  throw new Error('Not authorized.');
+}
+
+/** Minimal audit trail. Swap the body for the portal's real audit logger later. Never blocks the action. */
+function hpAudit_(who, action, detail) {
+  try {
+    var ss = hpSpreadsheet_(), sh = ss.getSheetByName('HomepageAudit');
+    if (!sh) { sh = ss.insertSheet('HomepageAudit'); sh.appendRow(['At', 'Who', 'Action', 'Detail']); sh.setFrozenRows(1); }
+    sh.appendRow([new Date().toISOString(), who, action, String(detail || '').slice(0, 500)]);
+  } catch (e) { /* ignore */ }
+}
+
+/** One-time, 10-minute ticket so the draft preview page load can prove an Owner opened it. */
+function createHomepagePreviewTicket(token) {
+  var email = hpAssertAdmin_(token), t = Utilities.getUuid();
+  CacheService.getScriptCache().put('hp_pt_' + t, email, 600);
+  hpAudit_(email, 'preview', '');
+  return { ticket: t };
 }
 
 /* ---------- Sheet helpers ---------- */
@@ -106,8 +132,8 @@ function getPublishedHomepage() {
 
 /* ---------- Administrator ---------- */
 /** Draft where one exists, otherwise published. Used by ?page=home&preview=draft. */
-function getDraftHomepage() {
-  hpAssertAdmin_();
+function getDraftHomepage(ticket) {
+  if (!ticket || !CacheService.getScriptCache().get('hp_pt_' + ticket)) throw new Error('Preview expired. Open it again from Homepage Management.');
   var rows = hpRows_(), out = { sections: {} };
   Object.keys(rows).forEach(function (k) {
     var d = hpParse_(rows[k].draft) || hpParse_(rows[k].pub);
@@ -116,8 +142,8 @@ function getDraftHomepage() {
   return out;
 }
 /** Everything the admin screen needs: working content plus per-section status. */
-function getHomepageAdminState() {
-  var email = hpAssertAdmin_(), rows = hpRows_(), out = { email: email, sections: {}, status: {} };
+function getHomepageAdminState(token) {
+  var email = hpAssertAdmin_(token), rows = hpRows_(), out = { email: email, sections: {}, status: {} };
   HP.SECTIONS.forEach(function (k) {
     var r = rows[k] || {};
     out.sections[k] = hpParse_(r.draft) || hpParse_(r.pub);
@@ -125,8 +151,8 @@ function getHomepageAdminState() {
   });
   return out;
 }
-function saveHomepageDraft(section, data) {
-  var email = hpAssertAdmin_();
+function saveHomepageDraft(token, section, data) {
+  var email = hpAssertAdmin_(token);
   if (HP.SECTIONS.indexOf(section) < 0) throw new Error('Unknown section.');
   var clean = hpClean_(data, 0);
   if (!clean || typeof clean !== 'object' || Array.isArray(clean)) throw new Error('Invalid content.');
@@ -137,21 +163,23 @@ function saveHomepageDraft(section, data) {
     sh.getRange(row, 2).setValue(JSON.stringify(clean));
     sh.getRange(row, 4, 1, 2).setValues([[new Date().toISOString(), email]]);
   } finally { lock.releaseLock(); }
+  hpAudit_(email, 'save-draft', section);
   return { ok: true, section: section };
 }
-function discardHomepageDraft(section) {
-  hpAssertAdmin_();
+function discardHomepageDraft(token, section) {
+  var email = hpAssertAdmin_(token);
   if (HP.SECTIONS.indexOf(section) < 0) throw new Error('Unknown section.');
   var lock = LockService.getScriptLock(); lock.waitLock(15000);
   try {
     var sh = hpSheet_(), row = hpRowFor_(sh, hpRows_(), section);
     sh.getRange(row, 2).setValue(''); sh.getRange(row, 4, 1, 2).setValues([['', '']]);
   } finally { lock.releaseLock(); }
+  hpAudit_(email, 'discard-draft', section);
   return { ok: true };
 }
 /** Copies every saved draft to Published, logs it to HomepageHistory, clears the cache. */
-function publishHomepage() {
-  var email = hpAssertAdmin_(), lock = LockService.getScriptLock(); lock.waitLock(15000);
+function publishHomepage(token) {
+  var email = hpAssertAdmin_(token), lock = LockService.getScriptLock(); lock.waitLock(15000);
   var n = 0;
   try {
     var sh = hpSheet_(), rows = hpRows_(), hist = hpSpreadsheet_().getSheetByName(HP.HISTORY), now = new Date().toISOString();
@@ -165,6 +193,7 @@ function publishHomepage() {
     });
   } finally { lock.releaseLock(); }
   CacheService.getScriptCache().remove('hp_pub');
+  hpAudit_(email, 'publish', n + ' section(s)');
   return { ok: true, published: n };
 }
 
@@ -177,8 +206,8 @@ function hpFolder_() {
   return f;
 }
 /** p = {kind:'photo'|'logo', name, mime, data(base64 without prefix)} -> {id, url} */
-function uploadHomepageImage(p) {
-  hpAssertAdmin_();
+function uploadHomepageImage(token, p) {
+  var email = hpAssertAdmin_(token);
   if (!p || !HP.MIME[p.mime]) throw new Error('Use a JPG, PNG or WebP image.');
   var bytes = Utilities.base64Decode(String(p.data || ''));
   if (!bytes.length || bytes.length > HP.MAX_IMG) throw new Error('Image must be under 3 MB.');
@@ -190,5 +219,6 @@ function uploadHomepageImage(p) {
   var name = (p.kind === 'logo' ? 'logo_' : 'photo_') + Date.now() + '.' + HP.MIME[p.mime];
   var file = hpFolder_().createFile(Utilities.newBlob(bytes, p.mime, name));
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  hpAudit_(email, 'upload-image', name);
   return { id: file.getId(), url: 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1600' };
 }

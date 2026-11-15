@@ -36,9 +36,16 @@ input[type=checkbox]{width:auto;margin-right:6px}input.bad{border-color:#c0392b}
 <body>
 <header class="top">
   <div><strong>Homepage Management</strong><span class="st" id="st">Loading…</span></div>
-  <div class="acts"><a class="b ghost" id="pv" target="_blank" rel="noopener">Preview draft</a><button class="b or" id="pub">Publish drafts</button></div>
+  <div class="acts"><a class="b ghost" id="pv" href="#" rel="noopener">Preview draft</a><button class="b or" id="pub">Publish drafts</button><button class="b ghost" id="out">Sign out</button></div>
 </header>
-<div id="lock" role="alert"></div>
+<div id="lock" role="alert"><p id="lockMsg"></p>
+  <div id="siBox" style="display:none;max-width:360px;margin:16px auto;text-align:left">
+    <label for="siE">Email</label><input id="siE" type="email" autocomplete="username">
+    <label for="siP">Password</label><input id="siP" type="password" autocomplete="current-password">
+    <p id="siErr" style="color:#c0392b;min-height:1.2em;margin:8px 0 0"></p>
+    <button class="b" id="siGo" style="width:100%;margin-top:8px">Sign in</button>
+  </div>
+</div>
 <div class="lay" id="lay"><nav id="tabs" aria-label="Homepage sections"></nav><main id="pane"></main></div>
 <div id="toast" role="status"></div>
 
@@ -72,7 +79,11 @@ function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;r
 function get(o,p){return p.split('.').reduce(function(a,k){return a==null?a:a[k]},o)}
 function set(o,p,v){var a=p.split('.');while(a.length>1){var k=a.shift();o=o[k]=o[k]||{}}o[a[0]]=v}
 function toast(m,bad){var t=$('toast');t.textContent=m;t.className=bad?'bad':'';t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display='none'},4000)}
-function rpc(fn){var a=[].slice.call(arguments,1);return new Promise(function(ok,no){
+/* Session token from Auth.gs sign-in (kept in this tab only). Empty = break-glass Google account only. */
+var MEM_TOKEN='';
+function TOKEN(){try{return sessionStorage.getItem('ma_token')||MEM_TOKEN}catch(e){return MEM_TOKEN}}
+function setToken(t){MEM_TOKEN=t||'';try{t?sessionStorage.setItem('ma_token',t):sessionStorage.removeItem('ma_token')}catch(e){}}
+function rpc(fn){var a=[TOKEN()].concat([].slice.call(arguments,1));return new Promise(function(ok,no){
  if(typeof google==='undefined'||!google.script){no(new Error('Backend not connected (preview mode).'));return}
  google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){no(new Error((e&&e.message)||'Request failed. Try again.'))})[fn].apply(null,a)})}
 function busy(b,on,txt){b.disabled=on;if(txt!=null){b.dataset.t=b.dataset.t||b.textContent;b.textContent=on?txt:b.dataset.t}}
@@ -159,9 +170,27 @@ function load(){return rpc('getHomepageAdminState').then(function(r){
  d.order=d.order.filter(function(k){return SEC_LABEL[k]&&k!=='values'});
  S.hero.slides=(S.hero.slides||[]).concat(['','','']).slice(0,3);
  $('lock').style.display='none';$('lay').style.display='';pane()})}
-$('pv').href=(APP_BASE||'')+'?page=home&preview=draft';
-load().catch(function(e){$('lay').style.display='none';$('pub').disabled=true;$('st').textContent='Locked';$('lock').style.display='block';
- $('lock').textContent=/Not authorized/i.test(e.message)?'You do not have access to Homepage Management.':e.message});
+$('pv').onclick=function(ev){ev.preventDefault();rpc('createHomepagePreviewTicket').then(function(r){window.open((APP_BASE||'')+'?page=home&preview=draft&pt='+encodeURIComponent(r.ticket),'_blank')}).catch(function(e){toast(e.message,true)})};
+function lockOut(msg){
+ var na=/Not authorized/i.test(msg);
+ $('lay').style.display='none';$('pub').disabled=true;$('out').style.display='none';$('st').textContent='Locked';$('lock').style.display='block';
+ $('lockMsg').textContent=na?'Sign in with the Owner account to manage the homepage.':msg;$('siBox').style.display=na?'block':'none'}
+function signInOwner(){
+ var e=$('siE').value.trim(),p=$('siP').value,b=$('siGo');
+ if(!e||!p){$('siErr').textContent='Enter your email and password.';return}
+ if(typeof google==='undefined'||!google.script){$('siErr').textContent='Backend not connected (preview mode).';return}
+ b.disabled=true;b.textContent='Signing in…';$('siErr').textContent='';
+ function done(){b.disabled=false;b.textContent='Sign in'}
+ google.script.run.withSuccessHandler(function(r){
+  if(!r||r.success!==true){done();$('siErr').textContent=(r&&r.message)||'Sign-in failed.';return}
+  if(r.data.role!=='Owner'){google.script.run.authSignOut(r.data.token);done();$('siErr').textContent='This account does not have Owner access.';return}
+  setToken(r.data.token);$('siP').value='';$('siErr').textContent='';done();$('out').style.display='';$('pub').disabled=false;
+  load().catch(function(x){lockOut(x.message)})
+ }).withFailureHandler(function(x){done();$('siErr').textContent=(x&&x.message)||'Sign-in failed. Try again.'}).authSignIn(e,p)}
+$('siGo').onclick=signInOwner;
+$('siP').addEventListener('keydown',function(ev){if(ev.key==='Enter')signInOwner()});
+$('out').onclick=function(){var t=TOKEN();setToken('');if(t&&typeof google!=='undefined'&&google.script)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).authSignOut(t);lockOut('Not authorized.')};
+load().catch(function(e){lockOut(e.message)});
 </script>
 </body>
 </html>
