@@ -23,7 +23,7 @@ var PG = {
     { route: 'admissions/frequently-asked-questions', label: 'Frequently Asked Questions', group: 'Admissions' }
   ],
   TYPES: ['h2', 'p', 'ul', 'img', 'link', 'download'],
-  MAX_BLOCKS: 40, MAX_JSON: 45000, MAX_FILE: 5 * 1024 * 1024
+  MAX_BLOCKS: 100, MAX_JSON: 45000, MAX_FILE: 5 * 1024 * 1024
 };
 
 /* ---------- helpers ---------- */
@@ -73,6 +73,11 @@ function pgUrl_(u, n, httpsOnly) {
   if (!ok) throw new Error(n + 'the address is not valid.');
   return u;
 }
+
+function pgInline_(s, n) {
+  var re = /\[([^\]\n]+)\]\(([^)\s]*)\)/g, m;
+  while ((m = re.exec(s))) pgUrl_(m[2], n, false);
+}
 function pgBlocks_(blocks) {
   if (!Array.isArray(blocks)) throw new Error('Invalid content.');
   if (blocks.length > PG.MAX_BLOCKS) throw new Error('At most ' + PG.MAX_BLOCKS + ' blocks per page.');
@@ -82,6 +87,7 @@ function pgBlocks_(blocks) {
     var t = b.type, o = { type: t };
     if (t === 'h2' || t === 'p') {
       o.text = pgText_(b.text, t === 'h2' ? 200 : 2000, n);
+    if (t === 'p') pgInline_(o.text, n);
     } else if (t === 'ul') {
       if (!Array.isArray(b.items)) throw new Error(n + 'a list needs items.');
       o.items = b.items.map(function (x) { return String(x == null ? '' : x).trim(); }).filter(String);

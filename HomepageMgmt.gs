@@ -88,7 +88,7 @@ function hpClean_(v, depth) {
     return t;
   }
   if (Array.isArray(v)) {
-    if (v.length > 50) throw new Error('Too many items.');
+    if (v.length > 100) throw new Error('Too many items.');
     return v.map(function (x) { return hpClean_(x, depth + 1); });
   }
   if (typeof v === 'object') {

@@ -29,6 +29,11 @@ input[type=checkbox]{width:auto;margin-right:6px}input.bad{border-color:#c0392b}
 .bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:10px;display:none;z-index:60;max-width:90vw}#toast.bad{background:#c0392b}
 #lock{padding:40px 20px;text-align:center;color:var(--navy);display:none}
+.dlg{position:fixed;inset:0;background:rgba(6,20,50,.65);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}.dlg.show{display:flex}
+.dlg .box{background:#fff;border-radius:14px;max-width:440px;width:100%;padding:clamp(18px,4vw,26px);box-shadow:0 20px 50px rgba(6,46,112,.35);max-height:calc(100dvh - 32px);overflow:auto}
+.dlg h3{font:600 20px var(--head);color:var(--navy);margin:0 0 8px}.dlg p{margin:0 0 6px;color:#33415f}
+.dlg .dbt{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.b.danger{background:#c0392b;border-color:#c0392b}
 @media(max-width:900px){.lay{grid-template-columns:minmax(0,1fr)}#tabs{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}#tabs button{white-space:nowrap}}
 @media(max-height:700px){.top{position:static}#tabs{top:8px}}
 </style>
@@ -86,6 +91,26 @@ function setToken(t){MEM_TOKEN=t||'';try{t?sessionStorage.setItem('ma_token',t):
 function rpc(fn){var a=[TOKEN()].concat([].slice.call(arguments,1));return new Promise(function(ok,no){
  if(typeof google==='undefined'||!google.script){no(new Error('Backend not connected (preview mode).'));return}
  google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){no(new Error((e&&e.message)||'Request failed. Try again.'))})[fn].apply(null,a)})}
+function dlg(o){return new Promise(function(done){
+ var w=document.createElement('div'),last=document.activeElement;w.className='dlg show';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-label',o.title);
+ w.innerHTML='<div class="box"><h3>'+esc(o.title)+'</h3>'+(o.msg?'<p>'+esc(o.msg)+'</p>':'')
+  +(o.fields||[]).map(function(f,i){return '<label>'+esc(f.label)+'<input type="text" data-f="'+i+'" value="'+esc(f.value||'')+'" placeholder="'+esc(f.ph||'')+'"></label>'}).join('')
+  +'<p class="dlgerr" style="color:#c0392b;min-height:1.2em;font-size:13px"></p>'
+  +'<div class="dbt"><button type="button" class="b line" data-no>'+esc(o.no||'Cancel')+'</button><button type="button" class="b'+(o.danger?' danger':'')+'" data-ok>'+esc(o.ok||'OK')+'</button></div></div>';
+ document.body.appendChild(w);
+ var inp=w.querySelectorAll('input'),okb=w.querySelector('[data-ok]');
+ function close(v){document.removeEventListener('keydown',key,true);w.remove();if(last&&last.focus)last.focus();done(v)}
+ function submit(){var vals=[].map.call(inp,function(x){return x.value.trim()});
+  if(o.check){var m=o.check(vals);if(m){w.querySelector('.dlgerr').textContent=m;return}}
+  close(o.fields?vals:true)}
+ function key(e){if(e.key==='Escape'){e.preventDefault();close(o.fields?null:false)}
+  else if(e.key==='Enter'&&e.target.tagName!=='BUTTON'){e.preventDefault();submit()}
+  else if(e.key==='Tab'){var f=w.querySelectorAll('input,button'),a=f[0],z=f[f.length-1];
+   if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}}
+ document.addEventListener('keydown',key,true);
+ w.addEventListener('mousedown',function(e){if(e.target===w)close(o.fields?null:false)});
+ okb.onclick=submit;w.querySelector('[data-no]').onclick=function(){close(o.fields?null:false)};
+ (inp[0]||okb).focus();if(inp[0])inp[0].select()})}
 function busy(b,on,txt){b.disabled=on;if(txt!=null){b.dataset.t=b.dataset.t||b.textContent;b.textContent=on?txt:b.dataset.t}}
 
 /* ----- form rendering ----- */
@@ -141,15 +166,15 @@ function save(b){var m=validate();if(m){toast(m,true);return}
  busy(b,true,'Saving…');
  rpc('saveHomepageDraft',cur,S[cur]).then(function(){delete dirty[cur];ST[cur]=Object.assign(ST[cur]||{},{hasDraft:true});toast('Draft saved. It is not public until you publish.');pane()})
  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})}
-function discard(b){if(!confirm('Discard the saved draft for this panel and go back to the published version?'))return;
+function discard(b){dlg({title:'Discard draft?',msg:'Discard the saved draft for this panel and go back to the published version?',ok:'Discard draft',danger:true}).then(function(y){if(!y)return;
  busy(b,true,'Working…');
- rpc('discardHomepageDraft',cur).then(load).then(function(){toast('Draft discarded.')}).catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})}
+ rpc('discardHomepageDraft',cur).then(load).then(function(){toast('Draft discarded.')}).catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})})}
 $('pub').onclick=function(){var b=this,u=Object.keys(dirty).length;
- if(u&&!confirm('You have unsaved edits that will not be published. Publish saved drafts anyway?'))return;
- if(!confirm('Publish all saved drafts to the public homepage?'))return;
- busy(b,true,'Publishing…');
- rpc('publishHomepage').then(function(r){return load().then(function(){toast(r.published?'Published '+r.published+' section'+(r.published>1?'s':'')+'.':'No saved drafts to publish.')})})
- .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})};
+ (u?dlg({title:'Unsaved edits',msg:'You have unsaved edits that will not be published. Publish saved drafts anyway?',ok:'Continue'}):Promise.resolve(true))
+ .then(function(y){if(!y)return;return dlg({title:'Publish to the public homepage?',msg:'All saved drafts will go live.',ok:'Publish'})})
+ .then(function(y){if(!y)return;busy(b,true,'Publishing…');
+  return rpc('publishHomepage').then(function(r){return load().then(function(){toast(r.published?'Published '+r.published+' section'+(r.published>1?'s':'')+'.':'No saved drafts to publish.')})})
+  .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})})};
 window.addEventListener('beforeunload',function(e){if(Object.keys(dirty).length){e.preventDefault();e.returnValue=''}});
 
 /* ----- image upload: resize in the browser, then store in Drive ----- */
