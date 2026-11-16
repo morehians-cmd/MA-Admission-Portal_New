@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website Pages Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--line:#d3def5;--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;font:400 clamp(14px,.3vw + 12px,16px)/1.5 var(--body);background:var(--light);color:#14213d}
+.top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px clamp(12px,2vw,28px)}
+.top strong{font:600 18px var(--head)}.st{margin-left:12px;font-size:13px;background:rgba(255,255,255,.15);border-radius:20px;padding:2px 10px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.b{border:2px solid var(--blue);background:var(--blue);color:#fff;font:600 14px var(--head);padding:8px 16px;border-radius:9px;cursor:pointer;text-decoration:none;display:inline-block}
+.b.or{background:var(--orange);border-color:var(--orange);color:var(--navy)}.b.ghost{background:transparent;border-color:#fff}.b.line{background:#fff;color:var(--blue)}.b.sm{padding:4px 10px;font-size:13px}.b:disabled{opacity:.55;cursor:wait}
+.lay{display:grid;grid-template-columns:minmax(200px,270px) minmax(0,1fr);gap:18px;max-width:1500px;margin:0 auto;padding:clamp(12px,2vw,24px)}
+#tabs{display:flex;flex-direction:column;gap:4px;position:sticky;top:70px;align-self:start}
+#tabs button{text-align:left;background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:600 14px var(--head);color:var(--navy);cursor:pointer}
+#tabs button.on{background:var(--blue);color:#fff;border-color:var(--blue)}#tabs i{color:var(--orange);font-style:normal;float:right}
+#pane{background:#fff;border:1px solid var(--line);border-radius:14px;padding:clamp(14px,2.5vw,28px);min-width:0}
+h2{font:600 22px var(--head);color:var(--navy);margin:0 0 4px}.hint{color:#51607d;font-size:13px;margin:0 0 16px}
+label{display:block;font:600 13px var(--head);color:var(--navy);margin:12px 0 0}
+input,textarea,select{width:100%;margin-top:4px;padding:9px 11px;border:1px solid #b9c8e6;border-radius:8px;font:inherit}textarea{min-height:90px}input.bad{border-color:#c0392b}
+.row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0;background:#f9fbff}
+.row>header{display:flex;justify-content:space-between;align-items:center;gap:8px;font:600 13px var(--head);color:var(--blue)}
+.img{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px}.img img,.img .ph{width:96px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff}.img .ph{display:grid;place-items:center;font-size:12px;color:#888;width:auto;min-width:96px;padding:0 8px}
+.tg{font:600 12px var(--head);color:#51607d;margin:12px 4px 2px}@media(max-width:900px){.tg{display:none}}
+.bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:10px;display:none;z-index:60;max-width:90vw}#toast.bad{background:#c0392b}
+#lock{padding:40px 20px;text-align:center;color:var(--navy);display:none}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+@media(max-width:900px){.lay{grid-template-columns:minmax(0,1fr)}#tabs{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}#tabs button{white-space:nowrap}}
+@media(max-height:700px){.top{position:static}#tabs{top:8px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><strong>Website Pages</strong><span class="st" id="st">Loading…</span></div>
+  <div class="acts"><a class="b ghost" id="hm" href="#">Homepage Management</a><button class="b ghost" id="pv">Preview page</button><button class="b or" id="pub">Publish drafts</button><button class="b ghost" id="out">Sign out</button></div>
+</header>
+<div id="lock" role="alert"><p id="lockMsg"></p>
+  <div id="siBox" style="display:none;max-width:360px;margin:16px auto;text-align:left">
+    <label for="siE">Email</label><input id="siE" type="email" autocomplete="username">
+    <label for="siP">Password</label><input id="siP" type="password" autocomplete="current-password">
+    <p id="siErr" style="color:#c0392b;min-height:1.2em;margin:8px 0 0"></p>
+    <button class="b" id="siGo" style="width:100%;margin-top:8px">Sign in</button>
+  </div>
+</div>
+<div class="lay" id="lay"><nav id="tabs" aria-label="Pages"></nav><main id="pane"></main></div>
+<div id="toast" role="status"></div>
+
+<script>
+var APP_BASE='<?= baseUrl ?>';
+/* Block types. Field: [key, label, kind]. Kinds: text (default), area, lines, url, img, file. */
+var BT={
+ h2:{l:'Heading',f:[['text','Heading text']]},
+ p:{l:'Paragraph',f:[['text','Text','area']]},
+ ul:{l:'Bullet list',f:[['items','List items, one per line','lines']]},
+ img:{l:'Image',f:[['url','','img'],['place','Placement','sel'],['name','Name (shown under the photo)'],['caption','Position or caption (optional)'],['alt','Image description (for screen readers)']]},
+ link:{l:'Link button',f:[['label','Button text'],['url','Address (https://… or route:about/history)','url']]},
+ download:{l:'Download button',f:[['label','Button text'],['url','','file']]}};
+var ROUTES=[],S={},ST={},cur='',dirty={},$=function(i){return document.getElementById(i)};
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML.replace(/"/g,'&quot;')}
+function toast(m,bad){var t=$('toast');t.textContent=m;t.className=bad?'bad':'';t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display='none'},4000)}
+var MEM_TOKEN='';
+function TOKEN(){try{return sessionStorage.getItem('ma_token')||MEM_TOKEN}catch(e){return MEM_TOKEN}}
+function setToken(t){MEM_TOKEN=t||'';try{t?sessionStorage.setItem('ma_token',t):sessionStorage.removeItem('ma_token')}catch(e){}}
+function rpc(fn){var a=[TOKEN()].concat([].slice.call(arguments,1));return new Promise(function(ok,no){
+ if(typeof google==='undefined'||!google.script){no(new Error('Backend not connected (preview mode).'));return}
+ google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){no(new Error((e&&e.message)||'Request failed. Try again.'))})[fn].apply(null,a)})}
+function busy(b,on,txt){b.disabled=on;if(txt!=null){b.dataset.t=b.dataset.t||b.textContent;b.textContent=on?txt:b.dataset.t}}
+
+/* ----- rendering ----- */
+function fld(b,f,i){
+ var k=f[0],l=f[1],t=f[2]||'text',v=b[k],a=' data-i="'+i+'" data-k="'+k+'"';
+ if(t==='area')return '<label>'+esc(l)+'<textarea'+a+'>'+esc(v)+'</textarea></label>';
+ if(t==='lines')return '<label>'+esc(l)+'<textarea'+a+' data-t="lines">'+esc((v||[]).join('\n'))+'</textarea></label>';
+ if(t==='sel')return '<label>'+esc(l)+'<select'+a+'><option value=""'+(!v?' selected':'')+'>Photo grid (fills the page width)</option><option value="side"'+(v==='side'?' selected':'')+'>Beside the text (right column)</option><option value="banner"'+(v==='banner'?' selected':'')+'>Banner (full width, wide)</option></select></label>';
+ if(t==='img'||t==='file'){
+  var pre=t==='img'?(v?'<img src="'+esc(v)+'" alt="">':'<span class="ph">No image</span>'):(v?'<a href="'+esc(v)+'" target="_blank" rel="noopener">Current file</a>':'<span class="ph">No file</span>');
+  return '<label>'+(t==='img'?'Image (JPG, PNG or WebP)':'PDF file (up to 5 MB)')+'</label><div class="img">'+pre+'<input type="file" accept="'+(t==='img'?'image/png,image/jpeg,image/webp':'application/pdf')+'" data-up="'+t+'" data-i="'+i+'" style="width:auto"></div>'}
+ return '<label>'+esc(l)+'<input type="text"'+a+' value="'+esc(v)+'"></label>'}
+function blk(b,i,n){
+ return '<div class="row"><header><span>'+(i+1)+'. '+BT[b.type].l+'</span><span>'
+  +(i>0?'<button type="button" class="b line sm" data-act="up" data-i="'+i+'" aria-label="Move up">↑</button> ':'')
+  +(i<n-1?'<button type="button" class="b line sm" data-act="down" data-i="'+i+'" aria-label="Move down">↓</button> ':'')
+  +'<button type="button" class="b line sm" data-act="del" data-i="'+i+'">Remove</button></span></header>'
+  +BT[b.type].f.map(function(f){return fld(b,f,i)}).join('')+'</div>'}
+function tabs(){var g='';$('tabs').innerHTML=ROUTES.map(function(p){var m=dirty[p.route]?'unsaved':(ST[p.route]&&ST[p.route].hasDraft?'draft':''),h='';
+ if(p.group!==g){g=p.group;h='<div class="tg">'+esc(g)+'</div>'}
+ return h+'<button data-tab="'+esc(p.route)+'" class="'+(p.route===cur?'on':'')+'">'+esc(p.label)+(m?'<i title="'+m+'">●</i>':'')+'</button>'}).join('')}
+function status(){var n=Object.keys(ST).filter(function(k){return ST[k].hasDraft}).length,u=Object.keys(dirty).length;
+ $('st').textContent=u?'Unsaved edits in '+u+' page'+(u>1?'s':''):n?n+' unpublished draft'+(n>1?'s':''):'All changes published'}
+function pane(){
+ var p=ROUTES.filter(function(x){return x.route===cur})[0],bl=S[cur];
+ $('pane').innerHTML='<h2>'+esc(p.label)+'</h2><p class="hint">Build the page from blocks, in the order they should appear.'+(p.route.indexOf('/')<0?' The cards linking to the sub-pages always appear below these blocks.':'')+'</p>'
+ +(bl.length?bl.map(function(b,i){return blk(b,i,bl.length)}).join(''):'<p class="hint">No blocks yet. Add one below.</p>')
+ +'<div class="bt">'+Object.keys(BT).map(function(k){return '<button type="button" class="b line sm" data-add="'+k+'">+ '+BT[k].l+'</button>'}).join('')+'</div>'
+ +'<div class="bar"><button class="b" id="save">Save draft</button><button class="b line" id="disc">Discard draft</button></div>';
+ tabs();status()}
+function mark(){dirty[cur]=true;tabs();status()}
+
+/* ----- events ----- */
+$('tabs').onclick=function(e){var b=e.target.closest('[data-tab]');if(b){cur=b.dataset.tab;pane()}};
+$('pane').addEventListener('input',function(e){var el=e.target,i=el.dataset.i,k=el.dataset.k;if(i==null||!k)return;
+ S[cur][+i][k]=el.dataset.t==='lines'?el.value.split('\n').map(function(x){return x.trim()}).filter(String):el.value;mark()});
+$('pane').addEventListener('change',function(e){var el=e.target;if(el.dataset.up&&el.files[0])upload(el)});
+$('pane').addEventListener('click',function(e){
+ var b=e.target.closest('button');if(!b)return;var bl=S[cur];
+ if(b.dataset.add){var t=b.dataset.add,n={type:t};BT[t].f.forEach(function(f){n[f[0]]=f[2]==='lines'?[]:''});bl.push(n);mark();pane();return}
+ if(b.dataset.act){var i=+b.dataset.i,a=b.dataset.act;
+  if(a==='del')bl.splice(i,1);else{var j=a==='up'?i-1:i+1,x=bl[i];bl[i]=bl[j];bl[j]=x}
+  mark();pane();return}
+ if(b.id==='save')save(b);if(b.id==='disc')discard(b)});
+
+function validate(){var bl=S[cur],url=/^(https?:\/\/|mailto:|route:|#)/i;
+ for(var i=0;i<bl.length;i++){var b=bl[i],n='Block '+(i+1)+': ';
+  if((b.type==='h2'||b.type==='p')&&!b.text.trim())return n+'enter the text.';
+  if(b.type==='ul'&&!b.items.length)return n+'add at least one list item.';
+  if(b.type==='img'&&!b.url)return n+'upload an image.';
+  if((b.type==='link'||b.type==='download')&&!b.label.trim())return n+'enter the button text.';
+  if(b.type==='link'&&!url.test(b.url.trim()))return n+'the address must start with https://, mailto:, route: or #.';
+  if(b.type==='download'&&!b.url)return n+'upload a PDF.'}
+ return ''}
+function save(b){var m=validate();if(m){toast(m,true);return}
+ busy(b,true,'Saving…');
+ rpc('savePageDraft',cur,{blocks:S[cur]}).then(function(){delete dirty[cur];ST[cur]=Object.assign(ST[cur]||{},{hasDraft:true});toast('Draft saved. It is not public until you publish.');pane()})
+ .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})}
+function discard(b){if(!confirm('Discard the saved draft for this page and go back to the published version?'))return;
+ busy(b,true,'Working…');
+ rpc('discardPageDraft',cur).then(function(){return load('discard')}).then(function(){toast('Draft discarded.')}).catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})}
+$('pub').onclick=function(){var b=this;
+ if(Object.keys(dirty).length&&!confirm('You have unsaved edits that will not be published. Publish saved drafts anyway?'))return;
+ if(!confirm('Publish all saved page drafts to the public website?'))return;
+ busy(b,true,'Publishing…');
+ rpc('publishPages').then(function(r){return load('keep').then(function(){toast(r.published?'Published '+r.published+' page'+(r.published>1?'s':'')+'.':'No saved drafts to publish.')})})
+ .catch(function(e){toast(e.message,true)}).then(function(){busy(b,false,'')})};
+$('pv').onclick=function(){
+ rpc('createHomepagePreviewTicket').then(function(r){if(dirty[cur])toast('The preview shows the last SAVED draft, not your unsaved edits.');
+  window.open((APP_BASE||'')+'?page='+cur+'&preview=draft&pt='+encodeURIComponent(r.ticket),'_blank')}).catch(function(e){toast(e.message,true)})};
+window.addEventListener('beforeunload',function(e){if(Object.keys(dirty).length){e.preventDefault();e.returnValue=''}});
+
+/* ----- uploads: images are resized in the browser and stored by uploadHomepageImage; PDFs by uploadPageFile ----- */
+function upload(el){var f=el.files[0],i=+el.dataset.i,kind=el.dataset.up,route=cur;
+ if(kind==='file'){
+  if(f.type!=='application/pdf'){toast('Use a PDF file.',true);return}
+  if(f.size>5*1024*1024){toast('The PDF must be under 5 MB.',true);return}
+  toast('Uploading…');var rd=new FileReader();
+  rd.onload=function(){rpc('uploadPageFile',{name:f.name,mime:f.type,data:String(rd.result).split(',')[1]}).then(function(r){S[route][i].url=r.url;if(cur===route){mark();pane()}else dirty[route]=true;toast('File uploaded. Save the draft to keep it.')}).catch(function(e){toast(e.message,true)})};
+  rd.onerror=function(){toast('That file could not be read.',true)};rd.readAsDataURL(f);return}
+ if(!/^image\/(png|jpeg|webp)$/.test(f.type)){toast('Use a JPG, PNG or WebP image.',true);return}
+ var img=new Image(),u=URL.createObjectURL(f);toast('Uploading…');
+ img.onload=function(){var r=Math.min(1,2048/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
+  var data=c.toDataURL('image/jpeg',.85).split(',')[1];
+  rpc('uploadHomepageImage',{kind:'photo',name:f.name,mime:'image/jpeg',data:data}).then(function(r){S[route][i].url=r.url;if(cur===route){mark();pane()}else dirty[route]=true;toast('Image uploaded. Save the draft to keep it.')}).catch(function(e){toast(e.message,true)})};
+ img.onerror=function(){toast('That file could not be read as an image.',true)};img.src=u}
+
+/* ----- load. mode: none = replace everything, 'keep' = skip pages with unsaved edits, 'discard' = reload current page only ----- */
+function load(mode){return rpc('getPagesAdminState').then(function(r){
+ ROUTES=r.routes;ST=r.status;
+ ROUTES.forEach(function(p){var skip=(mode==='keep'&&dirty[p.route])||(mode==='discard'&&p.route!==cur);if(!skip)S[p.route]=r.pages[p.route]||[]});
+ if(mode==='discard')delete dirty[cur];else if(mode!=='keep')dirty={};
+ if(!cur)cur=ROUTES[0].route;
+ $('lock').style.display='none';$('lay').style.display='';pane()})}
+function lockOut(msg){
+ var na=/Not authorized/i.test(msg);
+ $('lay').style.display='none';$('pub').disabled=true;$('out').style.display='none';$('st').textContent='Locked';$('lock').style.display='block';
+ $('lockMsg').textContent=na?'Sign in with the Owner account to manage website pages.':msg;$('siBox').style.display=na?'block':'none'}
+function signInOwner(){
+ var e=$('siE').value.trim(),p=$('siP').value,b=$('siGo');
+ if(!e||!p){$('siErr').textContent='Enter your email and password.';return}
+ if(typeof google==='undefined'||!google.script){$('siErr').textContent='Backend not connected (preview mode).';return}
+ b.disabled=true;b.textContent='Signing in…';$('siErr').textContent='';
+ function done(){b.disabled=false;b.textContent='Sign in'}
+ google.script.run.withSuccessHandler(function(r){
+  if(!r||r.success!==true){done();$('siErr').textContent=(r&&r.message)||'Sign-in failed.';return}
+  if(r.data.role!=='Owner'){google.script.run.authSignOut(r.data.token);done();$('siErr').textContent='This account does not have Owner access.';return}
+  setToken(r.data.token);$('siP').value='';$('siErr').textContent='';done();$('out').style.display='';$('pub').disabled=false;
+  load().catch(function(x){lockOut(x.message)})
+ }).withFailureHandler(function(x){done();$('siErr').textContent=(x&&x.message)||'Sign-in failed. Try again.'}).authSignIn(e,p)}
+$('siGo').onclick=signInOwner;
+$('siP').addEventListener('keydown',function(ev){if(ev.key==='Enter')signInOwner()});
+$('out').onclick=function(){var t=TOKEN();setToken('');if(t&&typeof google!=='undefined'&&google.script)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).authSignOut(t);dirty={};lockOut('Not authorized.')};
+$('hm').href=APP_BASE?APP_BASE+'?page=admin-homepage':'#';if(APP_BASE)$('hm').target='_top';
+load().catch(function(e){lockOut(e.message)});
+</script>
+</body>
+</html>

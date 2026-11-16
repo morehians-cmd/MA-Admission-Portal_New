@@ -36,7 +36,7 @@ input[type=checkbox]{width:auto;margin-right:6px}input.bad{border-color:#c0392b}
 <body>
 <header class="top">
   <div><strong>Homepage Management</strong><span class="st" id="st">Loading…</span></div>
-  <div class="acts"><a class="b ghost" id="pv" href="#" rel="noopener">Preview draft</a><button class="b or" id="pub">Publish drafts</button><button class="b ghost" id="out">Sign out</button></div>
+  <div class="acts"><a class="b ghost" id="wp" href="#">Website pages</a><a class="b ghost" id="pv" href="#" rel="noopener">Preview draft</a><button class="b or" id="pub">Publish drafts</button><button class="b ghost" id="out">Sign out</button></div>
 </header>
 <div id="lock" role="alert"><p id="lockMsg"></p>
   <div id="siBox" style="display:none;max-width:360px;margin:16px auto;text-align:left">
@@ -190,6 +190,7 @@ function signInOwner(){
 $('siGo').onclick=signInOwner;
 $('siP').addEventListener('keydown',function(ev){if(ev.key==='Enter')signInOwner()});
 $('out').onclick=function(){var t=TOKEN();setToken('');if(t&&typeof google!=='undefined'&&google.script)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).authSignOut(t);lockOut('Not authorized.')};
+$('wp').href=APP_BASE?APP_BASE+'?page=admin-pages':'#';if(APP_BASE)$('wp').target='_top';
 load().catch(function(e){lockOut(e.message)});
 </script>
 </body>
