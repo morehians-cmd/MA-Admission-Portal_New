@@ -34,7 +34,14 @@ var PG = {
     { route: 'campus-life/clubs-and-societies', label: 'Clubs & Societies', group: 'Campus Life' },
     { route: 'campus-life/campus-facilities-and-tour', label: 'Campus Facilities & Tour', group: 'Campus Life' },
     { route: 'forms', label: 'Downloadable Forms (landing page)', group: 'Downloadable Forms' },
-    { route: 'forms/downloadable-forms', label: 'Downloadable Forms', group: 'Downloadable Forms' }
+    { route: 'forms/downloadable-forms', label: 'Downloadable Forms', group: 'Downloadable Forms' },
+    { route: 'news', label: 'News & Updates (landing page)', group: 'News & Updates' },
+    { route: 'news/school-announcements', label: 'School Announcements', group: 'News & Updates' },
+    { route: 'news/latest-news', label: 'Latest News', group: 'News & Updates' },
+    { route: 'news/upcoming-events', label: 'Upcoming Events', group: 'News & Updates' },
+    { route: 'news/enrollment-announcements', label: 'Enrollment Announcements', group: 'News & Updates' },
+    { route: 'news/school-achievements', label: 'School Achievements', group: 'News & Updates' },
+    { route: 'contact', label: 'Contact Information', group: 'Contact' }
   ],
   TYPES: ['h2', 'p', 'ul', 'img', 'link', 'download'],
   MAX_BLOCKS: 100, MAX_JSON: 45000, MAX_FILE: 5 * 1024 * 1024

@@ -204,7 +204,7 @@ sectionTitle:'Your Journey to Moreh Academy',sectionSub:'Six simple steps toward
   {id:'academics',label:'Academics',lead:'Learning programs from Kindergarten to College.',subs:[['Kindergarten','A caring start to learning.','🧸'],['Elementary','Strong foundations in core subjects.','📚'],['Junior High School','Skills and character for adolescence.','🧭'],['Senior High School','Strands that prepare for college and career.','🎓'],['College Program','Higher education pathways.','🏛️']]},
   {id:'campus-life',label:'Campus Life',lead:'Life beyond the classroom.',subs:[['Student Organizations','Student-led groups that build leadership and service.','🧑‍🤝‍🧑'],['School Activities & Events','Programs and celebrations throughout the school year.','🎉'],['Sports & Athletics','Teams, training and friendly competition.','⚽'],['Clubs & Societies','Interest groups for every talent and passion.','🎨'],['Campus Facilities & Tour','Take a look around our learning spaces.','🏫']]},
   {id:'forms',label:'Downloadable Forms',lead:'Forms you can download and print.',subs:[['Downloadable Forms','Download and print the school forms.','📄']]},
-  {id:'news',label:'News & Updates',lead:'The latest from Moreh Academy.',subs:[['School Announcements'],['Latest News'],['Upcoming Events'],['Enrollment Announcements'],['School Achievements']]}]
+  {id:'news',label:'News & Updates',lead:'The latest from Moreh Academy.',subs:[['School Announcements','Official notices from the school.','📢'],['Latest News','Stories and updates from our community.','📰'],['Upcoming Events','Dates to mark on your calendar.','📅'],['Enrollment Announcements','Enrollment schedules and reminders.','📣'],['School Achievements','Celebrating our students and staff.','🏅']]
 };
 var APP_BASE='<?= baseUrl ?>';
 var APP_PAGE='<?= page ?>';
@@ -272,7 +272,7 @@ document.addEventListener('click',function(e){var r=e.target.closest('[data-tl]'
 document.addEventListener('keydown',function(e){var b=e.target.closest&&e.target.closest('.tl-n');if(!b)return;
  var r=b.closest('[data-tl]'),k=+r.dataset.k||0,d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-k:e.key==='End'?1000:0;
  if(!d)return;e.preventDefault();k=tlGo(r,k+d);r.querySelectorAll('.tl-n')[k].focus()});
-var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program','campus-life','campus-life/student-organizations','campus-life/school-activities-and-events','campus-life/sports-and-athletics','campus-life/clubs-and-societies','campus-life/campus-facilities-and-tour'];
+var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program','campus-life','campus-life/student-organizations','campus-life/school-activities-and-events','campus-life/sports-and-athletics','campus-life/clubs-and-societies','campus-life/campus-facilities-and-tour','news','news/school-announcements','news/latest-news','news/upcoming-events','news/enrollment-announcements','news/school-achievements','contact'];
 var TBN=0;
 function tbParse(t){var m=/^tab\s*:\s*(.+)$/i.exec(String(t||'').trim());if(!m)return null;var l=m[1].trim();return /^end$/i.test(l)?'end':l}
 function tbHtml(it){
@@ -322,8 +322,9 @@ function renderPage(r){
   var has=i.blocks.length>0,loading=PG.loading===r,
   cards=i.n&&!i.sub?'<div class="navgrid">'+i.n.subs.map(function(s){return '<a class="nc" href="'+link(i.n.id+'/'+slug(s[0]))+'"'+tgt()+'>'+(s[2]?'<span class="ni" aria-hidden="true">'+esc(s[2])+'</span>':'')+'<h3>'+esc(s[0])+'</h3>'+(s[1]?'<p>'+esc(s[1])+'</p>':'')+'<span class="go">Open page<i aria-hidden="true">›</i></span></a>'}).join('')+'</div>':'',
   main=has?blocksHtml(i.blocks,r):(loading?'<p>Loading…</p>':''),
-  body=main+(has&&cards?'<div style="height:24px"></div>':'')+cards;
-  if(!has&&!cards&&!loading)body=r==='contact'?'<div class="empty"><p style="margin:0">'+esc(f.loc)+'<br>'+esc(f.phone)+'<br>'+esc(f.email)+'</p></div>':'<div class="empty"><p style="margin:0">Content coming soon.</p></div>';
+  ci=r==='contact'?'<div class="empty" style="margin-bottom:24px"><h3 style="color:var(--orange);margin-bottom:6px">Moreh Academy</h3><p style="margin:0">'+esc(f.loc)+'<br>'+esc(f.phone)+'<br><a href="mailto:'+esc(f.email)+'" style="color:#fff">'+esc(f.email)+'</a></p></div>':'',
+  body=ci+main+(has&&cards?'<div style="height:24px"></div>':'')+cards;
+  if(!has&&!cards&&!loading&&r!=='contact')body='<div class="empty"><p style="margin:0">Content coming soon.</p></div>';
   out=crumb+'<div class="bar"></div><h2>'+esc(i.title)+'</h2><p class="lead">'+esc(i.sub?'':(i.n?i.n.lead:''))+'</p>'+body}
  return '<section class="page"><div class="wrap">'+out+'</div></section>'}
 function renderHome(){
