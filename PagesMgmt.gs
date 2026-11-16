@@ -26,7 +26,15 @@ var PG = {
     { route: 'academics/elementary', label: 'Elementary', group: 'Academics' },
     { route: 'academics/junior-high-school', label: 'Junior High School', group: 'Academics' },
     { route: 'academics/senior-high-school', label: 'Senior High School', group: 'Academics' },
-    { route: 'academics/college-program', label: 'College Program', group: 'Academics' }
+    { route: 'academics/college-program', label: 'College Program', group: 'Academics' },
+    { route: 'campus-life', label: 'Campus Life (landing page)', group: 'Campus Life' },
+    { route: 'campus-life/student-organizations', label: 'Student Organizations', group: 'Campus Life' },
+    { route: 'campus-life/school-activities-and-events', label: 'School Activities & Events', group: 'Campus Life' },
+    { route: 'campus-life/sports-and-athletics', label: 'Sports & Athletics', group: 'Campus Life' },
+    { route: 'campus-life/clubs-and-societies', label: 'Clubs & Societies', group: 'Campus Life' },
+    { route: 'campus-life/campus-facilities-and-tour', label: 'Campus Facilities & Tour', group: 'Campus Life' },
+    { route: 'forms', label: 'Downloadable Forms (landing page)', group: 'Downloadable Forms' },
+    { route: 'forms/downloadable-forms', label: 'Downloadable Forms', group: 'Downloadable Forms' }
   ],
   TYPES: ['h2', 'p', 'ul', 'img', 'link', 'download'],
   MAX_BLOCKS: 100, MAX_JSON: 45000, MAX_FILE: 5 * 1024 * 1024

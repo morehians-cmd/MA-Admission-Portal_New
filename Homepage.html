@@ -202,8 +202,8 @@ sectionTitle:'Your Journey to Moreh Academy',sectionSub:'Six simple steps toward
   {id:'about',label:'About Us',lead:'Who we are and what we believe.',subs:[['Vision, Mission & Core Values','The vision, mission and values that guide everything we do.','🎯'],['History','From one campus in 2001 to a multi-campus school community.','📜'],['School Leadership','Meet the people who lead Moreh Academy.','👥']]},
   {id:'admissions',label:'Admissions',lead:'Everything you need to enroll.',subs:[['Enrollment Procedure','The steps to become a Moreh Academy student.','📝'],['Admission Requirements','The documents and conditions you need to prepare.','📋'],['Scholarships','Programs that help families with the cost of education.','🎓'],['Frequently Asked Questions','Quick answers to common admission questions.','❓']]},
   {id:'academics',label:'Academics',lead:'Learning programs from Kindergarten to College.',subs:[['Kindergarten','A caring start to learning.','🧸'],['Elementary','Strong foundations in core subjects.','📚'],['Junior High School','Skills and character for adolescence.','🧭'],['Senior High School','Strands that prepare for college and career.','🎓'],['College Program','Higher education pathways.','🏛️']]},
-  {id:'campus-life',label:'Campus Life',lead:'Life beyond the classroom.',subs:[['Student Organizations'],['School Activities & Events'],['Sports & Athletics'],['Clubs & Societies'],['Campus Facilities & Tour']]},
-  {id:'forms',label:'Downloadable Forms',lead:'Forms you can download and print.',subs:[['TLC Student Application Form'],['Consent Form']]},
+  {id:'campus-life',label:'Campus Life',lead:'Life beyond the classroom.',subs:[['Student Organizations','Student-led groups that build leadership and service.','🧑‍🤝‍🧑'],['School Activities & Events','Programs and celebrations throughout the school year.','🎉'],['Sports & Athletics','Teams, training and friendly competition.','⚽'],['Clubs & Societies','Interest groups for every talent and passion.','🎨'],['Campus Facilities & Tour','Take a look around our learning spaces.','🏫']]},
+  {id:'forms',label:'Downloadable Forms',lead:'Forms you can download and print.',subs:[['Downloadable Forms','Download and print the school forms.','📄']]},
   {id:'news',label:'News & Updates',lead:'The latest from Moreh Academy.',subs:[['School Announcements'],['Latest News'],['Upcoming Events'],['Enrollment Announcements'],['School Achievements']]}]
 };
 var APP_BASE='<?= baseUrl ?>';
@@ -272,7 +272,7 @@ document.addEventListener('click',function(e){var r=e.target.closest('[data-tl]'
 document.addEventListener('keydown',function(e){var b=e.target.closest&&e.target.closest('.tl-n');if(!b)return;
  var r=b.closest('[data-tl]'),k=+r.dataset.k||0,d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-k:e.key==='End'?1000:0;
  if(!d)return;e.preventDefault();k=tlGo(r,k+d);r.querySelectorAll('.tl-n')[k].focus()});
-var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program'];
+var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program','campus-life','campus-life/student-organizations','campus-life/school-activities-and-events','campus-life/sports-and-athletics','campus-life/clubs-and-societies','campus-life/campus-facilities-and-tour'];
 var TBN=0;
 function tbParse(t){var m=/^tab\s*:\s*(.+)$/i.exec(String(t||'').trim());if(!m)return null;var l=m[1].trim();return /^end$/i.test(l)?'end':l}
 function tbHtml(it){
