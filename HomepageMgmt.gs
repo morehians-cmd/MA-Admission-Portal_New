@@ -43,7 +43,7 @@ function hpAudit_(who, action, detail) {
   } catch (e) { /* ignore */ }
 }
 
-/** One-time, 10-minute ticket so the draft preview page load can prove an Owner opened it. */
+/** 10-minute ticket (reusable until it expires) so draft preview pages can prove an Owner opened them. */
 function createHomepagePreviewTicket(token) {
   var email = hpAssertAdmin_(token), t = Utilities.getUuid();
   CacheService.getScriptCache().put('hp_pt_' + t, email, 600);
@@ -94,13 +94,15 @@ function hpClean_(v, depth) {
   if (typeof v === 'object') {
     var o = {};
     Object.keys(v).forEach(function (k) {
-      if (!/^[A-Za-z0-9_]{1,40}$/.test(k)) throw new Error('Invalid field name.');
+      if (!/^[A-Za-z0-9_]{1,40}$/.test(k) || k === '__proto__' || k === 'constructor' || k === 'prototype') throw new Error('Invalid field name.');
       o[k] = hpClean_(v[k], depth + 1);
     });
     return o;
   }
   throw new Error('Unsupported value.');
 }
+function hpImgOk_(u) { return !u || /^https:\/\/drive\.google\.com\/thumbnail\?id=[A-Za-z0-9_-]+&sz=w\d{2,4}$/.test(u); }
+function hpHttps_(u) { return !u || /^https:\/\/[^\s"'<>()]+$/i.test(u); }
 function hpValidate_(section, d) {
   var L = HP.LIMITS;
   if (section === 'masthead' && d.ids && d.ids.length > L.ids) throw new Error('At most 3 institutions.');
@@ -112,6 +114,10 @@ function hpValidate_(section, d) {
   if (section === 'admission' && d.steps && d.steps.length > L.steps) throw new Error('At most 12 steps.');
   if ((section === 'programs' || section === 'news') && d.items && d.items.length > L.items) throw new Error('Too many items.');
   if (section === 'footer' && d.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) throw new Error('Enter a valid email address.');
+  if (section === 'masthead' && d.ids) d.ids.forEach(function (x) { if (!hpImgOk_(x.logo) || !hpHttps_(x.fb)) throw new Error('A logo or Facebook address is not valid.'); });
+  if (section === 'hero' && d.slides) d.slides.forEach(function (u) { if (!hpImgOk_(u)) throw new Error('A carousel image address is not valid.'); });
+  if (section === 'about' && !hpImgOk_(d.photo)) throw new Error('The photo address is not valid.');
+  if (section === 'footer' && (!hpHttps_(d.fb) || !hpHttps_(d.yt))) throw new Error('Social links must start with https://.');
   if (JSON.stringify(d).length > 45000) throw new Error('Content is too large for one section.');
 }
 

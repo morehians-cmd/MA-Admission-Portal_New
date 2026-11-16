@@ -19,11 +19,11 @@ var AUTH = {
   USERS: 'Users', AUDIT: 'AuthAudit',
   HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt'],
   ROLES: ['Owner', 'Encoder', 'Student'],
-  ITER: 2000,                 // default for NEW hashes. Tune with authBenchmark().
+  ITER: 20000,                 // default for NEW hashes. Tune with authBenchmark().
   MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
   IDLE_SEC: 7200,             // a session dies after 2 hours without use
   MAX_SEC: 21600,             // ...and after 6 hours no matter what (CacheService hard limit)
-  MAX_FAILS: 5, LOCK_SEC: 900 // 5 wrong passwords for one email -> 15 minute pause
+  MAX_FAILS: 10, LOCK_SEC: 600 // 10 wrong passwords for one email -> 10 minute pause
 };
 
 /* ====================== PUBLIC (browser) ====================== */
@@ -40,7 +40,7 @@ function authSignIn(email, password) {
     if (u) {
       good = authVerify_(password, u.hash);
     } else {
-      authVerify_(password, authMakeHash_('dummy-password-for-timing'));   // same work whether or not the email exists
+      authPbkdf2_(password, 'dummy-salt-for-timing', AUTH.ITER);   // same work whether or not the email exists
     }
     if (!good) {
       var n = Number(cache.get(failKey) || 0) + 1;
@@ -51,7 +51,9 @@ function authSignIn(email, password) {
     if (u.status !== 'Active') { authAudit_(email, 'sign-in-blocked', u.status); return authFail_('This account is not active. Please contact the school.'); }
 
     cache.remove(failKey);
-    authUpdateRow_(u.row, { LastLoginAt: new Date().toISOString() });
+    var chg = { LastLoginAt: new Date().toISOString() };
+    if (authIters_(u.hash) < AUTH.ITER) chg.PasswordHash = authMakeHash_(password);   // upgrade old hashes at login
+    authUpdateRow_(u.row, chg);
     var token = authIssueSession_(u);
     authAudit_(email, 'sign-in-ok', u.role);
     return { success: true, message: 'Signed in.', data: { token: token, email: u.email, role: u.role } };
@@ -171,7 +173,7 @@ function authResetPasswordFromProperties() {
 /** Times one password hash so you can choose AUTH.ITER. Aim for roughly 0.5 to 1.5 seconds. Results go to the log. */
 function authBenchmark() {
   authRequireEditor_();
-  [500, 1000, 2000, 4000].forEach(function (n) {
+  [2000, 5000, 10000, 20000].forEach(function (n) {
     var t = Date.now(); authPbkdf2_('benchmark', 'benchmark-salt', n);
     Logger.log(n + ' iterations: ' + (Date.now() - t) + ' ms');
   });
@@ -192,6 +194,7 @@ function authEmail_(v) {
   return (e.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) ? e : '';
 }
 function authValidToken_(t) { return typeof t === 'string' && /^[a-f0-9]{64}$/.test(t); }
+function authIters_(stored) { var p = String(stored || '').split('$'); return parseInt(p[1], 10) || 0; }
 function authDigest_(s) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(s), Utilities.Charset.UTF_8)
     .map(function (b) { return ('0' + ((b + 256) % 256).toString(16)).slice(-2); }).join('');
