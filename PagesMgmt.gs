@@ -20,7 +20,13 @@ var PG = {
     { route: 'admissions/enrollment-procedure', label: 'Enrollment Procedure', group: 'Admissions' },
     { route: 'admissions/admission-requirements', label: 'Admission Requirements', group: 'Admissions' },
     { route: 'admissions/scholarships', label: 'Scholarships', group: 'Admissions' },
-    { route: 'admissions/frequently-asked-questions', label: 'Frequently Asked Questions', group: 'Admissions' }
+    { route: 'admissions/frequently-asked-questions', label: 'Frequently Asked Questions', group: 'Admissions' },
+    { route: 'academics', label: 'Academics (landing page)', group: 'Academics' },
+    { route: 'academics/kindergarten', label: 'Kindergarten', group: 'Academics' },
+    { route: 'academics/elementary', label: 'Elementary', group: 'Academics' },
+    { route: 'academics/junior-high-school', label: 'Junior High School', group: 'Academics' },
+    { route: 'academics/senior-high-school', label: 'Senior High School', group: 'Academics' },
+    { route: 'academics/college-program', label: 'College Program', group: 'Academics' }
   ],
   TYPES: ['h2', 'p', 'ul', 'img', 'link', 'download'],
   MAX_BLOCKS: 100, MAX_JSON: 45000, MAX_FILE: 5 * 1024 * 1024
