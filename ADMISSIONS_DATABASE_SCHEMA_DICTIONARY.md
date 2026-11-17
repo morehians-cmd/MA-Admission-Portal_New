@@ -335,13 +335,21 @@ An exception record does not itself change a requirement's verification status. 
 **Primary key:** `RegistrationProfileID`  
 **Unique FK:** `RegistrationID`
 
-Use the same profile field groups and field-level types as Sheet 2, with these key/metadata substitutions:
-- `RegistrationProfileID` replaces ProfileSnapshotID.
-- `RegistrationID` replaces ApplicationID.
+Use the same profile field groups and field-level types as Sheet 2, with these exact key and grade-field substitutions:
+- `RegistrationProfileID` replaces `ProfileSnapshotID`.
+- `RegistrationID` replaces `ApplicationID`.
 - `SchemaVersion` is required.
-- `SchoolYear` must match CurrentStudentRegistrations.
-- `CurrentGradeLevel` and calculated `ProposedGradeLevel` are registration context, not student-editable identity fields.
+- `SchoolYear` must match `CurrentStudentRegistrations`.
+- Replace `GradeLevelApplied` with two columns in this order: `CurrentGradeLevel`, then `ProposedGradeLevel`.
+- `CurrentGradeLevel` is sourced from the student's existing verified academic record. `ProposedGradeLevel` is calculated by the server from the current grade; neither field is student-editable.
+- The remaining profile fields retain the same order as Sheet 2 after applying the substitutions above.
 - `SubmittedAt` and `SubmittedBy` are server-generated.
+
+**Exact ordered headers (Sheet 9):**
+
+```text
+RegistrationProfileID, RegistrationID, SchemaVersion, Surname, FirstName, MiddleName, Suffix, Birthdate, BirthPlace, LRN, LegalSex, GenderIdentity, SchoolYear, CurrentGradeLevel, ProposedGradeLevel, Category, Department, SHSCluster, Email, Mobile, AddressLine1, AddressLine2, Barangay, City, LivingWith, LivingWithOtherDetails, FatherName, FatherStatus, FatherOccupation, FatherEducation, FatherMobile, FatherEmail, MotherName, MotherStatus, MotherOccupation, MotherEducation, MotherMobile, MotherEmail, GuardianName, GuardianStatus, GuardianOccupation, GuardianEducation, GuardianMobile, GuardianEmail, PrimaryContactName, PrimaryContactAddress, PrimaryContactRelationship, PrimaryContactNumber, PreviousSchool, PreviousSchoolYear, PreviousGrade, PreviousCluster, PreviousSection, PreviousAdviser, PreviousSchoolID, PreviousSchoolAddress, FacebookProfileLink, PrivacyConsent, PrivacyConsentAt, SubmittedAt, SubmittedBy
+```
 
 The returning student's permanent identity and official identifiers are references to existing records and are not copied into editable identity fields.
 
