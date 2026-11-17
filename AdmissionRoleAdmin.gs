@@ -58,7 +58,7 @@ function admissionRoleAuditRows_() {
 }
 
 function admissionRoleClean_(value, max) {
-  return String(value == null ? '' : value).replace(/[\\x00-\\x1F\\x7F]/g, ' ').trim().slice(0, max);
+  return String(value == null ? '' : value).replace(/[\x00-\x1F\x7F]/g, ' ').trim().slice(0, max);
 }
 
 /** Owner-only list. Returns no password, OTP, token, or other authentication secrets. */
