@@ -241,7 +241,7 @@ Implemented on `integration/auth-db-foundation` as the next K–12 applicant mod
 - Added a field allowlist. Applicants cannot request changes to StudentID, account email, system fields, enrollment status, or Admissions-controlled requirement statuses.
 - Sensitive identity fields (legal name components, birth date, place of birth, and LRN) require either supporting-document upload or an in-person verification request. A typed value or uploaded file alone does not change the official record.
 - Supporting documents accept PDF/JPG/PNG only, up to two files at 5 MB each. The server checks file signatures and MIME type, stores files in a request-specific subfolder, and does not return Drive file IDs or URLs to applicants.
-- The setup function `admissionCorrectionSetup_()` creates/verifies the three correction sheets and creates a private Drive folder. It uses Script Property `ADM_CORRECTION_DRIVE_FOLDER_ID`. The folder, request subfolders, and files are set to PRIVATE with no link sharing.
+- The setup function `runAdmissionCorrectionSetup()` creates/verifies the three correction sheets and creates a private Drive folder. It uses Script Property `ADM_CORRECTION_DRIVE_FOLDER_ID`. The folder, request subfolders, and files are set to PRIVATE with no link sharing.
 - Added `CorrectionAdmin.html` at `?page=admin-corrections`, with Owner-only queue/detail/download/review endpoints. Encoders are not implicitly authorized.
 - Owner approval revalidates the proposed value, confirms the original value has not changed since submission, applies only the allowlisted field, recalculates FullName/Age where applicable, and records before/after values in CorrectionAudit.
 - Applicant request history shows the status and Admissions note. Applicants never receive private Drive URLs or document IDs.
@@ -259,7 +259,7 @@ This code has passed static JavaScript syntax checks only. It has not been execu
 1. Sync the branch files into the disposable staging Apps Script project.
 2. Confirm its Script Property `DB_SHEET_ID` points only to the copied staging spreadsheet.
 3. Confirm the staging spreadsheet is not broadly shared.
-4. In the Apps Script editor, run `admissionCorrectionSetup_()` manually as the system owner. Verify the three empty sheets and private Drive folder are created; inspect folder sharing and confirm no link access or staff access was granted.
+4. In the Apps Script editor, run `runAdmissionCorrectionSetup()` manually as the system owner. Verify the three empty sheets and private Drive folder are created; inspect folder sharing and confirm no link access or staff access was granted.
 5. Test a normal contact/address correction with dummy data; confirm the original AdmissionStudents value stays unchanged and the request appears in the applicant history and Owner queue.
 6. Test a sensitive correction using dummy data with a dummy PDF/JPG/PNG; confirm the uploaded file is private and applicants cannot retrieve its Drive URL or file ID.
 7. Test the in-person verification path without an upload.
