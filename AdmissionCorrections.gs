@@ -26,7 +26,7 @@ var ADM_CORR = {
     'DocumentId','RequestRef','DriveFileId','FileName','MimeType',
     'SizeBytes','UploadedAt','UploadedBy'
   ],
-  AUDIT_HEADERS: ['At','ActorEmail','Action','RequestRef','StudentID','Detail'],
+  AUDIT_HEADERS: ['At','ActorEmail','Action','RequestRef','StudentID','FieldKey','BeforeValue','AfterValue','VerificationMethod','Detail'],
   FIELDS: {
     Surname: { label: 'Surname', sensitive: true, type: 'name' },
     FirstName: { label: 'First Name', sensitive: true, type: 'name' },
@@ -231,11 +231,16 @@ function admissionCorrectionSaveFiles_(requestRef, applicantEmail, files) {
   }
 }
 
-function admissionCorrectionAudit_(actorEmail, action, requestRef, studentId, detail) {
+function admissionCorrectionAudit_(actorEmail, action, requestRef, studentId, detail, fieldKey, beforeValue, afterValue, verificationMethod) {
   try {
     var sh = admissionCorrectionSheet_(ADM_CORR.AUDIT, ADM_CORR.AUDIT_HEADERS);
     var clean = function (v, n) { return String(v == null ? '' : v).replace(/[\u0000-\u001F]/g, ' ').slice(0, n); };
-    sh.appendRow([new Date().toISOString(), clean(actorEmail, 254), clean(action, 80), clean(requestRef, 40), clean(studentId, 40), clean(detail, 300)]);
+    sh.appendRow([
+      new Date().toISOString(), clean(actorEmail, 254), clean(action, 80),
+      clean(requestRef, 40), clean(studentId, 40), clean(fieldKey, 80),
+      clean(beforeValue, 300), clean(afterValue, 300), clean(verificationMethod, 80),
+      clean(detail, 300)
+    ]);
   } catch (e) { console.error('Correction audit failed: ' + e.message); }
 }
 
@@ -332,4 +337,177 @@ function admissionGetMyCorrectionRequests(token) {
   } catch (err) {
     return authFail_(err.message || 'Could not load correction requests.');
   }
+}
+
+
+/** Owner-only correction queue. Encoders are not implicitly authorized to review identity records. */
+function admissionGetCorrectionQueue(token) {
+  try {
+    authRequireRole_(token, ['Owner']);
+    var rows = admissionCorrectionRows_(ADM_CORR.REQUESTS, ADM_CORR.REQUEST_HEADERS);
+    return {
+      success: true,
+      data: rows.sort(function (a, b) { return b.CreatedAt.localeCompare(a.CreatedAt); }).map(function (r) {
+        return {
+          requestRef: r.RequestRef, studentId: r.StudentID, applicantEmail: r.ApplicantEmail,
+          fieldKey: r.FieldKey, fieldLabel: r.FieldLabel, status: r.Status,
+          sensitive: r.Sensitive === 'Yes', verificationMethod: r.VerificationMethod,
+          createdAt: r.CreatedAt, reason: r.Reason
+        };
+      })
+    };
+  } catch (err) { return authFail_(err.message || 'Could not load correction requests.'); }
+}
+
+/** Owner-only detail endpoint. Returns document metadata, never a Drive URL or file ID. */
+function admissionGetCorrectionDetail(token, requestRef) {
+  try {
+    authRequireRole_(token, ['Owner']);
+    var ref = admissionCorrectionClean_(requestRef, 40);
+    var rows = admissionCorrectionRows_(ADM_CORR.REQUESTS, ADM_CORR.REQUEST_HEADERS);
+    var request = rows.filter(function (r) { return r.RequestRef === ref; })[0];
+    if (!request) throw new Error('Correction request was not found.');
+    var docs = admissionCorrectionRows_(ADM_CORR.DOCUMENTS, ADM_CORR.DOCUMENT_HEADERS)
+      .filter(function (d) { return d.RequestRef === ref; })
+      .map(function (d) {
+        return { documentId: d.DocumentId, fileName: d.FileName, mimeType: d.MimeType, sizeBytes: Number(d.SizeBytes || 0), uploadedAt: d.UploadedAt };
+      });
+    return {
+      success: true,
+      data: {
+        requestRef: request.RequestRef, studentId: request.StudentID,
+        applicantEmail: request.ApplicantEmail, fieldKey: request.FieldKey,
+        fieldLabel: request.FieldLabel, originalValue: request.OriginalValue,
+        proposedValue: request.ProposedValue, reason: request.Reason,
+        sensitive: request.Sensitive === 'Yes', verificationMethod: request.VerificationMethod,
+        status: request.Status, decision: request.Decision,
+        createdAt: request.CreatedAt, documents: docs
+      }
+    };
+  } catch (err) { return authFail_(err.message || 'Could not load correction request.'); }
+}
+
+/** Owner-only private document download. The file ID is resolved server-side from the request document table. */
+function admissionDownloadCorrectionDocument(token, documentId) {
+  try {
+    authRequireRole_(token, ['Owner']);
+    var id = admissionCorrectionClean_(documentId, 80);
+    var docs = admissionCorrectionRows_(ADM_CORR.DOCUMENTS, ADM_CORR.DOCUMENT_HEADERS);
+    var doc = docs.filter(function (d) { return d.DocumentId === id; })[0];
+    if (!doc) throw new Error('Supporting document was not found.');
+    var file = DriveApp.getFileById(doc.DriveFileId);
+    if (file.getSharingAccess() !== DriveApp.Access.PRIVATE) file.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
+    var blob = file.getBlob();
+    var mime = String(blob.getContentType() || '');
+    if (['application/pdf','image/jpeg','image/png'].indexOf(mime) < 0) throw new Error('This document type is not permitted.');
+    var bytes = blob.getBytes();
+    if (bytes.length > ADM_CORR.MAX_FILE_BYTES) throw new Error('The supporting document exceeds the download limit.');
+    return {
+      success: true,
+      data: {
+        fileName: doc.FileName, mimeType: mime,
+        base64: Utilities.base64Encode(bytes)
+      }
+    };
+  } catch (err) { return authFail_(err.message || 'Could not retrieve the supporting document.'); }
+}
+
+function admissionCorrectionUpdateRequestRow_(sh, rowNumber, updates) {
+  var headers = ADM_CORR.REQUEST_HEADERS;
+  Object.keys(updates).forEach(function (key) {
+    var index = headers.indexOf(key);
+    if (index < 0) throw new Error('Invalid correction request update.');
+    sh.getRange(rowNumber, index + 1).setNumberFormat('@').setValue(String(updates[key] == null ? '' : updates[key]));
+  });
+}
+
+/**
+ * Owner-only review action. APPROVE applies the one allowlisted field change atomically
+ * with the request completion status and records before/after values in CorrectionAudit.
+ */
+function admissionReviewCorrectionRequest(token, requestRef, action, notes, verificationMethod) {
+  var owner;
+  try {
+    owner = authRequireRole_(token, ['Owner']);
+    var ref = admissionCorrectionClean_(requestRef, 40);
+    var act = String(action || '');
+    var allowedActions = ['UNDER_REVIEW','FOR_VERIFICATION','FOR_ADDITIONAL_INFORMATION','APPROVE','REJECT'];
+    if (allowedActions.indexOf(act) < 0) throw new Error('Select a valid review action.');
+    var note = admissionCorrectionClean_(notes, 1000);
+    if ((act === 'REJECT' || act === 'FOR_ADDITIONAL_INFORMATION') && note.length < 5) {
+      throw new Error('Add a short explanation for this decision.');
+    }
+    var lock = LockService.getScriptLock();
+    if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
+    try {
+      var requestSheet = admissionCorrectionSheet_(ADM_CORR.REQUESTS, ADM_CORR.REQUEST_HEADERS);
+      var requests = admissionCorrectionRows_(ADM_CORR.REQUESTS, ADM_CORR.REQUEST_HEADERS);
+      var request = requests.filter(function (r) { return r.RequestRef === ref; })[0];
+      if (!request) throw new Error('Correction request was not found.');
+      if (['Completed','Rejected'].indexOf(request.Status) >= 0) throw new Error('This correction request is already closed.');
+      var rule = ADM_CORR.FIELDS[request.FieldKey];
+      if (!rule) throw new Error('The requested field is not in the correction allowlist.');
+      var now = new Date().toISOString();
+      var updates = { UpdatedAt: now, ReviewerEmail: owner, ReviewedAt: now };
+      if (act === 'UNDER_REVIEW') {
+        updates.Status = 'Under Review'; updates.Decision = note || 'Request is under review.';
+      } else if (act === 'FOR_VERIFICATION') {
+        updates.Status = 'For Verification'; updates.Decision = note || 'Identity verification is required.';
+      } else if (act === 'FOR_ADDITIONAL_INFORMATION') {
+        updates.Status = 'For Additional Information'; updates.Decision = note;
+      } else if (act === 'REJECT') {
+        updates.Status = 'Rejected'; updates.Decision = note; 
+      } else if (act === 'APPROVE') {
+        var verified = rule.sensitive ? String(verificationMethod || '') : 'NOT_REQUIRED';
+        if (rule.sensitive && ['DOCUMENTS_VERIFIED','IN_PERSON_VERIFIED'].indexOf(verified) < 0) {
+          throw new Error('Confirm that the supporting documents or in-person identity check have been verified.');
+        }
+        var student = admissionDbFindById_(request.StudentID);
+        if (!student || String(student.Email || '').toLowerCase() !== String(request.ApplicantEmail || '').toLowerCase()) {
+          throw new Error('The linked admission record could not be verified.');
+        }
+        var before = String(student[request.FieldKey] == null ? '' : student[request.FieldKey]);
+        if (before !== request.OriginalValue) throw new Error('The application field has changed since this request was submitted. Do not overwrite it; review the record manually.');
+        var after = admissionCorrectionValidateValue_(request.FieldKey, request.ProposedValue);
+        if (rule.type === 'name') after = after.toUpperCase();
+        if (request.FieldKey === 'LRN' && after) {
+          var allStudents = admissionDbRows_();
+          if (allStudents.some(function (s) { return s.StudentID !== request.StudentID && String(s.LRN || '') === after; })) {
+            throw new Error('This LRN is already assigned to another admission record.');
+          }
+        }
+        var studentSheet = admissionDbSheet_();
+        var fieldCol = ADM_DB.HEADERS.indexOf(request.FieldKey) + 1;
+        if (fieldCol < 1) throw new Error('The requested application field is not writable.');
+        studentSheet.getRange(student._row, fieldCol).setNumberFormat('@').setValue(after);
+        if (['Surname','FirstName','MiddleName','Suffix'].indexOf(request.FieldKey) >= 0) {
+          var fullName = String(student.Surname || ''), first = String(student.FirstName || ''),
+            middle = String(student.MiddleName || ''), suffix = String(student.Suffix || '');
+          if (request.FieldKey === 'Surname') fullName = after;
+          if (request.FieldKey === 'FirstName') first = after;
+          if (request.FieldKey === 'MiddleName') middle = after;
+          if (request.FieldKey === 'Suffix') suffix = after;
+          var composed = fullName + ', ' + first + (middle ? ' ' + middle : '') + (suffix ? ' ' + suffix : '');
+          studentSheet.getRange(student._row, ADM_DB.HEADERS.indexOf('FullName') + 1).setNumberFormat('@').setValue(composed);
+        }
+        if (request.FieldKey === 'Birthdate') {
+          var age = admissionDbAge_(after);
+          if (age === '') throw new Error('The approved date of birth is invalid.');
+          studentSheet.getRange(student._row, ADM_DB.HEADERS.indexOf('Age') + 1).setNumberFormat('@').setValue(age);
+        }
+        updates.Status = 'Completed';
+        updates.Decision = 'Approved';
+        updates.VerificationMethod = verified;
+        updates.CompletedAt = now;
+        admissionCorrectionAudit_(owner, 'correction-approved-and-applied', ref, request.StudentID,
+          'Approved correction applied to AdmissionStudents.', request.FieldKey, before, after, verified);
+      }
+      admissionCorrectionUpdateRequestRow_(requestSheet, request._row, updates);
+      if (act !== 'APPROVE') {
+        admissionCorrectionAudit_(owner, 'correction-review-' + act.toLowerCase(), ref, request.StudentID,
+          note || updates.Status, request.FieldKey, '', '', verificationMethod || request.VerificationMethod);
+      }
+    } finally { lock.releaseLock(); }
+    return { success: true, message: act === 'APPROVE' ? 'Correction approved and applied to the admission record.' : 'Correction request updated.' };
+  } catch (err) { return authFail_(err.message || 'Could not update the correction request.'); }
 }
