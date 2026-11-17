@@ -311,3 +311,27 @@ After manually syncing the branch files to the disposable staging Apps Script pr
 - Re-run `runAdmissionDbSetup()` to confirm the identifier backfill is idempotent and does not create duplicate identifier rows.
 
 No Apps Script runtime validation is claimed for this Stage 1 change until these staging tests are completed. Do not run either setup function against production.
+
+
+## Admissions dashboard routing — November 18, 2026
+
+Implemented on `integration/auth-db-foundation`:
+
+- Updated the public homepage's authenticated role routing so an Admissions account receives an **Open Admissions Portal** link to `?page=admissions-portal`.
+- Added the `AdmissionsPortal.html` initial landing dashboard and registered its route in `Router.gs`.
+- The dashboard calls `authWhoAmI(token)` on load and displays the workspace only when the current server-validated session role is exactly `Admissions`. Missing, expired, or wrong-role sessions do not receive dashboard content.
+- Owner routing to Homepage Management and Applicant/Student routing to the Applicant Portal are preserved.
+- The dashboard cards are explicitly informational placeholders. Applicant records, application review, requirements, and TLC management actions are not implemented or exposed by this landing page.
+- No database schema, production deployment, production spreadsheet, triggers, or `main` branch were changed.
+
+### Staging validation required
+
+1. Sync `Homepage.html`, `Router.gs`, and the new `AdmissionsPortal.html` to the disposable staging Apps Script project.
+2. Sign in as the dummy Admissions account. The homepage should show **Open Admissions Portal**; click it and confirm the Admissions Dashboard loads.
+3. Refresh the dashboard. Confirm the session remains valid and the dashboard loads again.
+4. Sign out. Confirm the user returns to the public homepage and the dashboard no longer opens with the cleared session.
+5. Open `?page=admissions-portal` in a fresh session without a token. Confirm it returns to the homepage without displaying dashboard content.
+6. Sign in as a dummy Applicant, Student, and Owner in turn. Confirm Applicant/Student still receive the Applicant Portal destination and Owner still receives Homepage Management. Confirm none of these roles can see the Admissions dashboard content.
+7. Confirm the public homepage layout and navigation remain unchanged.
+
+Static source changes do not establish Apps Script runtime success. Stage 1 Test D remains open until the user completes these staging checks.
