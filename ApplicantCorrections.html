@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Application Correction Requests | Moreh Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--ink:#14213d;--muted:#64748b;--line:#d8e3f8;--green:#16834a;--red:#b42318;--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#f5f8ff;color:var(--ink);font:400 14px/1.6 var(--body)}button,input,select,textarea{font:inherit}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.shell{min-height:100vh;display:grid;grid-template-columns:250px minmax(0,1fr)}.side{background:linear-gradient(165deg,#062E70,#041d49);color:#fff;padding:24px 18px;display:flex;flex-direction:column;gap:25px}.brand{display:flex;align-items:center;gap:12px;padding:4px 8px 20px;border-bottom:1px solid #ffffff2b}.mark{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--navy);display:grid;place-items:center;font:800 14px var(--head)}.brand strong{display:block;font:700 15px var(--head)}.brand small{color:#d4e2ff;font-size:11px}.nav{display:grid;gap:7px}.nav a{display:flex;gap:11px;align-items:center;padding:11px 12px;border-radius:9px;text-decoration:none;color:#e8f0ff;font:600 12px var(--head)}.nav a.active{background:#fff;color:var(--navy)}.back{margin-top:auto;color:#fff;text-decoration:none;border:1px solid #ffffff70;border-radius:8px;padding:10px;text-align:center;font:600 11px var(--head)}
+.main{min-width:0}.top{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,44px);gap:15px}.crumb{font:600 12px var(--head);color:var(--muted)}.crumb strong{color:var(--navy)}.user{display:flex;align-items:center;gap:10px}.user strong{font:600 12px var(--head)}.user small{display:block;color:var(--muted);font-size:10px}.logout{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;padding:8px 12px;font:600 11px var(--head);cursor:pointer}
+.content{max-width:1150px;margin:auto;padding:clamp(20px,4vw,40px)}.eyebrow{color:var(--blue);font:700 10px var(--head);letter-spacing:1.2px;text-transform:uppercase}h1{font:700 clamp(24px,3vw,32px)/1.2 var(--head);color:var(--navy);margin:5px 0 8px}.intro{color:var(--muted);max-width:760px;margin:0 0 22px}.policy{padding:15px 17px;background:#fff8ed;border:1px solid #ffe2bd;border-radius:11px;color:#84500d;font-size:12px;margin-bottom:20px}.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 5px 18px #062e700b;min-width:0}.card h2{margin:0 0 15px;color:var(--navy);font:700 16px var(--head)}.field{margin-bottom:14px}.field label{display:block;color:#34435f;font:600 11px var(--head);margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid #cdd9ed;border-radius:8px;padding:10px 11px;background:#fff;color:var(--ink);font:400 13px var(--body)}.field textarea{min-height:92px;resize:vertical}.field small{display:block;color:var(--muted);font-size:10px;margin-top:5px}.readonly{background:#f4f7fc!important;color:#66748b!important}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sensitive{padding:13px;background:#fff8ed;border:1px solid #ffe2bd;border-radius:9px;margin:8px 0 14px}.sensitive strong{display:block;color:#84500d;font:700 11px var(--head);margin-bottom:4px}.sensitive p{margin:0;color:#84500d;font-size:11px}.radio{display:flex;gap:9px;align-items:flex-start;margin:9px 0;color:#34435f;font-size:12px}.radio input{margin-top:3px}.filebox{padding:13px;border:1px dashed #9bb4df;border-radius:9px;background:#f8faff}.filebox input{font-size:11px}.filebox small{display:block;color:var(--muted);font-size:10px;margin-top:5px}.btn{border:0;border-radius:8px;background:var(--blue);color:#fff;padding:11px 17px;font:700 12px var(--head);cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.error{display:none;margin:10px 0;padding:10px 12px;background:#fff0ef;border:1px solid #ffd2ce;border-radius:8px;color:var(--red);font-size:11px}.error.show{display:block}.success{display:none;margin:10px 0;padding:10px 12px;background:#eaf7ef;border:1px solid #c6ead2;border-radius:8px;color:#17633a;font-size:11px}.success.show{display:block}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:11px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid #edf1f8;vertical-align:top}th{color:#64748b;font:700 10px var(--head);white-space:nowrap}.ref{color:var(--blue);font:700 10px var(--head)}.status{display:inline-block;padding:4px 8px;border-radius:99px;background:#fff4e5;color:#9a5700;font:700 9px var(--head);white-space:nowrap}.status.done{background:#e8f6ee;color:#17633a}.status.no{background:#fff0ef;color:#a12a2a}.empty{padding:25px 12px;text-align:center;color:var(--muted);font-size:11px}.loading{padding:35px;text-align:center;color:var(--muted)}footer{text-align:center;color:#8793a8;font-size:10px;padding:24px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}@media(max-width:650px){.shell{display:block}.side{padding:12px 15px;gap:10px}.brand{padding:0 4px 10px}.nav{display:flex;overflow:auto}.nav a{white-space:nowrap;padding:9px}.back{display:none}.top{height:62px;padding:0 14px}.user small{display:none}.content{padding:20px 14px}.card{padding:16px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <div class="brand"><div class="mark">MA</div><div><strong>MOREH ACADEMY</strong><small>Applicant Portal</small></div></div>
+  <nav class="nav" aria-label="Applicant navigation">
+    <a href="<?= baseUrl ?>?page=applicant-portal" target="_top">▦ &nbsp; Dashboard</a>
+    <a href="<?= baseUrl ?>?page=applicant-application" target="_top">📝 &nbsp; My Application</a>
+    <a class="active" href="<?= baseUrl ?>?page=applicant-corrections" target="_top">✎ &nbsp; Correction Requests</a>
+  </nav>
+  <a class="back" href="<?= baseUrl ?>" target="_top">← Back to Moreh Academy website</a>
+</aside>
+<main class="main">
+<header class="top"><div class="crumb">APPLICANT WORKSPACE / <strong>Correction Requests</strong></div><div class="user"><div><strong id="userName">Loading…</strong><small id="userEmail"></small></div><button class="logout" id="logout">Sign out</button></div></header>
+<section class="content">
+  <div class="eyebrow">Application support</div><h1>Application Correction Requests</h1>
+  <p class="intro">If you notice an error in your submitted application, request a correction here. Your original application will remain unchanged while the Admissions Office reviews your request.</p>
+  <div class="policy"><strong>Important identity-verification policy.</strong> Corrections to your legal name, date of birth, place of birth, and other identity-related details require verification. You may upload supporting documents through this private process or request an in-person verification visit and present a valid government-issued ID or another ID accepted by Moreh Academy. Uploading a file does not automatically approve a correction.</div>
+  <div class="grid">
+    <section class="card">
+      <h2>Submit a correction request</h2>
+      <div class="field"><label for="fieldKey">Which information needs correction?</label><select id="fieldKey"><option value="">Loading your application fields…</option></select></div>
+      <div class="row"><div class="field"><label for="originalValue">Currently submitted value</label><input id="originalValue" class="readonly" readonly></div><div class="field"><label for="proposedValue">Correct information</label><input id="proposedValue" maxlength="300" autocomplete="off"></div></div>
+      <div class="field"><label for="reason">Reason for correction</label><textarea id="reason" maxlength="1000" placeholder="Explain what is incorrect and why it needs to be corrected."></textarea><small>Please provide at least 10 characters.</small></div>
+      <div id="identityBox" class="sensitive" hidden>
+        <strong>Identity verification required</strong><p>This field is sensitive. Choose one verification method below. Your correction will not be applied until an authorized reviewer verifies it.</p>
+        <label class="radio"><input type="radio" name="verificationMethod" value="DOCUMENT_UPLOAD" checked> Upload supporting document(s) using the private document upload area.</label>
+        <label class="radio"><input type="radio" name="verificationMethod" value="IN_PERSON"> I will personally visit the Admissions Office and present a valid ID.</label>
+      </div>
+      <div id="fileArea" class="field filebox" hidden><label for="documents">Supporting documents</label><input type="file" id="documents" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple><small>PDF, JPG, or PNG only. Maximum 2 files, 5 MB each. Do not upload passwords, OTPs, or unrelated documents.</small></div>
+      <div id="formError" class="error" role="alert"></div><div id="formSuccess" class="success" role="status"></div>
+      <button class="btn" id="submitBtn" type="button">Submit correction request</button>
+    </section>
+    <section class="card">
+      <h2>My correction request history</h2>
+      <div id="history" class="loading">Loading your requests…</div>
+    </section>
+  </div>
+</section>
+<footer>© <span id="year"></span> Moreh Academy. All rights reserved.</footer>
+</main>
+</div>
+<script>
+var APP_BASE='<?= baseUrl ?>', TOKEN_KEY='ma_token', application=null, fieldRules={};
+var FIELD_LABELS={
+  Surname:'Surname',FirstName:'First Name',MiddleName:'Middle Name',Suffix:'Suffix',
+  Birthdate:'Date of Birth',BirthPlace:'Place of Birth',LRN:'Learner Reference Number (LRN)',
+  Mobile:'Applicant Mobile Number',AddressLine1:'House / Unit / Building / Street',AddressLine2:'Subdivision / Village / Phase',
+  Barangay:'Barangay',City:'City / Municipality',EmName:'Emergency Contact Name',EmRelation:'Emergency Contact Relationship',
+  EmMobile:'Emergency Contact Mobile Number',EmAddress:'Emergency Contact Address',FatherMobile:'Father Mobile Number',
+  FatherEmail:'Father Email Address',MotherMobile:'Mother Mobile Number',MotherEmail:'Mother Email Address',
+  GuardName:'Parent / Guardian Name',GuardRelation:'Parent / Guardian Relationship',GuardEmail:'Parent / Guardian Email Address',
+  GuardMobile:'Parent / Guardian Mobile Number',PrevSchool:'Previous School Name',PrevSY:'Previous School Year',
+  PrevGrade:'Previous Grade Level',PrevCluster:'Previous SHS Strand / Cluster',Cluster:'Current SHS Strand / Cluster'
+};
+var SENSITIVE={Surname:1,FirstName:1,MiddleName:1,Suffix:1,Birthdate:1,BirthPlace:1,LRN:1};
+function token(){try{return sessionStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}}
+function run(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend is unavailable.');return}google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail(e&&e.message?e.message:'Something went wrong. Please try again.')})[fn].apply(null,args)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function home(){window.top.location.href=APP_BASE||'?page=home'}
+function error(msg){var e=document.getElementById('formError');e.textContent=msg||'';e.classList.toggle('show',!!msg)}
+function success(msg){var e=document.getElementById('formSuccess');e.textContent=msg||'';e.classList.toggle('show',!!msg)}
+function selectedRule(){return fieldRules[document.getElementById('fieldKey').value]||null}
+function updateField(){var key=document.getElementById('fieldKey').value,rule=selectedRule();document.getElementById('originalValue').value=application&&key?String(application[key]||''):'';document.getElementById('proposedValue').value='';document.getElementById('identityBox').hidden=!(rule&&rule.sensitive);document.getElementById('fileArea').hidden=!(rule&&rule.sensitive)||document.querySelector('input[name="verificationMethod"]:checked').value!=='DOCUMENT_UPLOAD';}
+function loadFields(record){
+  application=record;var select=document.getElementById('fieldKey'),html='<option value="">Select a field</option>';
+  Object.keys(FIELD_LABELS).forEach(function(key){
+    if(key==='Cluster'&&record.GradeLevel!=='Grade 11'&&record.GradeLevel!=='Grade 12')return;
+    if(key==='PrevCluster'&&record.PrevGrade!=='Grade 11'&&record.PrevGrade!=='Grade 12')return;
+    if(key==='LRN'&&!record.LRN)return;
+    fieldRules[key]={label:FIELD_LABELS[key],sensitive:!!SENSITIVE[key]};
+    html+='<option value="'+key+'">'+esc(FIELD_LABELS[key])+'</option>';
+  });
+  select.innerHTML=html;select.addEventListener('change',updateField);updateField();
+}
+function loadHistory(){
+  run('admissionGetMyCorrectionRequests',[token()],function(r){
+    if(!r||r.success!==true){document.getElementById('history').textContent=(r&&r.message)||'Unable to load request history.';return}
+    var rows=r.data||[];if(!rows.length){document.getElementById('history').innerHTML='<div class="empty">You have not submitted any correction requests.</div>';return}
+    var html='<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Field</th><th>Status</th><th>Submitted</th></tr></thead><tbody>';
+    rows.forEach(function(x){var cls=x.status==='Completed'?'done':x.status==='Rejected'?'no':'';html+='<tr><td><span class="ref">'+esc(x.requestRef)+'</span></td><td>'+esc(x.fieldLabel)+'</td><td><span class="status '+cls+'">'+esc(x.status)+'</span></td><td>'+esc(String(x.createdAt||'').slice(0,10))+'</td></tr>'});
+    document.getElementById('history').innerHTML=html+'</tbody></table></div>';
+  },function(m){document.getElementById('history').textContent=m});
+}
+function readFiles(list){
+  return Promise.all(Array.from(list).map(function(file){
+    if(file.size>5*1024*1024)throw new Error('Each file must be 5 MB or smaller.');
+    if(!/^(application\/pdf|image\/jpeg|image\/png)$/.test(file.type))throw new Error('Only PDF, JPG, and PNG documents are accepted.');
+    return new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve({name:file.name,mimeType:file.type,data:String(reader.result).split(',')[1]||''})};reader.onerror=function(){reject(new Error('Could not read '+file.name))};reader.readAsDataURL(file)});
+  }));
+}
+async function submitRequest(){
+  error('');success('');
+  var key=document.getElementById('fieldKey').value,rule=selectedRule(),proposed=document.getElementById('proposedValue').value.trim(),reason=document.getElementById('reason').value.trim();
+  if(!rule){error('Select the field that needs correction.');return}
+  if(!proposed&&!['MiddleName','Suffix','AddressLine2','LRN','EmAddress','FatherMobile','FatherEmail','MotherMobile','MotherEmail','GuardName','GuardRelation','GuardEmail','GuardMobile','PrevSchool','PrevSY','PrevGrade','PrevCluster','Cluster'].includes(key)){error('Enter the corrected information.');return}
+  if(reason.length<10){error('Please explain the reason in at least 10 characters.');return}
+  var method=rule.sensitive?document.querySelector('input[name="verificationMethod"]:checked').value:'NOT_REQUIRED';
+  var fileInput=document.getElementById('documents'),files=[];
+  try{
+    if(method==='DOCUMENT_UPLOAD'){
+      if(!fileInput.files.length){error('Attach at least one supporting document, or choose in-person verification.');return}
+      if(fileInput.files.length>2){error('You may attach up to two supporting documents.');return}
+      files=await readFiles(fileInput.files);
+    }
+  }catch(e){error(e.message);return}
+  var btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Submitting…';
+  run('admissionSubmitCorrectionRequest',[token(),{fieldKey:key,proposedValue:proposed,reason:reason,verificationMethod:method,files:files}],function(r){
+    btn.disabled=false;btn.textContent='Submit correction request';
+    if(!r||r.success!==true){error((r&&r.message)||'Could not submit your request.');return}
+    success('Request '+(r.data&&r.data.requestRef?r.data.requestRef:'')+' submitted. Status: '+(r.data&&r.data.status||'Submitted')+'. Your original application has not been changed.');
+    document.getElementById('proposedValue').value='';document.getElementById('reason').value='';fileInput.value='';loadHistory();
+  },function(m){btn.disabled=false;btn.textContent='Submit correction request';error(m)});
+}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){home();return}run('authSignOut',[t],home,home)}
+document.getElementById('logout').addEventListener('click',signOut);
+document.getElementById('submitBtn').addEventListener('click',submitRequest);
+document.querySelectorAll('input[name="verificationMethod"]').forEach(function(el){el.addEventListener('change',updateField)});
+document.getElementById('year').textContent=new Date().getFullYear();
+(function boot(){
+  var t=token();if(!t){home();return}
+  run('authWhoAmI',[t],function(r){
+    if(!r||r.success!==true){home();return}
+    var a=r.data||{};if(['Applicant','Student'].indexOf(a.role)<0||!a.studentId){home();return}
+    document.getElementById('userName').textContent=a.fullName||'Moreh Applicant';document.getElementById('userEmail').textContent=a.email||'';
+    run('admissionGetMyApplication',[t],function(app){
+      if(!app||app.success!==true||!app.data){document.querySelector('.content').innerHTML='<div class="card">No submitted application was found for this account. Submit your initial application first.</div>';return}
+      loadFields(app.data);loadHistory();
+    },function(m){document.querySelector('.content').innerHTML='<div class="card">'+esc(m)+'</div>'});
+  },home);
+})();
+</script>
+</body>
+</html>
