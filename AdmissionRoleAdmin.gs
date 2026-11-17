@@ -103,6 +103,7 @@ function admissionRoleSetAdmissionsAccess(token, targetEmail, enabled, reason) {
       previousRole = target.role;
       if (enabled) {
         if (target.status !== 'Active') throw new Error('Only an active, email-verified account can receive Admissions access.');
+        if (target.studentId) throw new Error('A student-linked account cannot be converted to an Admissions staff account. Use a separate verified employee account.');
         if (ADM_ROLE.ELIGIBLE_ROLES.indexOf(target.role) < 0) {
           if (target.role === 'Admissions') throw new Error('This account already has Admissions access.');
           throw new Error('Only existing Applicant or Encoder accounts can be granted Admissions access.');
