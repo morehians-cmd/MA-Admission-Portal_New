@@ -134,13 +134,16 @@ function admissionWorkflowSchemaSetup() {
 
         var headers = ADMISSION_WORKFLOW_SCHEMA.HEADERS[name];
         var sheet = context.spreadsheet.insertSheet(name);
+        created.push(name);
+        if (sheet.getMaxColumns() < headers.length) {
+          sheet.insertColumnsAfter(sheet.getMaxColumns(), headers.length - sheet.getMaxColumns());
+        }
         sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
         sheet.setFrozenRows(1);
         var observed = sheet.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
         if (!admissionWorkflowSchemaHeadersEqual_(headers, observed)) {
           throw new Error('POST_CREATE_HEADER_VERIFICATION_FAILED:' + name);
         }
-        created.push(name);
       }
     } finally {
       lock.releaseLock();
