@@ -6,7 +6,7 @@
  */
 var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin' };
 var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management' };
-var PORTAL_PAGES_ = { 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication' };
+var PORTAL_PAGES_ = { 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication', 'applicant-corrections': 'ApplicantCorrections' };
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
@@ -19,7 +19,7 @@ function doGet(e) {
   t.preview = (p.preview === 'draft') ? 'draft' : '';
   t.ticket = /^[A-Za-z0-9-]{36}$/.test(p.pt || '') ? p.pt : '';
   var out = t.evaluate()
-    .setTitle(ADMIN_TITLES_[file] || (file === 'ApplicantPortal' ? 'Applicant Dashboard | Moreh Academy' : (file === 'ApplicantApplication' ? 'My Application | Moreh Academy' : 'Moreh Academy')))
+    .setTitle(ADMIN_TITLES_[file] || (file === 'ApplicantPortal' ? 'Applicant Dashboard | Moreh Academy' : (file === 'ApplicantApplication' ? 'My Application | Moreh Academy' : (file === 'ApplicantCorrections' ? 'Correction Requests | Moreh Academy' : 'Moreh Academy'))))
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   out.setXFrameOptionsMode((ADMIN_PAGES_.hasOwnProperty(page) || PORTAL_PAGES_.hasOwnProperty(page))
     ? HtmlService.XFrameOptionsMode.DEFAULT
