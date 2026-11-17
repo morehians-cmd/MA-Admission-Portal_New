@@ -91,8 +91,8 @@ function loadHistory(){
   run('admissionGetMyCorrectionRequests',[token()],function(r){
     if(!r||r.success!==true){document.getElementById('history').textContent=(r&&r.message)||'Unable to load request history.';return}
     var rows=r.data||[];if(!rows.length){document.getElementById('history').innerHTML='<div class="empty">You have not submitted any correction requests.</div>';return}
-    var html='<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Field</th><th>Status</th><th>Submitted</th></tr></thead><tbody>';
-    rows.forEach(function(x){var cls=x.status==='Completed'?'done':x.status==='Rejected'?'no':'';html+='<tr><td><span class="ref">'+esc(x.requestRef)+'</span></td><td>'+esc(x.fieldLabel)+'</td><td><span class="status '+cls+'">'+esc(x.status)+'</span></td><td>'+esc(String(x.createdAt||'').slice(0,10))+'</td></tr>'});
+    var html='<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Field</th><th>Status / Admissions note</th><th>Submitted</th></tr></thead><tbody>';
+    rows.forEach(function(x){var cls=x.status==='Completed'?'done':x.status==='Rejected'?'no':'';html+='<tr><td><span class="ref">'+esc(x.requestRef)+'</span></td><td>'+esc(x.fieldLabel)+'</td><td><span class="status '+cls+'">'+esc(x.status)+'</span>'+(x.decision?'<br><small>'+esc(x.decision)+'</small>':'')+'</td><td>'+esc(String(x.createdAt||'').slice(0,10))+'</td></tr>'});
     document.getElementById('history').innerHTML=html+'</tbody></table></div>';
   },function(m){document.getElementById('history').textContent=m});
 }
