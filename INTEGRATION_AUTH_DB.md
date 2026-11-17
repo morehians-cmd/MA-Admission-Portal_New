@@ -167,3 +167,23 @@ Static source integration is complete. Runtime testing is still required in the 
 8. Confirm a failed submission does not leave an unlinked or partial record.
 
 No Apps Script deployment, spreadsheet, trigger, production data, or `main` branch was changed. Do not test with real applicant/student information.
+
+
+## My Application form refinements — November 17, 2026
+
+The applicant form now includes these conditional and validation rules:
+
+- If Father Status or Mother Status is set to **Deceased**, the corresponding occupation, educational attainment, mobile number, and email fields are disabled, greyed out, and cleared. The server independently clears those values before saving.
+- Province is no longer displayed or requested in the applicant address. The existing database column is retained for schema compatibility and the server stores an empty value for new applications.
+- Previous SHS Strand / Cluster is enabled only when Previous Grade is Grade 11 or Grade 12. It is cleared in the browser when not applicable, and the server enforces the same rule.
+- LRN remains optional, but if provided it must contain exactly 12 digits and begin with 1, 2, 3, 4, or 5. The browser limits input to digits and 12 characters; the server validates the same format.
+
+### Additional staging checks
+
+1. Set Father Status to Deceased and confirm the four following fields become greyed out, disabled, and cleared. Repeat for Mother.
+2. Change either status back to Alive and confirm the fields become editable again.
+3. Confirm Province is absent from the form and review summary.
+4. Select Previous Grade 10 and confirm Previous SHS Strand / Cluster is disabled and empty.
+5. Select Previous Grade 11 or Grade 12 and confirm the previous cluster field becomes editable.
+6. Try LRN values beginning with 0 or 6, values shorter or longer than 12 digits, and nonnumeric characters. Confirm invalid values are rejected or sanitized; test valid 12-digit values beginning with 1 through 5.
+7. Confirm backend validation still rejects invalid LRN and clears inapplicable parent and previous-cluster values even if a browser request is manipulated.
