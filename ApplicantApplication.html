@@ -89,7 +89,7 @@ function initials(n){var p=String(n||'Moreh Applicant').trim().split(/\s+/);retu
 function field(key,label,type,opts,required,help,full){
  var html='<div class="field'+(full?' full':'')+'"><label for="f_'+key+'">'+esc(label)+(required?' *':'')+'</label>';
  if(type==='select'){html+='<select id="f_'+key+'" data-key="'+key+'" '+(required?'required':'')+'><option value="">Select '+esc(label.toLowerCase())+'</option>'+(opts||[]).map(function(o){return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>'}).join('')+'</select>'}
- else{html+='<input id="f_'+key+'" data-key="'+key+'" type="'+(type||'text')+'" '+(required?'required':'')+(key==='LRN'?' inputmode="numeric" maxlength="12" pattern="[1-5][0-9]{11}"':'')+(key==='Mobile'||key==='FatherMobile'||key==='MotherMobile'||key==='EmMobile'||key==='GuardMobile'?' inputmode="numeric" maxlength="11" pattern="09[0-9]{9}"':'')+(key==='Birthdate'?' max="'+localToday()+'"':'')+'>'}
+ else{html+='<input id="f_'+key+'" data-key="'+key+'" type="'+(type||'text')+'" '+(required?'required':'')+(key==='Department'?' readonly':'')+(key==='LRN'?' inputmode="numeric" maxlength="12" pattern="[1-5][0-9]{11}"':'')+(key==='Mobile'||key==='FatherMobile'||key==='MotherMobile'||key==='EmMobile'||key==='GuardMobile'?' inputmode="numeric" maxlength="11" pattern="09[0-9]{9}"':'')+(key==='Birthdate'?' max="'+localToday()+'"':'')+'>'}
  if(help)html+='<small>'+esc(help)+'</small>';return html+'</div>'
 }
 function localToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -147,6 +147,7 @@ function updateGradeRules(){
  var cluster=document.getElementById('f_Cluster');cluster.required=isShs;
  document.getElementById('f_Cluster').closest('.field').style.display=isShs?'':'none';
 }
+function updateEmergencyRules(){var same=value('EmSameAddr')===true;var address=document.getElementById('f_EmAddress');if(address)address.required=!same;}
 function updateGuardianRules(){
  var birth=value('Birthdate'),age=null;
  if(birth){var d=new Date(birth+'T00:00:00'),now=new Date();age=now.getFullYear()-d.getFullYear();if(now.getMonth()<d.getMonth()||(now.getMonth()===d.getMonth()&&now.getDate()<d.getDate()))age--}
@@ -200,8 +201,8 @@ document.getElementById('logout').addEventListener('click',signOut);
 document.getElementById('year').textContent=new Date().getFullYear();
 document.getElementById('previous').onclick=function(){setStep(currentStep-1);showError('')};
 document.getElementById('next').onclick=function(){if(!validateStep())return;if(currentStep<3)setStep(currentStep+1);else submitApplication()};
-document.addEventListener('change',function(e){if(e.target.id==='f_GradeLevel')updateGradeRules();if(e.target.id==='f_Birthdate')updateGuardianRules()});
-buildFields();updateGradeRules();updateGuardianRules();
+document.addEventListener('change',function(e){if(e.target.id==='f_GradeLevel')updateGradeRules();if(e.target.id==='f_Birthdate')updateGuardianRules();if(e.target.id==='f_EmSameAddr')updateEmergencyRules()});
+buildFields();updateGradeRules();updateGuardianRules();updateEmergencyRules();
 (function boot(){
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
