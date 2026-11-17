@@ -450,10 +450,19 @@ function getToken(){try{return sessionStorage.getItem('ma_token')||MEM_TOKEN}cat
 function saveToken(t){MEM_TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function clearToken(){MEM_TOKEN='';try{sessionStorage.removeItem('ma_token')}catch(e){}}
 function resetLoginBtn(){$('outBtn').style.display='none';var b=$('loginBtn');b.textContent='Portal Login';b.removeAttribute('target');b.href='#';b.onclick=function(e){e.preventDefault();openM('mSignin')}}
-/* TEMPORARY post-login behaviour until the Phase 4 dashboard exists: Owner gets a link to Homepage Management;
-   Encoder and Student get a Sign out button. Replace this function when the dashboard is built. */
+/* Post-login destinations are role-specific. Keep the public homepage and Owner workflow unchanged. */
 function showSignedIn(u,quiet){
  var b=$('loginBtn');
+ if(u.role==='Admissions'){
+  b.textContent='Open Admissions Portal';
+  b.href=(APP_BASE||'')+'?page=admissions-portal';
+  b.target='_top';
+  b.onclick=null;
+  $('outBtn').style.display='';
+  $('outBtn').onclick=function(e){e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');call(API.signOut,[t],function(){},function(){})};
+  if(!quiet)toast('Signed in as Admissions. Select Open Admissions Portal to continue.');
+  return;
+ }
  if(u.role==='Applicant'||u.role==='Student'){
   /* HtmlService may block top-frame navigation from an asynchronous server callback.
      Keep the signed-in session and expose a real target=_top link for the user's click. */
