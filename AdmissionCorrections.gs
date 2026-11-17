@@ -34,7 +34,7 @@ var ADM_CORR = {
     Suffix: { label: 'Suffix', sensitive: true, type: 'name', optional: true },
     Birthdate: { label: 'Date of Birth', sensitive: true, type: 'date' },
     BirthPlace: { label: 'Place of Birth', sensitive: true, type: 'text' },
-    LRN: { label: 'Learner Reference Number (LRN)', sensitive: true, type: 'lrn', optional: true },
+    LRN: { label: 'Learner Reference Number (LRN)', sensitive: true, type: 'lrn' },
     Mobile: { label: 'Applicant Mobile Number', sensitive: false, type: 'mobile' },
     AddressLine1: { label: 'House / Unit / Building / Street', sensitive: false, type: 'text' },
     AddressLine2: { label: 'Subdivision / Village / Phase', sensitive: false, type: 'text', optional: true },
