@@ -29,6 +29,8 @@ The destination authentication model uses email-based accounts, PBKDF2-HMAC-SHA2
 
 The source has a separate student record model and user model. Its student rows are represented by `COLS = ['StudentID','CreatedAt', ...FIELDS]`; its user rows use a separate `Users` schema beginning with `Username, PasswordHash, Role` and include a `StudentID` link. Source roles and password hashes are not compatible with the destination's authentication schema.
 
+The inspected source core also contains legacy hard-coded security/configuration values (including a password salt and a Drive folder identifier), while its README describes public-link photo-folder sharing. None of those values or permissions should be copied into the destination. Before any future file/Drive integration, move secrets to Script Properties, review the target folder's access list, and confirm whether uploaded student photos must remain private.
+
 ## Integration decisions
 
 1. **One authentication authority:** retain destination `Auth.gs` and `AuthAccount.gs`. Do not import source `Security.gs` login/session functions or create a second `doGet(e)`.
