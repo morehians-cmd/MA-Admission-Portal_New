@@ -335,3 +335,21 @@ Implemented on `integration/auth-db-foundation`:
 7. Confirm the public homepage layout and navigation remain unchanged.
 
 Static source changes do not establish Apps Script runtime success. Stage 1 Test D remains open until the user completes these staging checks.
+
+
+
+## Stage 1 staging validation outcome — November 18, 2026
+
+User-reported staging results:
+
+- Initial setup and Test A: connection, database setup, role setup, StudentID links, identifier backfill, and repeat setup all passed.
+- Test B: dummy applicant registration, internal Student key, account link, official identifier separation, and applicant portal display all passed.
+- Test C: required LRN, invalid LRN rejection, valid LRN acceptance, duplicate LRN detection, and prevention of clearing LRN through corrections all passed.
+- Test D: Admissions account eligibility, Owner grant, permission checks, revocation, and protected-account checks all passed.
+- Admissions dashboard follow-up validation: role-specific dashboard link, dashboard load, refresh, sign-out, no-session denial, wrong-role denial, and regression checks all passed.
+
+The earlier Test D observation (Admissions user logged in but remained on the public homepage) was traced to missing homepage destination and missing Admissions dashboard route. The branch was updated with role-specific routing, the `admissions-portal` route, and a role-checked initial dashboard. The user subsequently reported all seven staging checks passed.
+
+Stage 1 is considered complete in the disposable staging environment based on user-reported test results. This is not production validation or deployment. No production Apps Script, production spreadsheet, triggers, or `main` branch were changed.
+
+Next planned stage: Stage 2 — Current Student Registration and Student Profile Foundation. Prepare and approve the Stage 2 workflow, schema, identity matching, and account-linking specification before writing implementation code.
