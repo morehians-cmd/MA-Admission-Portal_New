@@ -1,6 +1,6 @@
 # Stage 2.4 — Admissions Database Schema Dictionary and Field Mapping
 
-**Status:** Detailed design prepared; approval required before implementation  
+**Status:** Approved design; Sheet 9 grade-field order clarified by user on November 18, 2026  
 **Repository:** `morehians-cmd/MA-Admission-Portal_New`  
 **Branch:** `integration/auth-db-foundation`  
 **Baseline:** Approved Stage 2.2 12-sheet schema and Stage 2.3 implementation plan  
