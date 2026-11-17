@@ -511,3 +511,9 @@ function admissionReviewCorrectionRequest(token, requestRef, action, notes, veri
     return { success: true, message: act === 'APPROVE' ? 'Correction approved and applied to the admission record.' : 'Correction request updated.' };
   } catch (err) { return authFail_(err.message || 'Could not update the correction request.'); }
 }
+
+
+/** Editor menu wrapper for the private setup function. */
+function runAdmissionCorrectionSetup() {
+  admissionCorrectionSetup_();
+}
