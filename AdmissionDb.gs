@@ -185,9 +185,19 @@ function admissionDbNormalizeApplicant_(input, account) {
   out.Department = department;
   if (out.LRN && !/^[1-5]\d{11}$/.test(out.LRN)) throw new Error('LRN must contain 12 digits and start with 1, 2, 3, 4 or 5.');
   if (!/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit applicant mobile number.');
+  out.Province = ''; // Province is intentionally not collected in the K–12 applicant form.
   if (!out.AddressLine1 || !out.Barangay || !out.City) throw new Error('Complete the applicant street address, barangay, and city / municipality.');
   if (!out.EmName || !out.EmRelation || !/^09\d{9}$/.test(out.EmMobile)) throw new Error('Complete the emergency contact name, relationship, and valid 11-digit mobile number.');
   if (out.EmSameAddr !== 'Yes' && !out.EmAddress) throw new Error('Provide the emergency contact address or confirm that it is the same as the applicant address.');
+  ['FatherStatus','MotherStatus'].forEach(function (key) { if (out[key] && out[key] !== 'Alive' && out[key] !== 'Deceased') throw new Error('Select a valid parent status.'); });
+  ['Father','Mother'].forEach(function (parent) {
+    if (out[parent + 'Status'] === 'Deceased') {
+      out[parent + 'Occupation'] = '';
+      out[parent + 'Education'] = '';
+      out[parent + 'Mobile'] = '';
+      out[parent + 'Email'] = '';
+    }
+  });
   ['FatherMobile','MotherMobile'].forEach(function (key) { if (out[key] && !/^09\d{9}$/.test(out[key])) throw new Error('Enter a valid 11-digit ' + key.replace('Mobile','').toLowerCase() + ' mobile number.'); });
   ['FatherEmail','MotherEmail'].forEach(function (key) { if (out[key]) { out[key] = out[key].toLowerCase(); if (!admissionDbValidEmail_(out[key])) throw new Error('Enter a valid ' + key.replace('Email','').toLowerCase() + ' email address.'); } });
   var categories = ['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS'];
@@ -198,6 +208,7 @@ function admissionDbNormalizeApplicant_(input, account) {
   if (!shs) out.Cluster = '';
   if (out.PrevGrade && allowedGrades.indexOf(out.PrevGrade) < 0) throw new Error('Select a valid previous grade level.');
   if (out.PrevCluster && clusters.indexOf(out.PrevCluster) < 0) throw new Error('Select a valid previous SHS strand / cluster.');
+  if (out.PrevGrade !== 'Grade 11' && out.PrevGrade !== 'Grade 12') out.PrevCluster = '';
   if (out.PrevSY && !/^20\d{2}-20\d{2}$/.test(out.PrevSY)) throw new Error('Enter a valid previous school year.');
   if (out.PrevSY) { var psy = out.PrevSY.split('-'); if (Number(psy[1]) !== Number(psy[0]) + 1) throw new Error('Select a valid consecutive previous school year.'); }
   if (out.PrivacyConsent !== 'Yes') throw new Error('You must agree to the Privacy Notice before submitting.');
