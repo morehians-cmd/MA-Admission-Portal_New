@@ -18,7 +18,7 @@
 var AUTH = {
   USERS: 'Users', AUDIT: 'AuthAudit',
   HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt',
-            'FullName', 'Mobile', 'TermsAcceptedAt', 'OtpHash', 'OtpExpires', 'OtpTries', 'OtpPurpose'],
+            'FullName', 'Mobile', 'TermsAcceptedAt', 'OtpHash', 'OtpExpires', 'OtpTries', 'OtpPurpose', 'StudentID'],
   ROLES: ['Owner', 'Encoder', 'Student', 'Applicant'],
   ITER: 20000,                 // default for NEW hashes. Tune with authBenchmark().
   MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
@@ -60,7 +60,7 @@ function authSignIn(email, password) {
     authUpdateRow_(u.row, chg);
     var token = authIssueSession_(u);
     authAudit_(email, 'sign-in-ok', u.role);
-    return { success: true, message: 'Signed in.', data: { token: token, email: u.email, role: u.role } };
+    return { success: true, message: 'Signed in.', data: { token: token, email: u.email, role: u.role, studentId: u.studentId || '', fullName: u.name || '' } };
   } catch (err) {
     return authFail_('Sign-in is unavailable right now. Please try again.', err);
   }
@@ -80,7 +80,7 @@ function authSignOut(token) {
 function authWhoAmI(token) {
   try {
     var s = authResolveSession_(token);
-    return s ? { success: true, message: 'OK', data: { email: s.email, role: s.role } } : authFail_('Session expired. Please sign in again.');
+    return s ? { success: true, message: 'OK', data: { email: s.email, role: s.role, studentId: s.studentId || '', fullName: s.fullName || '' } } : authFail_('Session expired. Please sign in again.');
   } catch (err) { return authFail_('Could not check your session.', err); }
 }
 
@@ -119,7 +119,7 @@ function authResolveSession_(token) {
   var u = authFindUser_(s.e);
   if (!u || u.status !== 'Active' || u.tv !== s.tv) { cache.remove(key); return null; }
   cache.put(key, raw, Math.max(1, Math.min(AUTH.IDLE_SEC, AUTH.MAX_SEC - age)));   // sliding idle window
-  return { email: u.email, role: u.role };
+  return { email: u.email, role: u.role, studentId: u.studentId || '', fullName: u.name || '' };
 }
 
 /** For feature files: returns {email, role} if the session holds one of `roles`, otherwise throws 'Not authorized.' */
@@ -127,6 +127,31 @@ function authRequireRole_(token, roles) {
   var s = authResolveSession_(token);
   if (!s || roles.indexOf(s.role) < 0) throw new Error('Not authorized.');
   return s;
+}
+
+/**
+ * Internal account-to-admission link. Call only from a trusted server-side admission workflow.
+ * Requires an active Applicant/Student account, a migrated StudentID column, and a unique link.
+ */
+function authLinkStudent_(email, studentId) {
+  email = authEmail_(email);
+  studentId = String(studentId == null ? '' : studentId).trim();
+  if (!email || !/^[A-Za-z0-9_-]{3,40}$/.test(studentId)) throw new Error('Invalid account or StudentID.');
+  var lock = LockService.getScriptLock(); lock.waitLock(15000);
+  try {
+    var all = authAllUsers_(), u = null;
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].email === email) u = all[i];
+      else if (all[i].studentId && all[i].studentId === studentId) throw new Error('StudentID is already linked to another account.');
+    }
+    if (!u || u.status !== 'Active' || ['Applicant', 'Student'].indexOf(u.role) < 0) throw new Error('Active applicant account not found.');
+    if (u.studentId && u.studentId !== studentId) throw new Error('This account is already linked to another StudentID.');
+    var sh = authSheet_(), header = String(sh.getRange(1, AUTH.HEADERS.length).getValue() || '');
+    if (header !== 'StudentID') throw new Error('Run the approved Users schema migration before linking student records.');
+    sh.getRange(u.row, AUTH.HEADERS.length).setNumberFormat('@').setValue(studentId);
+    authAudit_(email, 'student-link', studentId);
+    return true;
+  } finally { lock.releaseLock(); }
 }
 
 /* ====================== EDITOR-ONLY (run from the Apps Script editor) ====================== */
@@ -251,7 +276,7 @@ function authAllUsers_() {
     if (!email) continue;
   out.push({ row: i + 1, email: email, role: String(r[1] || ''), status: String(r[2] || ''), hash: String(r[3] || ''), tv: Number(r[4]) || 1,
       name: String(r[8] || ''), mobile: String(r[9] || ''), otpHash: String(r[11] || ''), otpExp: Number(r[12]) || 0,
-      otpTries: Number(r[13]) || 0, otpPurpose: String(r[14] || '') });
+      otpTries: Number(r[13]) || 0, otpPurpose: String(r[14] || ''), studentId: String(r[15] || '') });
   }
   return out;
 }
