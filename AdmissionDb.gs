@@ -171,10 +171,11 @@ function admissionDbBackfillIdentifiers_() {
     }
     var isMa = /^MA-20\d{2}-[A-Z0-9]{10}$/.test(key);
     var isTlc = /^TLC\d{4}-\d{4}$/i.test(key);
+    var isShs = ['Grade 11','Grade 12'].indexOf(String(student.GradeLevel || '')) >= 0;
     var created = student.CreatedAt || now;
     var item = {
       IdentifierID: Utilities.getUuid(), StudentID: key,
-      IdentifierType: isMa ? 'MA_STUDENT_ID' : (isTlc ? 'TLC_LEGACY_ID' : 'LEGACY_STUDENT_ID'),
+      IdentifierType: isMa ? 'MA_STUDENT_ID' : (isTlc ? 'TLC_LEGACY_ID' : (isShs ? 'SHS_SCHOOL_ID' : 'LEGACY_STUDENT_ID')),
       IdentifierValue: key, IssuedAt: created, EffectiveFrom: created, EffectiveTo: '',
       IsCurrent: 'TRUE', IdentifierStatus: 'ACTIVE',
       IssuanceReason: 'Backfilled from existing AdmissionStudents.StudentID; original value preserved',
