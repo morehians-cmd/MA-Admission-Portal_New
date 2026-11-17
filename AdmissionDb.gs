@@ -175,7 +175,7 @@ function admissionDbBackfillIdentifiers_() {
     var created = student.CreatedAt || now;
     var item = {
       IdentifierID: Utilities.getUuid(), StudentID: key,
-      IdentifierType: isMa ? 'MA_STUDENT_ID' : (isTlc ? 'TLC_LEGACY_ID' : (isShs ? 'SHS_SCHOOL_ID' : 'LEGACY_STUDENT_ID')),
+      IdentifierType: isMa ? 'MA_STUDENT_ID' : (isShs ? 'SHS_SCHOOL_ID' : (isTlc ? 'TLC_LEGACY_ID' : 'LEGACY_STUDENT_ID')),
       IdentifierValue: key, IssuedAt: created, EffectiveFrom: created, EffectiveTo: '',
       IsCurrent: 'TRUE', IdentifierStatus: 'ACTIVE',
       IssuanceReason: 'Backfilled from existing AdmissionStudents.StudentID; original value preserved',
@@ -393,8 +393,8 @@ function admissionDbNewOfficialStudentId_() {
 
 /**
  * Browser-facing first application submission.
- * Only an active Applicant may create their own record. The server supplies email, StudentID,
- * timestamps, FullName, Age, Classification, and EnrollStatus; client-supplied system fields are rejected.
+ * Only an active Applicant may create their own record. The server supplies the internal StudentID key,
+ * separate official MA identifier, email, timestamps, FullName, Age, Classification, and EnrollStatus.
  */
 function admissionCreateApplication(token, input) {
   var account;
