@@ -17,8 +17,9 @@
  */
 var AUTH = {
   USERS: 'Users', AUDIT: 'AuthAudit',
-  HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt'],
-  ROLES: ['Owner', 'Encoder', 'Student'],
+  HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt',
+            'FullName', 'Mobile', 'TermsAcceptedAt', 'OtpHash', 'OtpExpires', 'OtpTries', 'OtpPurpose'],
+  ROLES: ['Owner', 'Encoder', 'Student', 'Applicant'],
   ITER: 20000,                 // default for NEW hashes. Tune with authBenchmark().
   MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
   IDLE_SEC: 7200,             // a session dies after 2 hours without use
@@ -47,6 +48,9 @@ function authSignIn(email, password) {
       cache.put(failKey, String(n), AUTH.LOCK_SEC);
       if (u) authAudit_(email, n >= AUTH.MAX_FAILS ? 'locked' : 'sign-in-fail', 'attempt ' + n);
       return authFail_('Incorrect email or password.');
+    }
+    if (u.status === 'Pending') {
+      return { success: false, code: 'unverified', message: 'Please verify your email first. We will send you a new code.', error: 'unverified', data: { email: u.email } };
     }
     if (u.status !== 'Active') { authAudit_(email, 'sign-in-blocked', u.status); return authFail_('This account is not active. Please contact the school.'); }
 
@@ -245,7 +249,9 @@ function authAllUsers_() {
   for (var i = 1; i < v.length; i++) {
     var r = v[i], email = String(r[0] || '').trim().toLowerCase();
     if (!email) continue;
-    out.push({ row: i + 1, email: email, role: String(r[1] || ''), status: String(r[2] || ''), hash: String(r[3] || ''), tv: Number(r[4]) || 1 });
+  out.push({ row: i + 1, email: email, role: String(r[1] || ''), status: String(r[2] || ''), hash: String(r[3] || ''), tv: Number(r[4]) || 1,
+      name: String(r[8] || ''), mobile: String(r[9] || ''), otpHash: String(r[11] || ''), otpExp: Number(r[12]) || 0,
+      otpTries: Number(r[13]) || 0, otpPurpose: String(r[14] || '') });
   }
   return out;
 }
@@ -260,6 +266,7 @@ function authUpdateRow_(row, changes) {
   try {
     var sh = authSheet_(), range = sh.getRange(row, 1, 1, AUTH.HEADERS.length), vals = range.getValues();
     Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
+    sh.getRange(row, 9, 1, AUTH.HEADERS.length - 8).setNumberFormat('@');
     range.setValues(vals);
   } finally { lock.releaseLock(); }
 }

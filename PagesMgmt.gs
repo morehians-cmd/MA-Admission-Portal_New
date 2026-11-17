@@ -41,7 +41,10 @@ var PG = {
     { route: 'news/upcoming-events', label: 'Upcoming Events', group: 'News & Updates' },
     { route: 'news/enrollment-announcements', label: 'Enrollment Announcements', group: 'News & Updates' },
     { route: 'news/school-achievements', label: 'School Achievements', group: 'News & Updates' },
-    { route: 'contact', label: 'Contact Information', group: 'Contact' }
+    { route: 'contact', label: 'Contact Information', group: 'Contact' },
+    { route: 'contact', label: 'Contact Information', group: 'Contact' },
+    { route: 'terms', label: 'Terms of Service', group: 'Legal' },
+    { route: 'privacy', label: 'Privacy Policy', group: 'Legal' }
   ],
   TYPES: ['h2', 'p', 'ul', 'img', 'link', 'download'],
   MAX_BLOCKS: 100, MAX_JSON: 45000, MAX_FILE: 5 * 1024 * 1024

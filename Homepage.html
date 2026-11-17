@@ -111,6 +111,7 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 .f{margin-top:12px}.f label{display:block;font:600 13px var(--head);color:var(--navy)}
 .f input{width:100%;padding:10px 12px;border:1px solid #b9c8e6;border-radius:8px;font:inherit}.f input.bad{border-color:#c0392b}
 .err{color:#c0392b;font-size:13px;min-height:18px}.swap{background:none;border:0;color:var(--blue);font-weight:600;cursor:pointer;margin-top:12px;padding:0}
+.note{font-size:13px;color:#51607d;margin:8px 0 0}.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-top:14px}.chk input{margin-top:3px;flex:none}.chk a{color:var(--blue);font-weight:600}.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}.swap:disabled{opacity:.55;cursor:default}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;z-index:200;display:none;max-width:90vw}
 #toast.bad{background:#c0392b}
 @media(max-width:1100px){
@@ -163,23 +164,53 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
   <div class="f"><label for="siPass">Password</label><input id="siPass" type="password" autocomplete="current-password"></div>
   <p class="err" id="siErr" role="alert"></p>
   <button class="btn blue" id="siGo" style="width:100%">Sign in</button>
+  <button class="swap" data-swap="mForgot">Forgot password?</button><br>
   <button class="swap" data-swap="mCreate">No account yet? Create one</button>
 </div></div>
 <div class="modal" id="mCreate" role="dialog" aria-modal="true" aria-labelledby="caT"><div class="box">
   <button class="x" data-close aria-label="Close">×</button><h2 id="caT">Create account</h2>
   <div class="f"><label for="caName">Full name</label><input id="caName" autocomplete="name"></div>
   <div class="f"><label for="caMail">Email</label><input id="caMail" type="email" autocomplete="email"></div>
-  <div class="f"><label for="caPass">Password (8+ characters)</label><input id="caPass" type="password" autocomplete="new-password"></div>
+  <div class="f"><label for="caMobile">Mobile number</label><input id="caMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="09171234567"></div>
+  <div class="f"><label for="caPass">Password</label><input id="caPass" type="password" autocomplete="new-password"></div>
+  <p class="note">8 or more characters, with at least one letter and one number.</p>
   <div class="f"><label for="caPass2">Confirm password</label><input id="caPass2" type="password" autocomplete="new-password"></div>
+  <div class="hp" aria-hidden="true"><label for="caHp">Leave this empty</label><input id="caHp" tabindex="-1" autocomplete="off"></div>
+  <label class="chk"><input type="checkbox" id="caTerms"><span>I agree to the <a id="lnkTerms" href="#" target="_blank" rel="noopener">Terms of Service</a> and <a id="lnkPriv" href="#" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
   <p class="err" id="caErr" role="alert"></p>
   <button class="btn blue" id="caGo" style="width:100%">Create account</button>
   <button class="swap" data-swap="mSignin">Already registered? Sign in</button>
+</div></div>
+<div class="modal" id="mVerify" role="dialog" aria-modal="true" aria-labelledby="vT"><div class="box">
+  <button class="x" data-close aria-label="Close">×</button><h2 id="vT">Verify your email</h2>
+  <p class="note" id="vMsg"></p>
+  <div class="f"><label for="vCode">6-digit code</label><input id="vCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:6px;font-size:20px;text-align:center"></div>
+  <p class="err" id="vErr" role="alert"></p>
+  <button class="btn blue" id="vGo" style="width:100%">Verify</button>
+  <button class="swap" id="vResend" type="button">Resend code</button>
+  <p class="note">The code expires in 10 minutes. Check your spam folder if you do not see it.</p>
+</div></div>
+<div class="modal" id="mForgot" role="dialog" aria-modal="true" aria-labelledby="fT"><div class="box">
+  <button class="x" data-close aria-label="Close">×</button><h2 id="fT">Forgot password</h2>
+  <p class="note">Enter your account email. We will send a 6-digit code.</p>
+  <div class="f"><label for="fMail">Email</label><input id="fMail" type="email" autocomplete="email"></div>
+  <p class="err" id="fErr" role="alert"></p>
+  <button class="btn blue" id="fGo" style="width:100%">Send code</button>
+  <button class="swap" data-swap="mSignin">Back to sign in</button>
+</div></div>
+<div class="modal" id="mReset" role="dialog" aria-modal="true" aria-labelledby="rT"><div class="box">
+  <button class="x" data-close aria-label="Close">×</button><h2 id="rT">Set a new password</h2>
+  <div class="f"><label for="rCode">6-digit code</label><input id="rCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div>
+  <div class="f"><label for="rPass">New password</label><input id="rPass" type="password" autocomplete="new-password"></div>
+  <div class="f"><label for="rPass2">Confirm new password</label><input id="rPass2" type="password" autocomplete="new-password"></div>
+  <p class="err" id="rErr" role="alert"></p>
+  <button class="btn blue" id="rGo" style="width:100%">Change password</button>
 </div></div>
 <div id="toast" role="status"></div>
 
 <script>
 /* ===== Backend hooks. Sign-in functions live in Auth.gs. createAccount is still a placeholder (item 3, later). ===== */
-var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',getPage:'getPublishedPage',getPageDraft:'getDraftPage',signIn:'authSignIn',signOut:'authSignOut',whoAmI:'authWhoAmI',createAccount:'createApplicantAccount'};
+var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',getPage:'getPublishedPage',getPageDraft:'getDraftPage',signIn:'authSignIn',signOut:'authSignOut',whoAmI:'authWhoAmI',register:'authRegister',verify:'authVerifyEmail',resend:'authResendCode',forgot:'authForgotPassword',reset:'authResetPassword'};
 
 /* ===== Content model (Phase 2 will load this from Sheets, published copy) ===== */
 var DEFAULT_HOME={
@@ -228,7 +259,7 @@ function routeHref(to){return to.indexOf('route:')===0?link(to.slice(6)):safeUrl
 var PG={loading:''};
 function pageInfo(r){
  var parts=r.split('/'),n=HOME.nav.filter(function(x){return x.id===parts[0]})[0],sub=null,title='';
- if(r==='contact')title='Contact Information';
+ if(r==='contact')title='Contact Information';else if(r==='terms')title='Terms of Service';else if(r==='privacy')title='Privacy Policy';
  else if(n){if(parts[1]){sub=n.subs.filter(function(s){return slug(s[0])===parts[1]})[0];title=sub?sub[0]:''}else title=n.label}
  return {n:n,sub:sub,title:title,blocks:(HOME.pages&&HOME.pages[r])||[]}}
 function rtFmt(t){return esc(t).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/__([^_]+)__/g,'<u>$1</u>').replace(/\*([^*]+)\*/g,'<em>$1</em>')}
@@ -273,7 +304,7 @@ document.addEventListener('click',function(e){var r=e.target.closest('[data-tl]'
 document.addEventListener('keydown',function(e){var b=e.target.closest&&e.target.closest('.tl-n');if(!b)return;
  var r=b.closest('[data-tl]'),k=+r.dataset.k||0,d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-k:e.key==='End'?1000:0;
  if(!d)return;e.preventDefault();k=tlGo(r,k+d);r.querySelectorAll('.tl-n')[k].focus()});
-var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program','campus-life','campus-life/student-organizations','campus-life/school-activities-and-events','campus-life/sports-and-athletics','campus-life/clubs-and-societies','campus-life/campus-facilities-and-tour','news','news/school-announcements','news/latest-news','news/upcoming-events','news/enrollment-announcements','news/school-achievements','contact'];
+var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program','campus-life','campus-life/student-organizations','campus-life/school-activities-and-events','campus-life/sports-and-athletics','campus-life/clubs-and-societies','campus-life/campus-facilities-and-tour','news','news/school-announcements','news/latest-news','news/upcoming-events','news/enrollment-announcements','news/school-achievements','contact','terms','privacy'];
 var TBN=0;
 function tbParse(t){var m=/^tab\s*:\s*(.+)$/i.exec(String(t||'').trim());if(!m)return null;var l=m[1].trim();return /^end$/i.test(l)?'end':l}
 function tbHtml(it){
@@ -372,7 +403,7 @@ function render(){
  $('values').innerHTML=h.values.filter(function(v){return v.on}).map(function(v){return '<li><span class="ic" aria-hidden="true">'+esc(v.icon)+'</span>'+esc(v.label)+'</li>'}).join('');
  var r=cur_route(),home=(r==='home');$('hero').hidden=!home;$('homepage-values').hidden=!home||((HOME.display||{}).hidden||[]).indexOf('values')>-1;if(APP_PREVIEW&&!$('pvBar')){var pb=document.createElement('div');pb.id='pvBar';pb.textContent='Draft preview. Visitors do not see this version.';pb.style.cssText='background:#FF941F;color:#062E70;text-align:center;font:700 13px Poppins,sans-serif;padding:6px';document.body.insertBefore(pb,document.body.firstChild)}$('sections').innerHTML=home?renderHome():renderPage(r);document.title=(home?'Moreh Academy':pageInfo(r).title+' | Moreh Academy');if(!home)window.scrollTo(0,0);
  $('fLoc').textContent=h.footer.loc;$('fPhone').textContent=h.footer.phone;$('fMail').textContent=h.footer.email;$('fMail').href='mailto:'+h.footer.email;
- $('fCopy').textContent='© '+new Date().getFullYear()+' Moreh Academy. All rights reserved.';
+ $('fCopy').textContent='© '+new Date().getFullYear()+' Moreh Academy. All rights reserved.'; $('lnkTerms').href=link('terms');$('lnkPriv').href=link('privacy');
  bindNav();if(home)initCarousel();else clearInterval(timer);
 }
 
@@ -436,18 +467,57 @@ $('siGo').onclick=function(){
  mark(['siUser','siPass'],bad);$('siErr').textContent=bad.length?'Enter your email and password.':'';if(bad.length)return;
  var b=this;b.disabled=true;b.textContent='Signing in…';
  call(API.signIn,[u,p],function(r){b.disabled=false;b.textContent='Sign in';
+  if(r&&r.code==='unverified'){startVerify((r.data&&r.data.email)||u,'Your email is not verified yet. We sent you a new code.',true);return}
   if(!r||r.success!==true){$('siErr').textContent=(r&&r.message)||'Sign-in failed.';return}
   $('siPass').value='';saveToken(r.data.token);closeM();showSignedIn(r.data,false)},
   function(m){b.disabled=false;b.textContent='Sign in';$('siErr').textContent=m})};
+/* ===== Accounts: register, verify email, forgot / reset password ===== */
+var PEND={email:''},rsT=null,PWRULE='Use 8 or more characters with at least one letter and one number.';
+function pwBad(p){return p.length<8||p.length>200||!/[A-Za-z]/.test(p)||!/\d/.test(p)}
+function mobileOk(v){return /^(09\d{9}|\+639\d{9}|639\d{9})$/.test(String(v).replace(/[\s\-()]/g,''))}
+function busyBtn(b,on,txt){if(on){b.dataset.t=b.textContent;b.textContent=txt}else b.textContent=b.dataset.t||b.textContent;b.disabled=on}
+function cool(sec){var b=$('vResend'),s=sec;clearInterval(rsT);b.disabled=true;b.textContent='Resend code ('+s+')';
+ rsT=setInterval(function(){s--;if(s<=0){clearInterval(rsT);b.disabled=false;b.textContent='Resend code'}else b.textContent='Resend code ('+s+')'},1000)}
+function startVerify(email,msg,send){PEND.email=email;$('vMsg').textContent=msg||'Enter the 6-digit code we sent to '+email+'.';$('vCode').value='';$('vErr').textContent='';openM('mVerify');cool(60);
+ if(send)call(API.resend,[email],function(){},function(){})}
 $('caGo').onclick=function(){
- var n=$('caName').value.trim(),m=$('caMail').value.trim(),p=$('caPass').value,p2=$('caPass2').value,bad=[],msg='';
- if(!n)bad.push('caName');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))bad.push('caMail');if(p.length<8)bad.push('caPass');if(p2!==p)bad.push('caPass2');
- if(bad.length)msg=bad.indexOf('caPass2')>-1&&bad.length===1?'Passwords do not match.':'Complete all fields. Use a valid email and a password of 8+ characters.';
- mark(['caName','caMail','caPass','caPass2'],bad);$('caErr').textContent=msg;if(bad.length)return;
- var b=this;b.disabled=true;b.textContent='Creating…';
- call(API.createAccount,[{name:n,email:m,password:p}],function(r){b.disabled=false;b.textContent='Create account';
-  if(r&&r.ok===false){$('caErr').textContent=r.message||'Could not create account.';return}toast('Account created. You can sign in now.');openM('mSignin')},
-  function(e){b.disabled=false;b.textContent='Create account';$('caErr').textContent=e})};
+ var n=$('caName').value.trim(),m=$('caMail').value.trim(),mo=$('caMobile').value.trim(),p=$('caPass').value,p2=$('caPass2').value,bad=[],msg='';
+ if(n.length<2)bad.push('caName');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))bad.push('caMail');if(!mobileOk(mo))bad.push('caMobile');
+ if(pwBad(p))bad.push('caPass');if(p2!==p)bad.push('caPass2');
+ if(bad.length)msg=(bad.length===1&&bad[0]==='caPass2')?'Passwords do not match.':bad.indexOf('caPass')>-1?PWRULE:'Complete all fields. Use a valid email and a mobile number like 09171234567.';
+ else if(!$('caTerms').checked)msg='Please accept the Terms of Service and Privacy Policy.';
+ mark(['caName','caMail','caMobile','caPass','caPass2'],bad);$('caErr').textContent=msg;if(msg)return;
+ var b=this;busyBtn(b,true,'Creating…');
+ call(API.register,[{name:n,email:m,mobile:mo,password:p,terms:true,hp:$('caHp').value}],function(r){busyBtn(b,false);
+  if(!r||r.success!==true){$('caErr').textContent=(r&&r.message)||'Could not create the account.';return}
+  $('caPass').value=$('caPass2').value='';startVerify((r.data&&r.data.email)||m,r.message,false)},
+  function(e){busyBtn(b,false);$('caErr').textContent=e})};
+$('vGo').onclick=function(){var c=$('vCode').value.replace(/\D/g,'');if(c.length!==6){$('vErr').textContent='Enter the 6-digit code.';return}
+ var b=this;busyBtn(b,true,'Verifying…');
+ call(API.verify,[PEND.email,c],function(r){busyBtn(b,false);
+  if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Verification failed.';return}
+  saveToken(r.data.token);closeM();showSignedIn(r.data,true);toast('Email verified. Welcome to Moreh Academy!')},
+  function(e){busyBtn(b,false);$('vErr').textContent=e})};
+$('vResend').onclick=function(){call(API.resend,[PEND.email],function(r){
+  if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Could not send the code.';return}
+  $('vErr').textContent='';toast(r.message);cool(60)},function(e){$('vErr').textContent=e})};
+$('fGo').onclick=function(){var m=$('fMail').value.trim();
+ if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){$('fErr').textContent='Enter a valid email address.';return}
+ var b=this;busyBtn(b,true,'Sending…');
+ call(API.forgot,[m],function(r){busyBtn(b,false);
+  if(!r||r.success!==true){$('fErr').textContent=(r&&r.message)||'Could not send the code.';return}
+  PEND.email=m;$('fErr').textContent='';$('rErr').textContent='';$('rCode').value=$('rPass').value=$('rPass2').value='';toast(r.message);openM('mReset')},
+  function(e){busyBtn(b,false);$('fErr').textContent=e})};
+$('rGo').onclick=function(){var c=$('rCode').value.replace(/\D/g,''),p=$('rPass').value,p2=$('rPass2').value,msg='';
+ if(c.length!==6)msg='Enter the 6-digit code.';else if(pwBad(p))msg=PWRULE;else if(p!==p2)msg='Passwords do not match.';
+ $('rErr').textContent=msg;if(msg)return;
+ var b=this;busyBtn(b,true,'Saving…');
+ call(API.reset,[PEND.email,c,p],function(r){busyBtn(b,false);
+  if(!r||r.success!==true){$('rErr').textContent=(r&&r.message)||'Could not reset the password.';return}
+  $('rPass').value=$('rPass2').value='';$('siUser').value=PEND.email;toast('Password changed. Please sign in.');openM('mSignin')},
+  function(e){busyBtn(b,false);$('rErr').textContent=e})};
+document.querySelectorAll('.modal input').forEach(function(i){i.addEventListener('keydown',function(e){
+ if(e.key==='Enter'&&i.type!=='checkbox'){var b=i.closest('.box').querySelector('.btn.blue');if(b)b.click()}})});
 
 window.addEventListener('hashchange',function(){if(!APP_PAGE)render()});
 /* ===== Boot: published content from backend, falling back to defaults ===== */
