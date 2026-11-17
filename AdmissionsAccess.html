@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admissions Account Access | Moreh Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#062e70;--blue:#0648ad;--orange:#ff941f;--light:#eef4ff;--ink:#14213d;--muted:#64748b;--line:#d8e3f8;--green:#16834a;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:#f5f8ff;color:var(--ink);font:14px/1.6 'Open Sans',sans-serif}button,input{font:inherit}
+header{background:linear-gradient(110deg,#062e70,#0648ad);color:#fff;padding:22px clamp(18px,4vw,48px);display:flex;justify-content:space-between;align-items:center;gap:18px}
+header strong{font:700 18px Poppins,sans-serif}header small{display:block;color:#dce8ff;font-size:11px}
+a{color:inherit}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.top-actions a,.top-actions button{border:1px solid #ffffff70;background:transparent;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;font:600 11px Poppins;cursor:pointer}
+main{max-width:1120px;margin:auto;padding:28px 18px 50px}.intro{margin-bottom:20px}.intro h1{font:700 26px Poppins;color:var(--navy);margin:0 0 5px}.intro p{margin:0;color:var(--muted);max-width:760px}
+.notice{padding:14px 16px;background:#fff8ed;border:1px solid #ffe2bd;border-radius:10px;color:#84500d;margin:18px 0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 5px 18px #062e700b;margin-top:16px}
+label{display:block;font:600 12px Poppins;color:var(--navy);margin:10px 0 5px}input{width:100%;padding:11px 12px;border:1px solid #cbd7eb;border-radius:8px;background:#fff;color:var(--ink)}
+button.primary{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:10px 15px;font:600 12px Poppins;cursor:pointer}button.secondary{background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:600 11px Poppins;cursor:pointer}button.danger{background:#fff;color:var(--red);border:1px solid #f1c4c4;border-radius:8px;padding:8px 11px;font:600 11px Poppins;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}.message{margin:10px 0;color:var(--muted);min-height:20px}.message.error{color:var(--red)}.message.success{color:var(--green)}
+.toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.toolbar>div{flex:1;min-width:220px}.toolbar button{margin-bottom:1px}
+.table-wrap{overflow-x:auto;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:680px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #edf1f8;font-size:12px}th{font:700 10px Poppins;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}td strong{display:block;color:var(--navy);font:600 12px Poppins}td small{color:var(--muted)}.role{display:inline-block;padding:4px 9px;border-radius:99px;background:#eef4ff;color:#0648ad;font:700 10px Poppins}.role.admissions{background:#e8f6ee;color:#16834a}.status{font-size:11px}.empty{text-align:center;color:var(--muted);padding:24px}
+#workspace{display:none}#signin{max-width:420px;margin:35px auto}#signin h2{font:700 18px Poppins;color:var(--navy);margin:0}
+@media(max-width:650px){header{align-items:flex-start;flex-direction:column}.toolbar{display:block}.toolbar button{margin-top:10px}}
+</style>
+</head>
+<body>
+<header><div><strong>MOREH ACADEMY</strong><small>Admissions Account Access</small></div><div class="top-actions"><a href="<?= baseUrl ?>?page=admin-homepage" target="_top">Homepage Management</a><button id="signout" type="button" style="display:none">Sign out</button></div></header>
+<main>
+<section id="signin" class="panel">
+  <h2>Owner sign-in required</h2>
+  <label for="email">Owner email</label><input id="email" type="email" autocomplete="username">
+  <label for="password">Password</label><input id="password" type="password" autocomplete="current-password">
+  <button class="primary" id="signinBtn" type="button" style="width:100%;margin-top:14px">Sign in</button>
+  <div class="message error" id="signinMsg" role="alert"></div>
+</section>
+<section id="workspace">
+  <div class="intro"><h1>Admissions account access</h1><p>Grant or revoke the dedicated Admissions role for existing, active employee accounts. The account holder must already have completed email verification.</p></div>
+  <div class="notice"><strong>Important:</strong> Before granting access, the Owner must independently verify that the account belongs to an authorized Moreh Academy employee. Applicant accounts are not staff accounts merely because they are registered. Existing Encoder accounts are not automatically upgraded.</div>
+  <section class="panel">
+    <div class="toolbar">
+      <div><label for="reason">Reason for this access change (required)</label><input id="reason" maxlength="500" placeholder="e.g. Verified Admissions Office employee"></div>
+      <button class="secondary" id="refresh" type="button">Refresh accounts</button>
+    </div>
+    <div class="message" id="message" role="status"></div>
+    <div class="table-wrap"><table><thead><tr><th>Account</th><th>Current role</th><th>Account status</th><th>Action</th></tr></thead><tbody id="accounts"></tbody></table></div>
+  </section>
+</section>
+</main>
+<script>
+var APP_BASE='<?= baseUrl ?>',TOKEN_KEY='ma_token';
+function token(){try{return sessionStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}}
+function saveToken(t){try{t?sessionStorage.setItem(TOKEN_KEY,t):sessionStorage.removeItem(TOKEN_KEY)}catch(e){}}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function rpc(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend is unavailable.');return}google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail(e&&e.message?e.message:'Request failed.')})[fn].apply(null,args)}
+function message(id,text,kind){var el=document.getElementById(id);el.textContent=text||'';el.className='message'+(kind?' '+kind:'')}
+function ownerReady(){
+ document.getElementById('signin').style.display='none';document.getElementById('workspace').style.display='block';document.getElementById('signout').style.display='';
+ loadAccounts();
+}
+function loadAccounts(){
+ message('message','Loading accounts…');
+ rpc('admissionRoleListAccounts',[token()],function(r){
+  if(!r||r.success!==true){message('message',(r&&r.message)||'Could not load accounts.','error');return}
+  var rows=r.data||[],html='';
+  rows.forEach(function(u){
+   var action='';
+   if(u.role==='Admissions') action='<button class="danger" data-email="'+esc(u.email)+'" data-enable="false">Revoke access</button>';
+   else if(u.status==='Active'&&(u.role==='Applicant'||u.role==='Encoder')) action='<button class="primary" data-email="'+esc(u.email)+'" data-enable="true">Grant Admissions</button>';
+   else action='<span class="status">Not eligible</span>';
+   html+='<tr><td><strong>'+esc(u.fullName||'Name not provided')+'</strong><small>'+esc(u.email)+'</small></td><td><span class="role '+(u.role==='Admissions'?'admissions':'')+'">'+esc(u.role)+'</span></td><td><span class="status">'+esc(u.status)+'</span></td><td>'+action+'</td></tr>';
+  });
+  document.getElementById('accounts').innerHTML=html||'<tr><td colspan="4" class="empty">No eligible accounts were found.</td></tr>';
+  message('message',rows.length+' account(s) loaded.','success');
+ },function(e){message('message',e,'error')});
+}
+document.getElementById('accounts').addEventListener('click',function(ev){
+ var b=ev.target.closest('button[data-email]');if(!b)return;
+ var reason=document.getElementById('reason').value.trim();
+ if(reason.length<10){message('message','Enter a documented reason of at least 10 characters.','error');document.getElementById('reason').focus();return}
+ var enable=b.dataset.enable==='true',email=b.dataset.email;
+ if(!confirm((enable?'Grant Admissions access to ':'Revoke Admissions access for ')+email+'? The account will need to sign in again.'))return;
+ b.disabled=true;
+ rpc('admissionRoleSetAdmissionsAccess',[token(),email,enable,reason],function(r){
+  if(!r||r.success!==true){message('message',(r&&r.message)||'Access change failed.','error');b.disabled=false;return}
+  message('message',r.message,'success');loadAccounts();
+ },function(e){message('message',e,'error');b.disabled=false});
+});
+document.getElementById('refresh').onclick=loadAccounts;
+document.getElementById('signinBtn').onclick=function(){
+ var email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,btn=this;
+ if(!email||!password){message('signinMsg','Enter the Owner email and password.','error');return}
+ btn.disabled=true;btn.textContent='Signing in…';
+ rpc('authSignIn',[email,password],function(r){
+  btn.disabled=false;btn.textContent='Sign in';
+  if(!r||r.success!==true){message('signinMsg',(r&&r.message)||'Sign-in failed.','error');return}
+  if(!r.data||r.data.role!=='Owner'){if(r.data&&r.data.token)rpc('authSignOut',[r.data.token],function(){},function(){});message('signinMsg','Only the Owner can manage Admissions access.','error');return}
+  saveToken(r.data.token);document.getElementById('password').value='';ownerReady();
+ },function(e){btn.disabled=false;btn.textContent='Sign in';message('signinMsg',e,'error')});
+};
+document.getElementById('signout').onclick=function(){var t=token();saveToken('');rpc('authSignOut',[t],function(){},function(){});document.getElementById('workspace').style.display='none';document.getElementById('signin').style.display='block';document.getElementById('signout').style.display='none';message('signinMsg','Signed out.','success')};
+(function boot(){
+ var t=token();if(!t)return;
+ rpc('authWhoAmI',[t],function(r){
+  if(r&&r.success&&r.data&&r.data.role==='Owner')ownerReady();
+  else {saveToken('');message('signinMsg','Your Owner session has expired. Please sign in again.','error')}
+ },function(){saveToken('')});
+})();
+</script>
+</body></html>
