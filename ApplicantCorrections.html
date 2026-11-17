@@ -81,7 +81,6 @@ function loadFields(record){
   Object.keys(FIELD_LABELS).forEach(function(key){
     if(key==='Cluster'&&record.GradeLevel!=='Grade 11'&&record.GradeLevel!=='Grade 12')return;
     if(key==='PrevCluster'&&record.PrevGrade!=='Grade 11'&&record.PrevGrade!=='Grade 12')return;
-    if(key==='LRN'&&!record.LRN)return;
     fieldRules[key]={label:FIELD_LABELS[key],sensitive:!!SENSITIVE[key]};
     html+='<option value="'+key+'">'+esc(FIELD_LABELS[key])+'</option>';
   });
