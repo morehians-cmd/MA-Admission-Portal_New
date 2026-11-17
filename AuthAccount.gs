@@ -66,7 +66,7 @@ function authVerifyEmail(email, code) {
     } finally { lock.releaseLock(); }
     if (msg) return authFail_(msg);
     authAudit_(email, 'verify-ok', '');
-    return { success: true, message: 'Email verified.', data: { token: authIssueSession_(u), email: u.email, role: u.role } };
+    return { success: true, message: 'Email verified.', data: { token: authIssueSession_(u), email: u.email, role: u.role, studentId: u.studentId || '', fullName: u.name || '' } };
   } catch (err) { return authFail_('Could not verify the code. Please try again.', err); }
 }
 
