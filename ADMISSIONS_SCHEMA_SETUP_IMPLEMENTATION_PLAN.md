@@ -1,6 +1,6 @@
 # Stage 2.6 — Admissions Workflow Schema Setup Implementation Plan
 
-**Status:** Prepared for review; no code or spreadsheet changes  
+**Status:** Implemented on the approved branch; static validation complete; staging preflight not yet run  
 **Date:** November 18, 2026  
 **Repository:** `morehians-cmd/MA-Admission-Portal_New`  
 **Work branch:** `integration/auth-db-foundation`  
@@ -11,7 +11,7 @@
 
 Translate the approved Stage 2.5 safety contract into a small, isolated Apps Script implementation for the 12 admissions workflow sheets. The first deliverable is a read-only preflight/dry-run. Sheet creation is a separate function and will not be run until the user explicitly authorizes it.
 
-This plan does not implement code, run a setup function, change Script Properties, edit a spreadsheet, migrate records, or deploy anything.
+The implementation is recorded in `AdmissionWorkflowSchema.gs`. No setup function has been run, no Script Properties have been changed, no spreadsheet has been edited, and no migration or deployment has occurred.
 
 ## 2. Repository inspection and compatibility findings
 
@@ -215,3 +215,31 @@ These belong to later implementation phases and require their own specifications
 - `ADMISSIONS_DATABASE_SCHEMA_DICTIONARY.md` — approved 12-sheet names and exact field definitions.
 - `ADMISSIONS_SCHEMA_SETUP_SPECIFICATION.md` — approved safety contract.
 - `INTEGRATION_AUTH_DB.md` — current authentication and database integration state.
+
+
+## 14. Implementation and static validation result
+
+Implementation file: `AdmissionWorkflowSchema.gs`
+
+The approved implementation contains two manually invoked functions:
+- `admissionWorkflowSchemaPreflight()` — read-only inspection.
+- `admissionWorkflowSchemaSetup()` — creates only missing sheets after repeating the authorization, staging identity, and schema checks.
+
+The staging guard requires all three Script Properties to agree:
+- `ADMISSION_WORKFLOW_ENVIRONMENT=STAGING`
+- `ADMISSION_WORKFLOW_STAGING_SPREADSHEET_ID` set to the copied staging workbook ID
+- `DB_SHEET_ID` set to that same copied staging workbook ID
+
+The guard also requires editor execution and an active `Owner` account in the configured `Users` sheet. The setup code does not set or modify these properties.
+
+Static checks completed against the integration branch:
+- JavaScript source parses successfully.
+- Exactly 12 unique target sheet names are defined.
+- All 12 ordered header arrays match the Stage 2.4 dictionary, including the explicit Sheet 9 clarification.
+- Preflight contains no spreadsheet/property mutation operation.
+- No call to legacy setup, user migration, or identifier backfill functions exists.
+- No duplicate function-name collision was found across the branch's Apps Script source files.
+- Existing setup and authentication source files were not modified.
+- No setup call was added to routing, page load, sign-in, or deployment.
+
+**Not yet tested:** Apps Script runtime behavior, staging property configuration, read-only preflight against the copied workbook, and sheet creation. These remain separate user-authorized staging steps.
