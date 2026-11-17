@@ -1,7 +1,7 @@
 /**
  * Auth.gs - Auth foundation: Users sheet, sign-in, sessions, sign-out, password change, Owner bootstrap.
  *
- * Roles: Owner, Encoder, Student. This file only answers "who is this and what is their role".
+ * Roles: Owner, Encoder, Admissions, Student, Applicant. This file only answers "who is this and what is their role".
  * What each role may DO is decided by the feature files (e.g. HomepageMgmt.gs requires Owner).
  *
  * PUBLIC (callable from the browser):  authSignIn, authSignOut, authWhoAmI, authChangePassword
