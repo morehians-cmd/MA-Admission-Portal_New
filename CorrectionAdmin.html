@@ -39,7 +39,7 @@ function loadQueue(){
       html+='<button class="item '+(selectedRef===x.requestRef?'active':'')+'" data-ref="'+esc(x.requestRef)+'"><strong>'+esc(x.fieldLabel)+' • '+esc(x.requestRef)+'</strong><small>'+esc(x.applicantEmail)+' · '+esc(x.studentId)+'<br>'+esc(String(x.createdAt||'').slice(0,16).replace('T',' '))+'</small><span class="pill '+statusClass(x.status)+'">'+esc(x.status)+'</span>'+(x.sensitive?'<span class="pill">Identity verification</span>':'')+'</button>';
     });
     document.getElementById('queue').innerHTML=html+'</div>';
-    document.querySelectorAll('.item').forEach(function(b){b.addEventListener('click',function(){selectedRef=this.getAttribute('data-ref');loadQueue();loadDetail(selectedRef)})});
+    document.querySelectorAll('.item').forEach(function(b){b.addEventListener('click',function(){selectedRef=this.getAttribute('data-ref');loadQueue()})});
     if(selectedRef)loadDetail(selectedRef);
   },function(m){document.getElementById('queue').innerHTML='<div class="error">'+esc(m)+'</div>'});
 }
