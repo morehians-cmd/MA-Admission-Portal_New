@@ -15,6 +15,8 @@ var ADM_DB = {
   VERSION: 1,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
+  IDENTIFIERS: 'StudentIdentifiers',
+  IDENTIFIER_HEADERS: ['IdentifierID','StudentID','IdentifierType','IdentifierValue','IssuedAt','EffectiveFrom','EffectiveTo','IsCurrent','IdentifierStatus','IssuanceReason','SourceRecordID','CreatedAt','CreatedBy','UpdatedAt','UpdatedBy'],
   HEADERS: [
     'StudentID', 'CreatedAt',
     'Classification', 'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'FullName',
@@ -67,7 +69,9 @@ function admissionDbSetup_() {
   var ss = authSpreadsheet_();
   admissionDbEnsureSchemaSheet_(ss, ADM_DB.STUDENTS, ADM_DB.HEADERS);
   admissionDbEnsureSchemaSheet_(ss, ADM_DB.AUDIT, ADM_DB.AUDIT_HEADERS);
-  Logger.log('Admission database schema v' + ADM_DB.VERSION + ' is ready in ' + ss.getName() + '. No source data was imported.');
+  admissionDbEnsureSchemaSheet_(ss, ADM_DB.IDENTIFIERS, ADM_DB.IDENTIFIER_HEADERS);
+  var identifiersBackfilled = admissionDbBackfillIdentifiers_();
+  Logger.log('Admission database schema v' + ADM_DB.VERSION + ' is ready in ' + ss.getName() + '. Existing StudentID links were preserved; identifier rows backfilled: ' + identifiersBackfilled + '. No source data was imported.');
 }
 
 /** Creates an empty schema sheet or verifies an existing one without rewriting its headers. */
@@ -120,6 +124,109 @@ function admissionDbRows_() {
   return out;
 }
 
+function admissionDbIdentifierSheet_() {
+  var sh = authSpreadsheet_().getSheetByName(ADM_DB.IDENTIFIERS);
+  if (!sh) throw new Error('Student identifier schema is not initialized. Ask the system owner to run runAdmissionDbSetup().');
+  var actual = sh.getRange(1, 1, 1, ADM_DB.IDENTIFIER_HEADERS.length).getDisplayValues()[0];
+  ADM_DB.IDENTIFIER_HEADERS.forEach(function (h, i) {
+    if (String(actual[i] || '') !== h) throw new Error('Student identifier schema is invalid. Contact the system owner.');
+  });
+  return sh;
+}
+
+function admissionDbIdentifierRows_() {
+  var sh = admissionDbIdentifierSheet_(), last = sh.getLastRow();
+  if (last < 2) return [];
+  var values = sh.getRange(2, 1, last - 1, ADM_DB.IDENTIFIER_HEADERS.length).getValues(), out = [];
+  values.forEach(function (row, index) {
+    if (!row[0]) return;
+    var o = { _row: index + 2 };
+    ADM_DB.IDENTIFIER_HEADERS.forEach(function (h, i) { o[h] = row[i] == null ? '' : String(row[i]); });
+    out.push(o);
+  });
+  return out;
+}
+
+/** Idempotently preserves existing AdmissionStudents.StudentID values without rewriting links. */
+function admissionDbBackfillIdentifiers_() {
+  var sh = admissionDbIdentifierSheet_(), identifiers = admissionDbIdentifierRows_();
+  var pairMap = {}, valueOwner = {};
+  identifiers.forEach(function (r) {
+    pairMap[r.StudentID + '|' + r.IdentifierValue] = true;
+    if (r.IdentifierValue) {
+      if (valueOwner[r.IdentifierValue] && valueOwner[r.IdentifierValue] !== r.StudentID) {
+        throw new Error('Student identifier collision detected. No records were changed.');
+      }
+      valueOwner[r.IdentifierValue] = r.StudentID;
+    }
+  });
+  var students = admissionDbRows_(), added = 0, now = new Date().toISOString();
+  students.forEach(function (student) {
+    var key = String(student.StudentID || '').trim();
+    if (!key || pairMap[key + '|' + key]) return;
+    if (valueOwner[key] && valueOwner[key] !== key) {
+      throw new Error('Existing StudentID conflicts with another student identifier. No records were changed.');
+    }
+    var isMa = /^MA-20\d{2}-[A-Z0-9]{10}$/.test(key);
+    var created = student.CreatedAt || now;
+    var item = {
+      IdentifierID: Utilities.getUuid(), StudentID: key,
+      IdentifierType: isMa ? 'MA_STUDENT_ID' : 'LEGACY_STUDENT_ID',
+      IdentifierValue: key, IssuedAt: created, EffectiveFrom: created, EffectiveTo: '',
+      IsCurrent: 'TRUE', IdentifierStatus: 'ACTIVE',
+      IssuanceReason: 'Backfilled from existing AdmissionStudents.StudentID; original value preserved',
+      SourceRecordID: key, CreatedAt: now, CreatedBy: 'SYSTEM_MIGRATION', UpdatedAt: '', UpdatedBy: ''
+    };
+    var target = sh.getLastRow() + 1;
+    sh.getRange(target, 1, 1, ADM_DB.IDENTIFIER_HEADERS.length).setNumberFormat('@')
+      .setValues([ADM_DB.IDENTIFIER_HEADERS.map(function (h) { return item[h] == null ? '' : String(item[h]); })]);
+    pairMap[key + '|' + key] = true;
+    valueOwner[key] = key;
+    added++;
+  });
+  return added;
+}
+
+function admissionDbDisplayIdentifier_(studentId) {
+  var rows = admissionDbIdentifierRows_().filter(function (r) {
+    return r.StudentID === String(studentId || '') &&
+      String(r.IsCurrent).toUpperCase() === 'TRUE' &&
+      String(r.IdentifierStatus).toUpperCase() === 'ACTIVE';
+  });
+  var priorities = ['MA_STUDENT_ID','SHS_SCHOOL_ID','TLC_LEGACY_ID','LEGACY_STUDENT_ID'];
+  for (var i = 0; i < priorities.length; i++) {
+    var matches = rows.filter(function (r) { return r.IdentifierType === priorities[i]; });
+    if (matches.length > 1) throw new Error('Multiple current identifiers of the same type exist for this student. Contact the system owner.');
+    if (matches.length === 1) return matches[0].IdentifierValue;
+  }
+  return '';
+}
+
+function admissionDbAppendIdentifierLocked_(studentId, value, type, reason, actorEmail) {
+  var sh = admissionDbIdentifierSheet_(), rows = admissionDbIdentifierRows_();
+  if (rows.some(function (r) { return r.IdentifierValue === value; })) throw new Error('This official student identifier is already assigned.');
+  var now = new Date().toISOString();
+  var item = {
+    IdentifierID: Utilities.getUuid(), StudentID: studentId, IdentifierType: type,
+    IdentifierValue: value, IssuedAt: now, EffectiveFrom: now, EffectiveTo: '',
+    IsCurrent: 'TRUE', IdentifierStatus: 'ACTIVE', IssuanceReason: reason,
+    SourceRecordID: studentId, CreatedAt: now, CreatedBy: actorEmail || 'SYSTEM',
+    UpdatedAt: '', UpdatedBy: ''
+  };
+  var target = sh.getLastRow() + 1;
+  sh.getRange(target, 1, 1, ADM_DB.IDENTIFIER_HEADERS.length).setNumberFormat('@')
+    .setValues([ADM_DB.IDENTIFIER_HEADERS.map(function (h) { return item[h] == null ? '' : String(item[h]); })]);
+  return target;
+}
+
+function admissionDbValidateLrn_(value, required) {
+  var lrn = String(value == null ? '' : value).trim();
+  if (!lrn && required !== false) throw new Error('Learner Reference Number (LRN) is required.');
+  if (lrn && !/^[1-5][0-9]{11}$/.test(lrn)) {
+    throw new Error('LRN must contain exactly 12 digits and start with 1, 2, 3, 4 or 5.');
+  }
+  return lrn;
+}
 function admissionDbFindById_(studentId) {
   var found = admissionDbRows_().filter(function (r) { return r.StudentID === String(studentId || ''); });
   if (found.length > 1) throw new Error('Admission database integrity error: duplicate StudentID.');
@@ -183,7 +290,7 @@ function admissionDbNormalizeApplicant_(input, account) {
   if (gradeIndex < 0) throw new Error('Select a valid K–12 grade level.');
   var department = gradeIndex < 3 ? 'Preschool' : gradeIndex < 9 ? 'Elementary' : gradeIndex < 13 ? 'Junior High School' : 'Senior High School';
   out.Department = department;
-  if (out.LRN && !/^[1-5]\d{11}$/.test(out.LRN)) throw new Error('LRN must contain 12 digits and start with 1, 2, 3, 4 or 5.');
+  out.LRN = admissionDbValidateLrn_(out.LRN, true);
   if (!/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit applicant mobile number.');
   out.Province = ''; // Province is intentionally not collected in the K–12 applicant form.
   if (!out.AddressLine1 || !out.Barangay || !out.City) throw new Error('Complete the applicant street address, barangay, and city / municipality.');
@@ -255,9 +362,24 @@ function admissionDbNormalizeApplicant_(input, account) {
   return out;
 }
 
-function admissionDbNewStudentId_() {
+function admissionDbNewInternalStudentKey_(existingStudents) {
+  var used = {};
+  (existingStudents || []).forEach(function (r) { if (r.StudentID) used[r.StudentID] = true; });
+  authAllUsers_().forEach(function (u) { if (u.studentId) used[u.studentId] = true; });
+  var key;
+  do { key = 'STU-' + Utilities.getUuid().replace(/-/g, '').slice(0, 24).toUpperCase(); }
+  while (used[key]);
+  return key;
+}
+
+function admissionDbNewOfficialStudentId_() {
   var year = Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy');
-  return 'MA-' + year + '-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase();
+  var identifiers = admissionDbIdentifierRows_(), students = admissionDbRows_(), candidate;
+  do {
+    candidate = 'MA-' + year + '-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase();
+  } while (identifiers.some(function (r) { return r.IdentifierValue === candidate; }) ||
+           students.some(function (r) { return r.StudentID === candidate; }));
+  return candidate;
 }
 
 /**
@@ -273,22 +395,22 @@ function admissionCreateApplication(token, input) {
     var record = admissionDbNormalizeApplicant_(input, account);
     var lock = LockService.getScriptLock();
     if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
-    var insertedRow = 0, sh = null, studentId = '';
+    var insertedRow = 0, insertedIdentifierRow = 0, sh = null, studentId = '', officialStudentId = '';
     try {
       var current = authResolveSession_(token);
       if (!current || current.email !== account.email || current.role !== 'Applicant' || current.studentId) throw new Error('Your session or account status changed. Please sign in again.');
       sh = admissionDbSheet_();
       var existing = admissionDbRows_();
       if (existing.some(function (r) { return String(r.Email || '').toLowerCase() === account.email.toLowerCase(); })) throw new Error('An admission record already exists for this account.');
-      if (record.LRN && existing.some(function (r) { return String(r.LRN || '') === record.LRN; })) throw new Error('An application with this LRN already exists. Please contact the Admissions Office if you believe this is an error.');
+      if (existing.some(function (r) { return String(r.LRN || '') === record.LRN; })) throw new Error('An application with this LRN already exists. Please contact the Admissions Office if you believe this is an error.');
       var sameIdentity = existing.some(function (r) {
         return String(r.Surname || '').toUpperCase() === record.Surname &&
           String(r.FirstName || '').toUpperCase() === record.FirstName &&
           String(r.Birthdate || '') === record.Birthdate;
       });
       if (sameIdentity) throw new Error('A student record with the same name and birth date may already exist. Please contact the Admissions Office before submitting again.');
-      do { studentId = admissionDbNewStudentId_(); }
-      while (existing.some(function (r) { return r.StudentID === studentId; }));
+      studentId = admissionDbNewInternalStudentKey_(existing);
+      officialStudentId = admissionDbNewOfficialStudentId_();
       var row = {};
       ADM_DB.HEADERS.forEach(function (h) { row[h] = ''; });
       row.StudentID = studentId;
@@ -297,15 +419,20 @@ function admissionCreateApplication(token, input) {
       var values = [ADM_DB.HEADERS.map(function (h) { return row[h] == null ? '' : String(row[h]); })];
       insertedRow = sh.getLastRow() + 1;
       sh.getRange(insertedRow, 1, 1, ADM_DB.HEADERS.length).setNumberFormat('@').setValues(values);
+      insertedIdentifierRow = admissionDbAppendIdentifierLocked_(studentId, officialStudentId, 'MA_STUDENT_ID', 'Initial official Moreh student identifier', account.email);
       authLinkStudentLocked_(account.email, studentId);
       admissionDbAudit_(account.email, 'application-created', studentId, 'Initial application record created');
     } catch (err) {
+      if (insertedIdentifierRow) {
+        var identifierSheet = authSpreadsheet_().getSheetByName(ADM_DB.IDENTIFIERS);
+        if (identifierSheet) identifierSheet.deleteRow(insertedIdentifierRow);
+      }
       if (insertedRow && sh) sh.deleteRow(insertedRow);
       throw err;
     } finally {
       lock.releaseLock();
     }
-    return { success: true, message: 'Your application record has been created.', data: { studentId: studentId } };
+    return { success: true, message: 'Your application record has been created.', data: { studentId: officialStudentId, officialStudentId: officialStudentId } };
   } catch (err) {
     return authFail_(err.message || 'Could not save the application. Please try again.');
   }
@@ -318,6 +445,8 @@ function admissionGetMyApplication(token) {
     if (!account.studentId) return { success: true, message: 'No application has been submitted yet.', data: null };
     var record = admissionDbFindById_(account.studentId);
     if (!record) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
+    record.OfficialStudentID = admissionDbDisplayIdentifier_(account.studentId);
+    delete record.StudentID;
     delete record._row;
     return { success: true, message: 'Application loaded.', data: record };
   } catch (err) {
