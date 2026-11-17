@@ -55,6 +55,24 @@ The inspected source core also contains legacy hard-coded security/configuration
 | Student table | Not yet present in destination repo | `Students` using `COLS` | Create a separate destination admission schema |
 | Public routing | one destination `doGet(e)` | source `doGet(e)` | Extend destination router only in a later routing phase |
 
+## Implementation status on `integration/auth-db-foundation`
+
+### Completed in this branch
+- Appended `StudentID` to the destination Users schema without changing the existing first 15 columns.
+- Updated account-row parsing, sign-in response, email-verification response, and session restoration to expose the linked StudentID and account full name.
+- Added internal account-link helpers. The locked variant supports atomic linking from a trusted server-side workflow; the wrapper is not browser-callable.
+- Added `AdmissionDb.gs` with separate `AdmissionStudents` and `AdmissionAudit` sheets.
+- Matched all 117 source student-data fields in their original order (including generated family and requirement-date fields).
+- Added an Applicant-only first-application endpoint and an Applicant/Student self-read endpoint. The server controls StudentID, email, timestamps, name, age, classification, and enrollment status.
+- Added an owner-only schema setup function. It creates/verifies schema only; it does not import records.
+- JavaScript syntax checks passed for `Auth.gs`, `AuthAccount.gs`, and `AdmissionDb.gs`. A static comparison confirmed the destination student schema matches all 117 source fields in order.
+
+### Not yet performed
+- No Apps Script runtime tests have been run.
+- No spreadsheet schema setup or data migration has been run.
+- No deployment or trigger has been changed.
+- No source accounts, password hashes, or student records have been imported.
+
 ## Next implementation sequence
 
 ### A. Authentication contract
