@@ -241,3 +241,7 @@ function admissionDbAudit_(actorEmail, action, studentId, detail) {
     target.setNumberFormat('@').setValues([row]);
   } catch (e) { console.error('Admission audit failed: ' + e.message); }
 }
+
+function runAdmissionDbSetup() {
+  admissionDbSetup_();
+}
