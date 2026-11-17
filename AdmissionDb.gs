@@ -2,8 +2,8 @@
  * AdmissionDb.gs
  *
  * Isolated admission-record store for the destination portal.
- * Authentication remains in Auth.gs / AuthAccount.gs. The Users sheet stores account identity;
- * AdmissionStudents stores student/application information. The relationship is Users.StudentID.
+ * Authentication remains in Auth.gs / AuthAccount.gs. Users.StudentID and AdmissionStudents.StudentID
+ * are immutable internal relationship keys; official school identifiers are stored separately in StudentIdentifiers.
  *
  * IMPORTANT:
  * - Run admissionDbSetup_() manually from the Apps Script editor only after backing up the target sheet.
@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 1,
+  VERSION: 2,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   IDENTIFIERS: 'StudentIdentifiers',
@@ -150,9 +150,11 @@ function admissionDbIdentifierRows_() {
 /** Idempotently preserves existing AdmissionStudents.StudentID values without rewriting links. */
 function admissionDbBackfillIdentifiers_() {
   var sh = admissionDbIdentifierSheet_(), identifiers = admissionDbIdentifierRows_();
-  var pairMap = {}, valueOwner = {};
+  var pairMap = {}, valueOwner = {}, toAdd = [];
   identifiers.forEach(function (r) {
-    pairMap[r.StudentID + '|' + r.IdentifierValue] = true;
+    var pair = r.StudentID + '|' + r.IdentifierValue;
+    if (pairMap[pair]) throw new Error('Duplicate student identifier records detected. No records were changed.');
+    pairMap[pair] = true;
     if (r.IdentifierValue) {
       if (valueOwner[r.IdentifierValue] && valueOwner[r.IdentifierValue] !== r.StudentID) {
         throw new Error('Student identifier collision detected. No records were changed.');
@@ -160,7 +162,7 @@ function admissionDbBackfillIdentifiers_() {
       valueOwner[r.IdentifierValue] = r.StudentID;
     }
   });
-  var students = admissionDbRows_(), added = 0, now = new Date().toISOString();
+  var students = admissionDbRows_(), now = new Date().toISOString();
   students.forEach(function (student) {
     var key = String(student.StudentID || '').trim();
     if (!key || /^STU-[A-F0-9]{24}$/.test(key) || pairMap[key + '|' + key]) return;
@@ -178,16 +180,19 @@ function admissionDbBackfillIdentifiers_() {
       IssuanceReason: 'Backfilled from existing AdmissionStudents.StudentID; original value preserved',
       SourceRecordID: key, CreatedAt: now, CreatedBy: 'SYSTEM_MIGRATION', UpdatedAt: '', UpdatedBy: ''
     };
-    var target = sh.getLastRow() + 1;
-    sh.getRange(target, 1, 1, ADM_DB.IDENTIFIER_HEADERS.length).setNumberFormat('@')
-      .setValues([ADM_DB.IDENTIFIER_HEADERS.map(function (h) { return item[h] == null ? '' : String(item[h]); })]);
+    toAdd.push(item);
     pairMap[key + '|' + key] = true;
     valueOwner[key] = key;
-    added++;
   });
-  return added;
+  if (toAdd.length) {
+    var values = toAdd.map(function (item) {
+      return ADM_DB.IDENTIFIER_HEADERS.map(function (h) { return item[h] == null ? '' : String(item[h]); });
+    });
+    var firstRow = sh.getLastRow() + 1;
+    sh.getRange(firstRow, 1, values.length, ADM_DB.IDENTIFIER_HEADERS.length).setNumberFormat('@').setValues(values);
+  }
+  return toAdd.length;
 }
-
 function admissionDbDisplayIdentifier_(studentId) {
   var rows = admissionDbIdentifierRows_().filter(function (r) {
     return r.StudentID === String(studentId || '') &&
