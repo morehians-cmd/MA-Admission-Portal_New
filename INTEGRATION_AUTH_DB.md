@@ -187,3 +187,46 @@ The applicant form now includes these conditional and validation rules:
 5. Select Previous Grade 11 or Grade 12 and confirm the previous cluster field becomes editable.
 6. Try LRN values beginning with 0 or 6, values shorter or longer than 12 digits, and nonnumeric characters. Confirm invalid values are rejected or sanitized; test valid 12-digit values beginning with 1 through 5.
 7. Confirm backend validation still rejects invalid LRN and clears inapplicable parent and previous-cluster values even if a browser request is manipulated.
+
+
+## Future Phase — Application Correction Requests (policy agreed November 17, 2026)
+
+This phase is planned separately from the initial application submission flow. It must not be implemented or runtime-tested against live school data.
+
+### Applicant-facing policy
+
+- After initial submission, applicants cannot directly edit or overwrite their submitted application.
+- Applicants may submit a correction request for eligible information. The original submitted record remains unchanged while the request is pending.
+- Ordinary contact and address corrections may be requested online and are subject to Admissions review.
+- Sensitive identity-related corrections — including legal name, date of birth, place of birth, and legal sex — require verification before approval. The applicant must either:
+  1. submit valid supporting documents through an approved, private document-handling process; or
+  2. personally visit the Moreh Academy Admissions Office and present a valid government-issued ID or other identification accepted by the school.
+- A sensitive correction must not be applied merely because the applicant typed a new value or uploaded an unverified file.
+- Applicants cannot change their StudentID, account email identity link, system-generated fields, enrollment status, or Admissions-controlled requirement statuses through a correction request.
+
+### Proposed correction lifecycle
+
+1. Applicant submits a correction request identifying the field(s), proposed value(s), and reason.
+2. The system creates a unique request reference and records the request as **Submitted**.
+3. Authorized Admissions personnel review the request. The existing AdmissionStudents values remain unchanged.
+4. If clarification or verification is needed, the request may move to **For Verification** or **For Additional Information**.
+5. Authorized personnel approve or reject the request and record the decision and verification method.
+6. Only after approval does the server apply permitted changes to AdmissionStudents and record the action in the audit history.
+7. The applicant can view the request status and decision from the portal.
+
+Suggested statuses: Submitted, Under Review, For Verification, For Additional Information, Approved, Rejected, and Completed.
+
+### Data and security requirements before implementation
+
+- Create a separate correction-request data store; do not place pending proposed values directly into AdmissionStudents.
+- Preserve the original values until an authorized approval is completed.
+- Apply approved updates server-side, with ownership checks, role/permission checks, locking, field allowlists, and validation.
+- Record the request reference, StudentID, requesting account, requested fields, reason, status, timestamps, reviewer, verification method, decision, and completion outcome.
+- Keep a traceable before/after history for approved changes. Do not place identity documents, passwords, OTPs, session tokens, or complete application payloads in ordinary audit details.
+- Supporting documents, if enabled, must use a private restricted storage location and an explicit retention/access policy. Do not use public-link Drive folders or expose document URLs to other applicants.
+- The existing roles are Owner, Encoder, Student, and Applicant. Do not assume every Encoder is authorized to approve corrections. Approval permissions must be explicitly configured and enforced server-side; until then, Owner-only approval is the safe default.
+- No applicant-facing direct-edit endpoint is permitted. No admin-assisted account-to-student linking is part of this workflow.
+
+### Implementation gate
+
+The initial My Application submission flow and the November 17 form refinements must first pass staging runtime tests using dummy accounts and a copied staging spreadsheet. Only then should this correction-request phase be implemented. K–12 remains the scope; College workflows are deferred.
