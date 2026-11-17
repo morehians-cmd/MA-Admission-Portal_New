@@ -99,7 +99,7 @@ var CLUSTERS=['Science, Technology, Engineering, and Mathematics','Arts, Social 
 function buildFields(){
  var sy=opts(['2026-2027','2027-2028','2028-2029']);
  document.getElementById('academicFields').innerHTML=
-  field('SchoolYear','School Year','select',sy,true)+field('LRN','Learner Reference Number (LRN)','text',null,false,'Optional. If available, enter exactly 12 digits. It must begin with 1, 2, 3, 4, or 5.')+
+  field('SchoolYear','School Year','select',sy,true)+field('LRN','Learner Reference Number (LRN)','text',null,true,'Required. Enter exactly 12 digits beginning with 1, 2, 3, 4, or 5.')+
   field('Surname','Surname','text',null,true)+field('FirstName','First Name','text',null,true)+field('MiddleName','Middle Name','text')+field('Suffix','Suffix (e.g. Jr., III)','text')+
   field('GradeLevel','Intended Grade Level','select',opts(GRADES),true)+field('Department','Department','text',null,false,'Automatically determined from the selected grade level.')+
   field('Cluster','Senior High School Strand / Cluster','select',opts(CLUSTERS),false,'Required for Grade 11 and Grade 12.',true)+
@@ -161,7 +161,7 @@ function collect(){
  var out={};document.querySelectorAll('#applicationForm [data-key]').forEach(function(el){out[el.dataset.key]=el.type==='checkbox'?el.checked:el.value.trim()});return out;
 }
 function renderReview(){
- var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Parent / guardian',d.GuardName||'Not provided'],['Emergency contact',d.EmName||'Not provided']];
+ var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Parent / guardian',d.GuardName||'Not provided'],['Emergency contact',d.EmName||'Not provided']];
  document.getElementById('reviewSummary').innerHTML=items.map(function(x){return '<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'—')+'</strong></div>'}).join('');
 }
 function setStep(n){
@@ -198,7 +198,7 @@ function submitApplication(){
 function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
 function showExisting(record){
  document.getElementById('applicationView').hidden=true;var box=document.getElementById('existingApplication');box.hidden=false;
- box.innerHTML='<div style="text-align:center;padding:28px 10px"><div style="font-size:32px;color:#16834a">✓</div><h2 style="font:700 21px Poppins;color:#062e70">You have already submitted an application</h2><p style="color:#64748b">Your first application is saved and linked to your account. This module does not allow a second submission.</p><div style="font:700 22px Poppins;color:#0648ad;margin:14px">Student ID: '+esc(record.StudentID||'—')+'</div><a class="btn" style="display:inline-block;text-decoration:none" href="'+esc(APP_BASE)+'?page=applicant-portal" target="_top">Return to Dashboard</a></div>';
+ box.innerHTML='<div style="text-align:center;padding:28px 10px"><div style="font-size:32px;color:#16834a">✓</div><h2 style="font:700 21px Poppins;color:#062e70">You have already submitted an application</h2><p style="color:#64748b">Your first application is saved and linked to your account. This module does not allow a second submission.</p><div style="font:700 22px Poppins;color:#0648ad;margin:14px">Student ID: '+esc(record.OfficialStudentID||'Not yet assigned')+'</div><a class="btn" style="display:inline-block;text-decoration:none" href="'+esc(APP_BASE)+'?page=applicant-portal" target="_top">Return to Dashboard</a></div>';
 }
 document.getElementById('logout').addEventListener('click',signOut);
 document.getElementById('year').textContent=new Date().getFullYear();
