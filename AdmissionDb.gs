@@ -163,15 +163,16 @@ function admissionDbBackfillIdentifiers_() {
   var students = admissionDbRows_(), added = 0, now = new Date().toISOString();
   students.forEach(function (student) {
     var key = String(student.StudentID || '').trim();
-    if (!key || pairMap[key + '|' + key]) return;
+    if (!key || /^STU-[A-F0-9]{24}$/.test(key) || pairMap[key + '|' + key]) return;
     if (valueOwner[key] && valueOwner[key] !== key) {
       throw new Error('Existing StudentID conflicts with another student identifier. No records were changed.');
     }
     var isMa = /^MA-20\d{2}-[A-Z0-9]{10}$/.test(key);
+    var isTlc = /^TLC\d{4}-\d{4}$/i.test(key);
     var created = student.CreatedAt || now;
     var item = {
       IdentifierID: Utilities.getUuid(), StudentID: key,
-      IdentifierType: isMa ? 'MA_STUDENT_ID' : 'LEGACY_STUDENT_ID',
+      IdentifierType: isMa ? 'MA_STUDENT_ID' : (isTlc ? 'TLC_LEGACY_ID' : 'LEGACY_STUDENT_ID'),
       IdentifierValue: key, IssuedAt: created, EffectiveFrom: created, EffectiveTo: '',
       IsCurrent: 'TRUE', IdentifierStatus: 'ACTIVE',
       IssuanceReason: 'Backfilled from existing AdmissionStudents.StudentID; original value preserved',
@@ -366,6 +367,7 @@ function admissionDbNewInternalStudentKey_(existingStudents) {
   var used = {};
   (existingStudents || []).forEach(function (r) { if (r.StudentID) used[r.StudentID] = true; });
   authAllUsers_().forEach(function (u) { if (u.studentId) used[u.studentId] = true; });
+  admissionDbIdentifierRows_().forEach(function (r) { if (r.IdentifierValue) used[r.IdentifierValue] = true; });
   var key;
   do { key = 'STU-' + Utilities.getUuid().replace(/-/g, '').slice(0, 24).toUpperCase(); }
   while (used[key]);
@@ -378,7 +380,8 @@ function admissionDbNewOfficialStudentId_() {
   do {
     candidate = 'MA-' + year + '-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase();
   } while (identifiers.some(function (r) { return r.IdentifierValue === candidate; }) ||
-           students.some(function (r) { return r.StudentID === candidate; }));
+           students.some(function (r) { return r.StudentID === candidate; }) ||
+           authAllUsers_().some(function (u) { return u.studentId === candidate; }));
   return candidate;
 }
 
