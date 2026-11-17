@@ -135,3 +135,35 @@ Static source review completed. The following still require execution in the use
 7. Applicant sign-out invalidates the session and returns to the homepage.
 
 No production Apps Script project, deployment, spreadsheet, trigger, or production data was changed. The dashboard does not create or modify admission records. Application submission remains Phase 2's responsibility.
+
+
+## Applicant Portal — Phase 2: My Application (K–12)
+
+Implemented on `integration/auth-db-foundation`:
+
+- Added `ApplicantApplication.html` as a separate K–12 application page and added the `?page=applicant-application` route in the destination `Router.gs`.
+- Enabled the My Application navigation link in `ApplicantPortal.html`; the dashboard and authentication implementation remain separate.
+- Added a four-step applicant form: Student & Academic Information, Personal Information & Address, Parent / Guardian & Emergency Contacts, and Review & Submit.
+- Used the source portal's K–12 grade, department, category, and SHS cluster values as references. Department is derived by the server from the selected grade. SHS applicants must select a valid cluster.
+- Kept LRN optional for applicants who do not yet have one. Applicant mobile, birth date, address, and emergency contact details are validated. Applicants below 18 must provide a parent/legal guardian name, relationship, email, and mobile number.
+- Added an explicit privacy-consent checkbox. The backend requires consent before submission and stores the server-generated consent timestamp, not a client-provided timestamp.
+- Excluded optional sensitive fields such as religion and gender identity from this first form; those source-schema columns remain blank unless a separately reviewed need is established.
+- The form calls the existing `admissionCreateApplication(token, input)` endpoint. The backend enforces Applicant role, server-side validation, duplicate checks, unique StudentID generation, record creation, automatic account linking, and audit logging under a script lock.
+- Applicants with an existing linked record are shown a submitted state instead of a second-submission form. No edit or second-submit path is provided in this phase.
+- No draft data is stored in browser storage. Draft persistence is not implemented because the current backend has no secure draft endpoint.
+- Requirement uploads and status tracking remain separate future modules.
+
+### Phase 2 validation status
+
+Static source integration is complete. Runtime testing is still required in the user's staging Apps Script project with a newly registered dummy Applicant and dummy details. Test at minimum:
+
+1. Open `?page=applicant-application` from the Applicant Portal navigation.
+2. Verify all four form steps, responsive layout, conditional SHS cluster field, and under-18 guardian fields.
+3. Confirm client-side and server-side rejection of missing required fields, invalid LRN/mobile/date/year/grade/cluster, missing privacy consent, and invalid guardian details.
+4. Submit one valid dummy K–12 application. Confirm exactly one `AdmissionStudents` row is created, a StudentID is generated, `Users.StudentID` is linked, and an `application-created` audit entry is written.
+5. Return to the dashboard and confirm it shows the generated Student ID and submitted application.
+6. Reopen My Application and confirm it displays the existing submission rather than allowing another first submission.
+7. Attempt duplicate email, duplicate LRN, and duplicate name/date submissions using separate dummy accounts as appropriate; verify server rejection.
+8. Confirm a failed submission does not leave an unlinked or partial record.
+
+No Apps Script deployment, spreadsheet, trigger, production data, or `main` branch was changed. Do not test with real applicant/student information.
