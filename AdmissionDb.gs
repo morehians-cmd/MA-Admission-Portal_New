@@ -6,8 +6,9 @@
  * are immutable internal relationship keys; official school identifiers are stored separately in StudentIdentifiers.
  *
  * IMPORTANT:
- * - Run admissionDbSetup_() manually from the Apps Script editor only after backing up the target sheet.
- * - This creates schema sheets only; it does not import or overwrite source-repository data.
+ * - Run admissionDbSetup_() manually from the Apps Script editor only against the copied staging spreadsheet.
+ * - It verifies existing schemas, creates StudentIdentifiers, and idempotently backfills identifiers from existing AdmissionStudents.StudentID values.
+ * - It never rewrites AdmissionStudents.StudentID or Users.StudentID links and does not import APMerge/source data.
  * - All browser-facing functions enforce destination sessions and ownership server-side.
  */
 
@@ -60,8 +61,9 @@ var ADM_DB = {
 };
 
 /**
- * Owner-only schema setup. Creates missing sheets and appends the Users.StudentID header
- * through the existing controlled Users migration. Existing admission data is never cleared.
+ * Editor-only staging setup. Verifies existing sheets, appends Users.StudentID only through
+ * the controlled migration, creates StudentIdentifiers, and backfills existing identifiers.
+ * Existing AdmissionStudents.StudentID values and Users.StudentID links are never rewritten.
  */
 function admissionDbSetup_() {
   authRequireEditor_();
