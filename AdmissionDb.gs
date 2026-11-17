@@ -121,7 +121,7 @@ function admissionDbFindById_(studentId) {
 
 function admissionDbAge_(isoDate) {
   var d = new Date(isoDate + 'T00:00:00');
-  if (isNaN(d.getTime())) return '';
+  if (isNaN(d.getTime()) || Utilities.formatDate(d, 'Asia/Manila', 'yyyy-MM-dd') !== isoDate) return '';
   var now = new Date(), age = now.getFullYear() - d.getFullYear();
   if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
   return age >= 0 && age <= 120 ? String(age) : '';
@@ -228,6 +228,7 @@ function admissionDbAudit_(actorEmail, action, studentId, detail) {
     if (!sh) return;
     var clean = function (v, n) { return String(v == null ? '' : v).replace(/[\u0000-\u001F]/g, ' ').slice(0, n); };
     var row = [new Date().toISOString(), clean(actorEmail, 254), clean(action, 80), clean(studentId, 40), clean(detail, 300)];
-    sh.appendRow(row);
+    var target = sh.getRange(sh.getLastRow() + 1, 1, 1, row.length);
+    target.setNumberFormat('@').setValues([row]);
   } catch (e) { console.error('Admission audit failed: ' + e.message); }
 }
