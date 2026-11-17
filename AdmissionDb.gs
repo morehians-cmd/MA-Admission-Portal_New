@@ -144,6 +144,10 @@ function admissionDbValidName_(value) {
   return /^[A-Z\u00C0-\u00DD][A-Z\u00C0-\u00DD .'-]{0,59}$/.test(String(value || ''));
 }
 
+function admissionDbValidRelation_(value) {
+  return /^[A-Z\u00C0-\u00DD][A-Z\u00C0-\u00DD ./'&-]{0,59}$/.test(String(value || ''));
+}
+
 function admissionDbValidEmail_(value) {
   var e = String(value || '').trim();
   return e.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
@@ -192,7 +196,10 @@ function admissionDbNormalizeApplicant_(input, account) {
   var clusters = ['Science, Technology, Engineering, and Mathematics','Arts, Social Sciences, and Humanities','Business and Entrepreneurship','ICT Support and Computer Programming Technologies','Hospitality and Tourism'];
   if (shs && clusters.indexOf(out.Cluster) < 0) throw new Error('Select a Senior High School strand / cluster.');
   if (!shs) out.Cluster = '';
+  if (out.PrevGrade && allowedGrades.indexOf(out.PrevGrade) < 0) throw new Error('Select a valid previous grade level.');
+  if (out.PrevCluster && clusters.indexOf(out.PrevCluster) < 0) throw new Error('Select a valid previous SHS strand / cluster.');
   if (out.PrevSY && !/^20\d{2}-20\d{2}$/.test(out.PrevSY)) throw new Error('Enter a valid previous school year.');
+  if (out.PrevSY) { var psy = out.PrevSY.split('-'); if (Number(psy[1]) !== Number(psy[0]) + 1) throw new Error('Select a valid consecutive previous school year.'); }
   if (out.PrivacyConsent !== 'Yes') throw new Error('You must agree to the Privacy Notice before submitting.');
   delete out.PrivacyConsent;
 
@@ -205,7 +212,7 @@ function admissionDbNormalizeApplicant_(input, account) {
     out.GuardEmail = admissionDbCleanText_(out.GuardEmail, 254).toLowerCase();
     out.GuardMobile = admissionDbCleanText_(out.GuardMobile, 20);
     if (!out.GuardName || !out.GuardRelation) throw new Error('Parent / legal guardian name and relationship are required for applicants below 18.');
-    if (!admissionDbValidName_(out.GuardName) || !admissionDbValidName_(out.GuardRelation)) {
+    if (!admissionDbValidName_(out.GuardName) || !admissionDbValidRelation_(out.GuardRelation)) {
       throw new Error('Guardian name and relationship may contain letters, spaces, periods, apostrophes and hyphens only.');
     }
     if (!admissionDbValidEmail_(out.GuardEmail)) throw new Error('Enter a valid parent / guardian email address.');
@@ -217,7 +224,7 @@ function admissionDbNormalizeApplicant_(input, account) {
     out.GuardEmail = admissionDbCleanText_(out.GuardEmail, 254).toLowerCase();
     out.GuardMobile = admissionDbCleanText_(out.GuardMobile, 20);
     if (!out.GuardName || !out.GuardRelation || !admissionDbValidName_(out.GuardName) ||
-        !admissionDbValidName_(out.GuardRelation) || !admissionDbValidEmail_(out.GuardEmail) ||
+        !admissionDbValidRelation_(out.GuardRelation) || !admissionDbValidEmail_(out.GuardEmail) ||
         !/^09\d{9}$/.test(out.GuardMobile)) {
       throw new Error('Please complete all parent / guardian contact fields or leave them blank.');
     }
