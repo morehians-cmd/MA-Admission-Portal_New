@@ -1,6 +1,6 @@
 # Stage 2.5 — Safe Admissions Schema Setup Specification
 
-**Status:** Prepared for review; documentation only  
+**Status:** Approved by user; implementation committed separately; no setup execution authorized  
 **Date:** November 18, 2026  
 **Repository:** `morehians-cmd/MA-Admission-Portal_New`  
 **Work branch:** `integration/auth-db-foundation`  
