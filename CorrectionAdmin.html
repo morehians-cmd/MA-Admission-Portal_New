@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Correction Request Review | Moreh Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--ink:#14213d;--muted:#64748b;--line:#d8e3f8;--green:#16834a;--red:#b42318;--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#f5f8ff;color:var(--ink);font:400 13px/1.6 var(--body)}button,textarea{font:inherit}button:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.top{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,42px)}.brand{font:700 14px var(--head);color:var(--navy)}.brand small{display:block;font:400 10px var(--body);color:var(--muted)}.top-right{display:flex;align-items:center;gap:12px}.top-right span{font-size:11px;color:var(--muted)}.btn{border:0;border-radius:8px;padding:9px 13px;background:var(--blue);color:#fff;font:700 11px var(--head);cursor:pointer}.btn.secondary{background:#eef3fb;color:var(--navy);border:1px solid var(--line)}.btn.danger{background:#b42318}.btn:disabled{opacity:.5;cursor:wait}
+.content{max-width:1400px;margin:auto;padding:28px clamp(14px,3vw,34px)}.eyebrow{font:700 10px var(--head);color:var(--blue);letter-spacing:1px;text-transform:uppercase}h1{font:700 27px var(--head);color:var(--navy);margin:4px 0 6px}.intro{margin:0 0 20px;color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.4fr);gap:17px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:0 5px 18px #062e7009;min-width:0}.card h2{font:700 15px var(--head);color:var(--navy);margin:0 0 13px}.list{display:grid;gap:8px;max-height:70vh;overflow:auto}.item{border:1px solid #e5ebf6;border-radius:9px;padding:11px;text-align:left;background:#fff;cursor:pointer;width:100%}.item.active{border-color:#7ca6e9;background:#f3f7ff}.item strong{display:block;font:700 11px var(--head);color:var(--navy)}.item small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.pill{display:inline-block;border-radius:99px;background:#fff3df;color:#965600;padding:3px 7px;font:700 9px var(--head);margin-top:7px}.pill.done{background:#e8f6ee;color:#17633a}.pill.no{background:#fff0ef;color:#a12a2a}.muted{color:var(--muted)}.empty{padding:25px 10px;text-align:center;color:var(--muted);font-size:11px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.value{padding:11px;background:#f7f9fe;border:1px solid #edf1f8;border-radius:8px;min-width:0}.value small{display:block;color:var(--muted);font-size:9px;margin-bottom:4px}.value strong{display:block;color:var(--navy);font:600 11px var(--head);overflow-wrap:anywhere}.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}.compare>div{padding:12px;border-radius:9px;border:1px solid var(--line)}.compare .old{background:#f8f9fc}.compare .new{background:#f1f7ff;border-color:#b9d0f5}.compare small{display:block;color:var(--muted);font-size:9px}.compare strong{display:block;margin-top:5px;overflow-wrap:anywhere;font:600 12px var(--head)}.reason{padding:12px;background:#fff8ed;border:1px solid #ffe2bd;border-radius:9px;margin:12px 0}.reason strong{display:block;color:#84500d;font:700 10px var(--head)}.reason p{margin:5px 0 0;color:#84500d;font-size:11px;white-space:pre-wrap}.docs{display:grid;gap:7px;margin:10px 0}.doc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid #e5ebf6;border-radius:8px}.doc span{font-size:10px;overflow-wrap:anywhere}.field label{display:block;font:600 10px var(--head);color:#34435f;margin:12px 0 5px}.field textarea{width:100%;min-height:65px;border:1px solid #cdd9ed;border-radius:8px;padding:9px;font:400 11px var(--body)}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.alert{padding:10px 12px;background:#fff8ed;border:1px solid #ffe2bd;border-radius:8px;color:#84500d;font-size:10px;margin:10px 0}.error{padding:12px;color:var(--red);background:#fff0ef;border:1px solid #ffd2ce;border-radius:8px}.loading{padding:30px;text-align:center;color:var(--muted)}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.list{max-height:360px}}@media(max-width:560px){.detail-grid,.compare{grid-template-columns:1fr}.top-right span{display:none}.content{padding:18px 12px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">MOREH ACADEMY <small>Owner • Application Correction Review</small></div><div class="top-right"><span id="ownerEmail"></span><button class="btn secondary" id="refresh">Refresh</button><button class="btn secondary" id="logout">Sign out</button></div></header>
+<main class="content">
+<div class="eyebrow">Admissions administration</div><h1>Application Correction Requests</h1><p class="intro">Review applicant-submitted changes. The original student record is not modified until an approved correction is applied.</p>
+<div class="layout">
+<section class="card"><h2>Request queue <span id="count" class="muted"></span></h2><div id="queue" class="loading">Loading requests…</div></section>
+<section class="card"><h2>Request details</h2><div id="detail" class="empty">Select a request from the queue to review it.</div></section>
+</div>
+</main>
+<script>
+var APP_BASE='<?= baseUrl ?>',TOKEN_KEY='ma_token',selectedRef='';
+function token(){try{return sessionStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}}
+function run(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend unavailable.');return}google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail(e&&e.message?e.message:'Request failed.')})[fn].apply(null,args)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function home(){window.top.location.href=APP_BASE||'?page=home'}
+function statusClass(s){return s==='Completed'?'done':s==='Rejected'?'no':''}
+function loadQueue(){
+  document.getElementById('queue').textContent='Loading requests…';
+  run('admissionGetCorrectionQueue',[token()],function(r){
+    if(!r||r.success!==true){document.getElementById('queue').innerHTML='<div class="error">'+esc((r&&r.message)||'Could not load queue.')+'</div>';return}
+    var rows=r.data||[];document.getElementById('count').textContent='('+rows.length+')';
+    if(!rows.length){document.getElementById('queue').innerHTML='<div class="empty">No correction requests have been submitted.</div>';return}
+    var html='<div class="list">';
+    rows.forEach(function(x){
+      html+='<button class="item '+(selectedRef===x.requestRef?'active':'')+'" data-ref="'+esc(x.requestRef)+'"><strong>'+esc(x.fieldLabel)+' • '+esc(x.requestRef)+'</strong><small>'+esc(x.applicantEmail)+' · '+esc(x.studentId)+'<br>'+esc(String(x.createdAt||'').slice(0,16).replace('T',' '))+'</small><span class="pill '+statusClass(x.status)+'">'+esc(x.status)+'</span>'+(x.sensitive?'<span class="pill">Identity verification</span>':'')+'</button>';
+    });
+    document.getElementById('queue').innerHTML=html+'</div>';
+    document.querySelectorAll('.item').forEach(function(b){b.addEventListener('click',function(){selectedRef=this.getAttribute('data-ref');loadQueue();loadDetail(selectedRef)})});
+    if(selectedRef)loadDetail(selectedRef);
+  },function(m){document.getElementById('queue').innerHTML='<div class="error">'+esc(m)+'</div>'});
+}
+function downloadDoc(id){
+  run('admissionDownloadCorrectionDocument',[token(),id],function(r){
+    if(!r||r.success!==true){alert((r&&r.message)||'Unable to download document.');return}
+    var d=r.data||{},a=document.createElement('a');a.href='data:'+d.mimeType+';base64,'+d.base64;a.download=d.fileName||'supporting-document';document.body.appendChild(a);a.click();a.remove();
+  },function(m){alert(m)});
+}
+function loadDetail(ref){
+  document.getElementById('detail').textContent='Loading request…';
+  run('admissionGetCorrectionDetail',[token(),ref],function(r){
+    if(!r||r.success!==true){document.getElementById('detail').innerHTML='<div class="error">'+esc((r&&r.message)||'Unable to load details.')+'</div>';return}
+    var d=r.data||{},html='<div class="detail-grid">';
+    [['Reference',d.requestRef],['Student ID',d.studentId],['Applicant account',d.applicantEmail],['Submitted',d.createdAt],['Field',d.fieldLabel],['Status',d.status],['Verification path',d.verificationMethod]].forEach(function(x){html+='<div class="value"><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'—')+'</strong></div>'});
+    html+='</div><div class="compare"><div class="old"><small>ORIGINAL SUBMITTED VALUE</small><strong>'+esc(d.originalValue||'—')+'</strong></div><div class="new"><small>PROPOSED CORRECTION</small><strong>'+esc(d.proposedValue||'—')+'</strong></div></div><div class="reason"><strong>APPLICANT REASON</strong><p>'+esc(d.reason||'—')+'</p></div>';
+    if(d.sensitive)html+='<div class="alert">Sensitive identity information. Do not approve until the submitted document has been checked or the applicant has completed an in-person identity check with an acceptable ID.</div>';
+    html+='<h3 style="font:700 12px Poppins;color:#062E70;margin:14px 0 7px">Supporting documents</h3>';
+    if(d.documents&&d.documents.length){html+='<div class="docs">';d.documents.forEach(function(x){html+='<div class="doc"><span>'+esc(x.fileName)+' · '+Math.round(x.sizeBytes/1024)+' KB</span><button class="btn secondary download" data-id="'+esc(x.documentId)+'">Download privately</button></div>'});html+='</div>'}
+    else html+='<p class="muted" style="font-size:10px">No uploaded documents. Applicant selected in-person verification or no documents were required.</p>';
+    html+='<div class="field"><label for="reviewNotes">Reviewer note / reason</label><textarea id="reviewNotes" placeholder="Add the reason for a rejection or additional-information request."></textarea></div>';
+    html+='<div class="actions"><button class="btn secondary" id="markReview">Mark under review</button><button class="btn secondary" id="needVerification">For verification</button><button class="btn secondary" id="needInfo">Request additional information</button><button class="btn danger" id="reject">Reject</button>';
+    if(d.sensitive){
+      if(d.verificationMethod==='DOCUMENT_UPLOAD')html+='<button class="btn" id="approveDocs">Verify documents & approve</button>';
+      else if(d.verificationMethod==='IN_PERSON')html+='<button class="btn" id="approveVisit">Confirm in-person ID check & approve</button>';
+    }else html+='<button class="btn" id="approve">Approve and apply correction</button>';
+    html+='</div>';
+    document.getElementById('detail').innerHTML=html;
+    document.querySelectorAll('.download').forEach(function(b){b.addEventListener('click',function(){downloadDoc(this.getAttribute('data-id'))})});
+    document.getElementById('markReview').onclick=function(){review('UNDER_REVIEW','')};
+    document.getElementById('needVerification').onclick=function(){review('FOR_VERIFICATION','')};
+    document.getElementById('needInfo').onclick=function(){review('FOR_ADDITIONAL_INFORMATION','')};
+    document.getElementById('reject').onclick=function(){review('REJECT','')};
+    if(document.getElementById('approve'))document.getElementById('approve').onclick=function(){review('APPROVE','NOT_REQUIRED')};
+    if(document.getElementById('approveDocs'))document.getElementById('approveDocs').onclick=function(){review('APPROVE','DOCUMENTS_VERIFIED')};
+    if(document.getElementById('approveVisit'))document.getElementById('approveVisit').onclick=function(){review('APPROVE','IN_PERSON_VERIFIED')};
+  },function(m){document.getElementById('detail').innerHTML='<div class="error">'+esc(m)+'</div>'});
+}
+function review(action,verification){
+  var notes=document.getElementById('reviewNotes')?document.getElementById('reviewNotes').value.trim():'';
+  if((action==='REJECT'||action==='FOR_ADDITIONAL_INFORMATION')&&notes.length<5){alert('Please add an explanation of at least 5 characters.');return}
+  if(action==='APPROVE'&&!confirm('Confirm that the correction is accurate and should be applied to the official admission record?'))return;
+  run('admissionReviewCorrectionRequest',[token(),selectedRef,action,notes,verification],function(r){
+    if(!r||r.success!==true){alert((r&&r.message)||'Could not update request.');return}
+    alert(r.message||'Request updated.');loadQueue();
+  },function(m){alert(m)});
+}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){home();return}run('authSignOut',[t],home,home)}
+document.getElementById('refresh').addEventListener('click',loadQueue);document.getElementById('logout').addEventListener('click',signOut);
+(function boot(){
+ var t=token();if(!t){home();return}
+ run('authWhoAmI',[t],function(r){
+  if(!r||r.success!==true||!r.data||r.data.role!=='Owner'){home();return}
+  document.getElementById('ownerEmail').textContent=r.data.email||'';loadQueue();
+ },home);
+})();
+</script>
+</body>
+</html>
