@@ -193,7 +193,7 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 <div class="modal" id="mForgot" role="dialog" aria-modal="true" aria-labelledby="fT"><div class="box">
   <button class="x" data-close aria-label="Close">×</button><h2 id="fT">Forgot password</h2>
   <p class="note">Enter your account email. We will send a 6-digit code.</p>
-  <div class="f"><label for="fMail">Email</label><input id="fMail" type="email" autocomplete="email"></div>
+  <div class="f"><label for="fgMail">Email</label><input id="fgMail" type="email" autocomplete="email"></div>
   <p class="err" id="fErr" role="alert"></p>
   <button class="btn blue" id="fGo" style="width:100%">Send code</button>
   <button class="swap" data-swap="mSignin">Back to sign in</button>
@@ -501,7 +501,7 @@ $('vGo').onclick=function(){var c=$('vCode').value.replace(/\D/g,'');if(c.length
 $('vResend').onclick=function(){call(API.resend,[PEND.email],function(r){
   if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Could not send the code.';return}
   $('vErr').textContent='';toast(r.message);cool(60)},function(e){$('vErr').textContent=e})};
-$('fGo').onclick=function(){var m=$('fMail').value.trim();
+$('fGo').onclick=function(){var m=$('fgMail').value.trim();
  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){$('fErr').textContent='Enter a valid email address.';return}
  var b=this;busyBtn(b,true,'Sending…');
  call(API.forgot,[m],function(r){busyBtn(b,false);

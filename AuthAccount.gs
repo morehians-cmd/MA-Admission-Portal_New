@@ -66,7 +66,7 @@ function authVerifyEmail(email, code) {
     } finally { lock.releaseLock(); }
     if (msg) return authFail_(msg);
     authAudit_(email, 'verify-ok', '');
-    return { success: true, message: 'Email verified.', data: { token: authIssueSession_(u), email: u.email, role: u.role } };
+    return { success: true, message: 'Email verified.', data: { token: authIssueSession_(u), email: u.email, role: u.role, studentId: u.studentId || '', fullName: u.name || '' } };
   } catch (err) { return authFail_('Could not verify the code. Please try again.', err); }
 }
 
@@ -106,11 +106,27 @@ function authResetPassword(email, code, newPassword) {
 /** Run ONCE from the editor: adds the new columns, makes them plain text, and triggers the email permission prompt. */
 function authMigrateUsersSheet() {
   authRequireEditor_();
-  var sh = authSheet_(), n = AUTH.HEADERS.length;
+  var sh = authSheet_(), n = AUTH.HEADERS.length, oldN = n - 1;
+  var last = sh.getLastRow(), width = Math.min(n, sh.getMaxColumns());
+  var existing = sh.getRange(1, 1, 1, Math.max(width, 1)).getDisplayValues()[0];
+  var hasHeader = existing.some(function (v) { return String(v || '') !== ''; });
+  if (hasHeader) {
+    for (var i = 0; i < oldN; i++) {
+      if (String(existing[i] || '') !== AUTH.HEADERS[i]) {
+        throw new Error('Users schema mismatch at column ' + (i + 1) + '. No headers or records were changed.');
+      }
+    }
+    if (existing[oldN] && String(existing[oldN]) !== 'StudentID') {
+      throw new Error('Users column ' + (oldN + 1) + ' is already occupied. Review the sheet before adding StudentID.');
+    }
+  } else if (last > 1) {
+    throw new Error('Users has records but no recognizable header. No changes were made.');
+  }
   if (sh.getMaxColumns() < n) sh.insertColumnsAfter(sh.getMaxColumns(), n - sh.getMaxColumns());
-  sh.getRange(1, 1, 1, n).setValues([AUTH.HEADERS]);
+  if (!hasHeader) sh.getRange(1, 1, 1, n).setValues([AUTH.HEADERS]).setFontWeight('bold');
+  else if (!existing[oldN]) sh.getRange(1, n).setValue('StudentID').setFontWeight('bold');
   sh.getRange(2, 9, Math.max(1, sh.getMaxRows() - 1), n - 8).setNumberFormat('@');
-  Logger.log('Users sheet ready. Emails left today: ' + MailApp.getRemainingDailyQuota());
+  Logger.log('Users schema verified; StudentID link column is ready.');
 }
 
 /** Optional daily time trigger: deletes unverified (Pending) accounts older than 7 days. Harmless if called by anyone. */
