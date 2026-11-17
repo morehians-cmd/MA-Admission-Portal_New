@@ -76,7 +76,7 @@ function authSignOut(token) {
   return { success: true, message: 'Signed out.' };
 }
 
-/** authWhoAmI(token) -> {success, data:{email, role}}  Used by pages to restore state after a reload. */
+/** authWhoAmI(token) -> {success, data:{email, role, studentId, fullName}}  Used by pages to restore state after a reload. */
 function authWhoAmI(token) {
   try {
     var s = authResolveSession_(token);
@@ -105,7 +105,7 @@ function authChangePassword(token, oldPassword, newPassword) {
 /* ====================== INTERNAL: used by feature files ====================== */
 
 /**
- * The portal's one session check. Returns {email, role} for a valid session, otherwise null. Fails closed.
+ * The portal's one session check. Returns the authenticated account identity and StudentID link for a valid session, otherwise null. Fails closed.
  * Role and status are read from the Users sheet on every call, so disabling a user or changing a role takes
  * effect on their very next request.
  */
