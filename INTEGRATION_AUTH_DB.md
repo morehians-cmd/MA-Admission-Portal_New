@@ -63,9 +63,19 @@ The inspected source core also contains legacy hard-coded security/configuration
 - Added internal account-link helpers. The locked variant supports atomic linking from a trusted server-side workflow; the wrapper is not browser-callable.
 - Added `AdmissionDb.gs` with separate `AdmissionStudents` and `AdmissionAudit` sheets.
 - Matched all 117 source student-data fields in their original order (including generated family and requirement-date fields).
-- Added an Applicant-only first-application endpoint and an Applicant/Student self-read endpoint. The server controls StudentID, email, timestamps, name, age, classification, and enrollment status.
+- Added an Applicant-only first-application endpoint and an Applicant/Student self-read endpoint. First submission creates a new AdmissionStudents row and automatically links its generated StudentID to the authenticated Applicant account. The server controls StudentID, email, timestamps, name, age, classification, enrollment status, consent timestamp, and requirement statuses.
 - Added an owner-only schema setup function. It creates/verifies schema only; it does not import records.
 - JavaScript syntax checks passed for `Auth.gs`, `AuthAccount.gs`, and `AdmissionDb.gs`. A static comparison confirmed the destination student schema matches all 117 source fields in order.
+
+
+### Automatic-linking hardening added
+- Server-side validation now checks name characters, real birth dates, consecutive school-year values, LRN format when supplied, and mobile-number format when supplied.
+- Applicants under 18 must provide a valid parent/legal guardian name, relationship, email, and mobile number. Guardian email must differ from the applicant account email.
+- Applicant submissions cannot set Admissions-controlled requirement statuses or requirement dates; these are initialized by the server.
+- Duplicate protection checks account email, LRN when supplied, and exact surname/first-name/birth-date identity before creating a record.
+- StudentID generation is checked against existing admission records before insertion.
+- Applicant role is not automatically promoted to Student by email verification or application submission. The account remains an Applicant unless a separately reviewed authorized lifecycle workflow is implemented.
+- Runtime tests are still required in the disposable staging spreadsheet. No live student records should be used for the first test.
 
 ### Not yet performed
 - No Apps Script runtime tests have been run.
