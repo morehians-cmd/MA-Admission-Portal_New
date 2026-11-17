@@ -19,7 +19,7 @@ var AUTH = {
   USERS: 'Users', AUDIT: 'AuthAudit',
   HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt',
             'FullName', 'Mobile', 'TermsAcceptedAt', 'OtpHash', 'OtpExpires', 'OtpTries', 'OtpPurpose', 'StudentID'],
-  ROLES: ['Owner', 'Encoder', 'Student', 'Applicant'],
+  ROLES: ['Owner', 'Encoder', 'Admissions', 'Student', 'Applicant'],
   ITER: 20000,                 // default for NEW hashes. Tune with authBenchmark().
   MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
   IDLE_SEC: 7200,             // a session dies after 2 hours without use
