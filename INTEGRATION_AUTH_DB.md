@@ -353,3 +353,20 @@ The earlier Test D observation (Admissions user logged in but remained on the pu
 Stage 1 is considered complete in the disposable staging environment based on user-reported test results. This is not production validation or deployment. No production Apps Script, production spreadsheet, triggers, or `main` branch were changed.
 
 Next planned stage: Stage 2 — Current Student Registration and Student Profile Foundation. Prepare and approve the Stage 2 workflow, schema, identity matching, and account-linking specification before writing implementation code.
+
+
+## Stage 2.6 — Workflow schema setup implementation
+
+**Branch:** `integration/auth-db-foundation`
+
+**Implementation file:** `AdmissionWorkflowSchema.gs`
+
+**Status:** Source implementation committed; static validation complete. No staging execution has occurred.
+
+The implementation provides a read-only `admissionWorkflowSchemaPreflight()` and a separately callable `admissionWorkflowSchemaSetup()`. Both require editor execution, an active Owner account, an explicit STAGING environment marker, and an exact match between the staging workbook ID and `DB_SHEET_ID`. The setup function creates only missing sheets from the approved 12-sheet allow-list. Existing sheets with mismatched headers block setup; no automatic repair is performed.
+
+The user clarified the Sheet 9 grade fields: `GradeLevelApplied` is replaced by `CurrentGradeLevel` and `ProposedGradeLevel`, in that order. The schema dictionary and implementation use this exact ordered header definition.
+
+Static validation passed for JavaScript parsing, all 12 header arrays, read-only preflight source, absence of legacy setup/migration calls, and absence of duplicate function-name collisions across the branch. The existing legacy setup, authentication, router, and spreadsheet files were not changed.
+
+**Pending user-controlled steps:** configure the three staging properties manually after reviewing the instructions; sync only `AdmissionWorkflowSchema.gs` to the separate staging Apps Script project; separately authorize and run the read-only preflight; review its output; and provide a separate explicit approval before running sheet creation. No production configuration, production spreadsheet, migration, or deployment is included.
