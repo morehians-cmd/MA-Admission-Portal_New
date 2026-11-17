@@ -73,30 +73,24 @@ The inspected source core also contains legacy hard-coded security/configuration
 - No deployment or trigger has been changed.
 - No source accounts, password hashes, or student records have been imported.
 
-## Next implementation sequence
+## Next validation sequence
 
-### A. Authentication contract
-- Add an appended, nullable `StudentID` field to the destination Users schema.
-- Update user-row parsing and identity-return methods to expose the link safely.
-- Add an internal helper that returns the authenticated account and enforces allowed roles.
-- Keep Applicant and Student permissions distinct.
-- Preserve existing sign-in, sign-out, password-change, OTP, and recovery APIs.
-
-### B. Admission database foundation
-- Add a dedicated admission data module with a namespaced sheet (not the source's generic `S` / `U` helpers).
-- Define and validate a versioned header schema.
-- Provide locked, header-based read/write helpers.
-- Generate immutable StudentIDs and enforce uniqueness.
-- Add a link operation that can only be performed by an authorized server-side workflow.
-- Add a separate admission audit trail; never log passwords, OTPs, session tokens, or full sensitive payloads.
-
-### C. Verification before any data migration
+### A. Authentication and identity tests
 - Test registration, OTP verification, login, session restore, sign-out, password reset, and password change.
-- Test role denial and cross-account record access.
-- Test duplicate email, duplicate LRN, duplicate StudentID, concurrent submissions, and malformed input.
-- Test against a disposable spreadsheet copy and a staging deployment.
-- Back up any target spreadsheet before a separately approved data migration.
+- Test Applicant versus Student versus staff role boundaries.
+- Test account-link uniqueness, attempted relinking, inactive accounts, and missing StudentID schema.
 
+### B. Admission database tests
+- Run `admissionDbSetup_()` only in a disposable staging spreadsheet after backing it up.
+- Test first application creation, retry behavior, duplicate email, duplicate LRN, duplicate StudentID, and concurrent submissions.
+- Test that applicants can read only the record linked to their own authenticated account.
+- Test malformed dates, invalid grade/year values, overlong fields, and unexpected fields.
+- Confirm audit entries contain no passwords, OTPs, session tokens, or full application payloads.
+
+### C. Before any live data migration
+- Confirm the staging tests and review the resulting sheet schemas.
+- Back up the target spreadsheet and map source records by stable identifiers.
+- Prepare a separate, reviewed migration plan for any existing users or student records. Do not copy source password hashes.
 ## Explicitly out of scope for this phase
 
 - Replacing the homepage or its visual design.
