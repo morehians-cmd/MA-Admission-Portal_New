@@ -138,7 +138,7 @@ function admissionCorrectionClean_(v, max) {
 }
 
 function admissionCorrectionValidateValue_(key, raw) {
-  var rule = ADM_CORR.FIELDS[key];
+  var rule = Object.prototype.hasOwnProperty.call(ADM_CORR.FIELDS, key) ? ADM_CORR.FIELDS[key] : null;
   if (!rule) throw new Error('This application field cannot be corrected through the portal.');
   var value = admissionCorrectionClean_(raw, 300);
   if (!value && !rule.optional) throw new Error(rule.label + ' cannot be blank.');
@@ -259,7 +259,7 @@ function admissionSubmitCorrectionRequest(token, input) {
     var record = admissionDbFindById_(account.studentId);
     if (!record || String(record.Email || '').toLowerCase() !== String(account.email || '').toLowerCase()) throw new Error('Your linked application could not be verified.');
     var key = String(input.fieldKey || '');
-    var rule = ADM_CORR.FIELDS[key];
+    var rule = Object.prototype.hasOwnProperty.call(ADM_CORR.FIELDS, key) ? ADM_CORR.FIELDS[key] : null;
     if (!rule) throw new Error('This application field cannot be corrected through the portal.');
     var proposed = admissionCorrectionValidateValue_(key, input.proposedValue);
     var original = String(record[key] == null ? '' : record[key]);
@@ -445,7 +445,7 @@ function admissionReviewCorrectionRequest(token, requestRef, action, notes, veri
       var request = requests.filter(function (r) { return r.RequestRef === ref; })[0];
       if (!request) throw new Error('Correction request was not found.');
       if (['Completed','Rejected'].indexOf(request.Status) >= 0) throw new Error('This correction request is already closed.');
-      var rule = ADM_CORR.FIELDS[request.FieldKey];
+      var rule = Object.prototype.hasOwnProperty.call(ADM_CORR.FIELDS, request.FieldKey) ? ADM_CORR.FIELDS[request.FieldKey] : null;
       if (!rule) throw new Error('The requested field is not in the correction allowlist.');
       var now = new Date().toISOString();
       var updates = { UpdatedAt: now, ReviewerEmail: owner, ReviewedAt: now };
