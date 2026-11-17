@@ -107,7 +107,8 @@ function authResetPassword(email, code, newPassword) {
 function authMigrateUsersSheet() {
   authRequireEditor_();
   var sh = authSheet_(), n = AUTH.HEADERS.length, oldN = n - 1;
-  var last = sh.getLastRow(), existing = sh.getRange(1, 1, 1, Math.max(n, 1)).getDisplayValues()[0];
+  var last = sh.getLastRow(), width = Math.min(n, sh.getMaxColumns());
+  var existing = sh.getRange(1, 1, 1, Math.max(width, 1)).getDisplayValues()[0];
   var hasHeader = existing.some(function (v) { return String(v || '') !== ''; });
   if (hasHeader) {
     for (var i = 0; i < oldN; i++) {
