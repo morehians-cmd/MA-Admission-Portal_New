@@ -17,7 +17,7 @@
 - `AuthAccount.gs`: destination applicant registration, email verification, and password recovery.
 - Existing `Users` and `AuthAudit` sheets: preserve their current data and column order.
 
-The destination authentication model uses email-based accounts, PBKDF2-HMAC-SHA256 password hashes with per-user salts, versioned cache sessions, and roles `Owner`, `Encoder`, `Student`, and `Applicant`. Session validation reads the current account status and token version from the Users sheet.
+The destination authentication model uses email-based accounts, PBKDF2-HMAC-SHA256 password hashes with per-user salts, versioned cache sessions, and roles `Owner`, `Encoder`, `Admissions`, `Student`, and `Applicant`. The dedicated Admissions role is granted and revoked only by the Owner for an existing active, email-verified account. Session validation reads the current account status and token version from the Users sheet.
 
 ## Source components inspected
 
@@ -35,7 +35,7 @@ The inspected source core also contains legacy hard-coded security/configuration
 
 1. **One authentication authority:** retain destination `Auth.gs` and `AuthAccount.gs`. Do not import source `Security.gs` login/session functions or create a second `doGet(e)`.
 2. **Separate identity from admission data:** destination `Users` remains the authentication/account table. Create a distinct admission/student data table in a later code step. Do not store the complete admission application inside the Users row.
-3. **Stable relationship:** add a nullable `StudentID` account-link field only as an appended column in a controlled schema migration. Link account to admission record by `StudentID`, never by email alone.
+3. **Stable relationship:** `Users.StudentID` and `AdmissionStudents.StudentID` are immutable internal relationship keys. Official MA IDs, legacy TLC IDs, and existing SHS school IDs are separate records in `StudentIdentifiers`. Link account to admission record by the internal key, never by email alone.
 4. **Applicant lifecycle:** registration creates a pending Applicant account and email verification activates it. An admission application creates or updates a separate admission record. Do not automatically promote an Applicant to Student merely because the account was verified. Role promotion must be an explicit, authorized workflow.
 5. **No password-hash conversion by copying:** source v2/legacy hashes must not be placed in destination `PasswordHash`. Hash formats differ. Any future account import requires a separately reviewed password-reset/re-enrollment strategy; do not attempt a silent hash migration.
 6. **No implicit spreadsheet migration:** do not point destination `DB_SHEET_ID` at a source workbook, rename sheets, rewrite headers, or run setup/migration functions on existing school data.
@@ -48,7 +48,7 @@ The inspected source core also contains legacy hard-coded security/configuration
 | Concern | Destination | Source | Integration rule |
 |---|---|---|---|
 | Account key | Email | Username (often email for learners) | Destination email remains canonical login |
-| Roles | Owner, Encoder, Student, Applicant | admin/student plus clearance fields | Explicit role mapping; never trust client role |
+| Roles | Owner, Encoder, Admissions, Student, Applicant | admin/student plus clearance fields | Explicit role mapping; Admissions access is Owner-granted; never trust client role |
 | Password hash | PBKDF2-HMAC-SHA256, per-user salt | pepper-backed v2 and legacy SHA-256 | Do not copy hashes |
 | Session | `authResolveSession_` | `who_` / source cache session | Destination session only |
 | Account table | `Users` | `Users` with different columns | Never merge or overwrite by sheet name |
@@ -63,25 +63,24 @@ The inspected source core also contains legacy hard-coded security/configuration
 - Added internal account-link helpers. The locked variant supports atomic linking from a trusted server-side workflow; the wrapper is not browser-callable.
 - Added `AdmissionDb.gs` with separate `AdmissionStudents` and `AdmissionAudit` sheets.
 - Matched all 117 source student-data fields in their original order (including generated family and requirement-date fields).
-- Added an Applicant-only first-application endpoint and an Applicant/Student self-read endpoint. First submission creates a new AdmissionStudents row and automatically links its generated StudentID to the authenticated Applicant account. The server controls StudentID, email, timestamps, name, age, classification, enrollment status, consent timestamp, and requirement statuses.
+- Added an Applicant-only first-application endpoint and an Applicant/Student self-read endpoint. First submission creates an AdmissionStudents row with a generated internal StudentID key, creates a separate official MA identifier in `StudentIdentifiers`, and links `Users.StudentID` to the internal key. The server controls both identifiers, email, timestamps, name, age, classification, enrollment status, consent timestamp, and requirement statuses.
 - Added an owner-only schema setup function. It creates/verifies schema only; it does not import records.
 - JavaScript syntax checks passed for `Auth.gs`, `AuthAccount.gs`, and `AdmissionDb.gs`. A static comparison confirmed the destination student schema matches all 117 source fields in order.
 
 
 ### Automatic-linking hardening added
-- Server-side validation now checks name characters, real birth dates, consecutive school-year values, LRN format when supplied, and mobile-number format when supplied.
+- Server-side validation checks name characters, real birth dates, consecutive school-year values, required LRN format, and mobile-number format.
 - Applicants under 18 must provide a valid parent/legal guardian name, relationship, email, and mobile number. Guardian email must differ from the applicant account email.
 - Applicant submissions cannot set Admissions-controlled requirement statuses or requirement dates; these are initialized by the server.
-- Duplicate protection checks account email, LRN when supplied, and exact surname/first-name/birth-date identity before creating a record.
-- StudentID generation is checked against existing admission records before insertion.
+- Duplicate protection checks account email, required LRN, and exact surname/first-name/birth-date identity before creating a record.
+- Internal StudentID keys and official MA identifiers are independently collision-checked before insertion.
 - Applicant role is not automatically promoted to Student by email verification or application submission. The account remains an Applicant unless a separately reviewed authorized lifecycle workflow is implemented.
 - Runtime tests are still required in the disposable staging spreadsheet. No live student records should be used for the first test.
 
-### Not yet performed
-- No Apps Script runtime tests have been run.
-- No spreadsheet schema setup or data migration has been run.
-- No deployment or trigger has been changed.
-- No source accounts, password hashes, or student records have been imported.
+### Initial implementation checkpoint
+- At the time of the initial implementation, no Apps Script runtime tests or spreadsheet setup had been run.
+- No deployment or trigger was changed.
+- No source accounts, password hashes, or student records were imported.
 
 ## Next validation sequence
 
@@ -145,7 +144,7 @@ Implemented on `integration/auth-db-foundation`:
 - Enabled the My Application navigation link in `ApplicantPortal.html`; the dashboard and authentication implementation remain separate.
 - Added a four-step applicant form: Student & Academic Information, Personal Information & Address, Parent / Guardian & Emergency Contacts, and Review & Submit.
 - Used the source portal's K–12 grade, department, category, and SHS cluster values as references. Department is derived by the server from the selected grade. SHS applicants must select a valid cluster.
-- Kept LRN optional for applicants who do not yet have one. Applicant mobile, birth date, address, and emergency contact details are validated. Applicants below 18 must provide a parent/legal guardian name, relationship, email, and mobile number.
+- LRN is now required for new-applicant submissions. Applicant mobile, birth date, address, and emergency contact details are validated. Applicants below 18 must provide a parent/legal guardian name, relationship, email, and mobile number.
 - Added an explicit privacy-consent checkbox. The backend requires consent before submission and stores the server-generated consent timestamp, not a client-provided timestamp.
 - Excluded optional sensitive fields such as religion and gender identity from this first form; those source-schema columns remain blank unless a separately reviewed need is established.
 - The form calls the existing `admissionCreateApplication(token, input)` endpoint. The backend enforces Applicant role, server-side validation, duplicate checks, unique StudentID generation, record creation, automatic account linking, and audit logging under a script lock.
@@ -176,7 +175,7 @@ The applicant form now includes these conditional and validation rules:
 - If Father Status or Mother Status is set to **Deceased**, the corresponding occupation, educational attainment, mobile number, and email fields are disabled, greyed out, and cleared. The server independently clears those values before saving.
 - Province is no longer displayed or requested in the applicant address. The existing database column is retained for schema compatibility and the server stores an empty value for new applications.
 - Previous SHS Strand / Cluster is enabled only when Previous Grade is Grade 11 or Grade 12. It is cleared in the browser when not applicable, and the server enforces the same rule.
-- LRN remains optional, but if provided it must contain exactly 12 digits and begin with 1, 2, 3, 4, or 5. The browser limits input to digits and 12 characters; the server validates the same format.
+- LRN is required and must contain exactly 12 digits, beginning with 1, 2, 3, 4, or 5. The browser limits input to digits and 12 characters; the server independently enforces the same rule.
 
 ### Additional staging checks
 
@@ -272,3 +271,43 @@ Do not run setup or tests against production. Do not upload real identity docume
 ### Current implementation boundary
 
 The applicant submission, private upload, status tracking, and Owner review/approval code are present in the branch. Runtime behavior and Drive permissions remain unverified until the user completes the staging setup and tests above. Automated applicant follow-up uploads for requests marked For Additional Information, configurable staff reviewer permissions, and a formal document-retention/deletion schedule remain future enhancements.
+
+## Stage 1 — Foundation and Compatibility (November 17, 2026)
+
+### Implemented on `integration/auth-db-foundation`
+
+- Added the explicit `Admissions` authentication role. Applicant registration continues to create only `Applicant` accounts; no existing Encoder is automatically upgraded.
+- Added Owner-only Admissions access management at `?page=admin-admissions-access`, linked from Homepage Management. Only active, email-verified Applicant or Encoder accounts are eligible. The Owner must independently verify employee identity before granting access.
+- Added `AdmissionRoleAudit` and the editor-only setup function `runAdmissionRoleSetup()`. Grant/revoke actions record previous role, new role, reason, actor, and timestamp. Role changes increment `TokenVersion`, invalidating existing sessions.
+- Added `StudentIdentifiers` with the approved 15-column schema. Existing `AdmissionStudents.StudentID` values and `Users.StudentID` links are not rewritten. The `runAdmissionDbSetup()` migration backfills existing MA-format IDs as `MA_STUDENT_ID`, recognized legacy TLC IDs as `TLC_LEGACY_ID`, and other existing identifiers as `LEGACY_STUDENT_ID`. It skips new opaque `STU-...` internal keys and is idempotent.
+- New admission records use an opaque internal `STU-...` key for the relationship between Users and AdmissionStudents, and a separate `MA-YYYY-XXXXXXXXXX` official identifier in StudentIdentifiers. Applicant-facing screens display the official identifier, not the internal key.
+- New-applicant LRN is now required in both the browser form and backend. The reusable `admissionDbValidateLrn_()` helper is intended for the future Currently Enrolled Student Profile Registration endpoint as well. That separate registration pathway is not yet implemented.
+- LRN correction requests cannot clear the required LRN field.
+- Existing AdmissionStudents columns and the Users column order are preserved. No old APMerge data is imported.
+
+### Stage 1 staging setup — manual, staging only
+
+After manually syncing the branch files to the disposable staging Apps Script project:
+
+1. Confirm `DB_SHEET_ID` points to the copied staging spreadsheet, not a production workbook.
+2. Back up the staging spreadsheet.
+3. Run `runAdmissionDbSetup()` from the Apps Script editor as the script owner. It verifies the existing Users and AdmissionStudents schemas, creates/verifies StudentIdentifiers, and backfills existing identifiers without changing StudentID values or account links.
+4. Run `runAdmissionRoleSetup()` from the Apps Script editor as the script owner. It creates/verifies AdmissionRoleAudit.
+5. Open Homepage Management and use **Admissions access** to grant/revoke a dummy verified account. Do not grant real employee accounts during initial staging tests.
+
+### Stage 1 validation still required
+
+- Confirm existing dummy account links still resolve to their original AdmissionStudents rows after identifier backfill.
+- Confirm old MA identifiers display unchanged, while newly created dummy applications receive an internal STU key and a separate MA identifier.
+- Confirm the internal STU key is not displayed in applicant-facing pages.
+- Confirm a missing LRN is rejected by both browser validation and direct backend invocation; confirm invalid length/prefix is rejected.
+- Confirm valid LRN is stored as text and duplicate LRN is rejected.
+- Confirm an LRN correction cannot be submitted with a blank proposed value and duplicate LRN correction is rejected at approval.
+- Confirm Owner can grant Admissions to an active verified dummy Applicant/Encoder account, and the account must sign in again.
+- Confirm a non-Owner cannot list accounts or grant/revoke Admissions access.
+- Confirm an Admissions account cannot access Owner-only homepage, pages, or correction administration.
+- Confirm revocation restores the account's previous role and invalidates existing sessions.
+- Confirm role audit records every successful grant/revoke with the documented reason and actor.
+- Re-run `runAdmissionDbSetup()` to confirm the identifier backfill is idempotent and does not create duplicate identifier rows.
+
+No Apps Script runtime validation is claimed for this Stage 1 change until these staging tests are completed. Do not run either setup function against production.
