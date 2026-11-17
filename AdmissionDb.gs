@@ -375,7 +375,7 @@ function admissionDbNewInternalStudentKey_(existingStudents) {
   var used = {};
   (existingStudents || []).forEach(function (r) { if (r.StudentID) used[r.StudentID] = true; });
   authAllUsers_().forEach(function (u) { if (u.studentId) used[u.studentId] = true; });
-  admissionDbIdentifierRows_().forEach(function (r) { if (r.IdentifierValue) used[r.IdentifierValue] = true; });
+  admissionDbIdentifierRows_().forEach(function (r) { if (r.StudentID) used[r.StudentID] = true; if (r.IdentifierValue) used[r.IdentifierValue] = true; });
   var key;
   do { key = 'STU-' + Utilities.getUuid().replace(/-/g, '').slice(0, 24).toUpperCase(); }
   while (used[key]);
