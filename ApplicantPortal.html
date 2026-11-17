@@ -85,7 +85,7 @@ function renderDashboard(account,record){
   var name=(record&&record.FullName)||account.fullName||'Moreh Applicant',email=account.email||'';
   document.getElementById('userName').textContent=name;document.getElementById('userEmail').textContent=email;
   document.getElementById('avatar').textContent=initials(name);
-  var submitted=!!record,studentId=submitted?(record.StudentID||'—'):'Not generated yet';
+  var submitted=!!record,studentId=submitted?(record.OfficialStudentID||'Pending assignment'):'Not generated yet';
   var status=submitted?'Submitted':'Not submitted';
   var statusNote=submitted?'Your application has been received. The Admissions Office review status will be shown here as processing begins.':'Your applicant account is active. Complete your application to generate your Student ID and begin the admission process.';
   var html='<div class="welcome"><div><div class="eyebrow">Welcome to Moreh Academy</div><h1>Hello, '+esc((name.split(',')[0]||name).trim())+'!</h1><p>This is your personal admission workspace. You can monitor your application and follow the next steps toward joining the Moreh Academy community.</p></div><div class="welcome-mark" aria-hidden="true">✦</div></div><div class="grid">';
