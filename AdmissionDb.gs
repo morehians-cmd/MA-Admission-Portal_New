@@ -181,6 +181,11 @@ function admissionDbNormalizeApplicant_(input, account) {
   out.Department = department;
   if (out.LRN && !/^[1-5]\d{11}$/.test(out.LRN)) throw new Error('LRN must contain 12 digits and start with 1, 2, 3, 4 or 5.');
   if (!/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit applicant mobile number.');
+  if (!out.AddressLine1 || !out.Barangay || !out.City) throw new Error('Complete the applicant street address, barangay, and city / municipality.');
+  if (!out.EmName || !out.EmRelation || !/^09\d{9}$/.test(out.EmMobile)) throw new Error('Complete the emergency contact name, relationship, and valid 11-digit mobile number.');
+  if (out.EmSameAddr !== 'Yes' && !out.EmAddress) throw new Error('Provide the emergency contact address or confirm that it is the same as the applicant address.');
+  ['FatherMobile','MotherMobile'].forEach(function (key) { if (out[key] && !/^09\d{9}$/.test(out[key])) throw new Error('Enter a valid 11-digit ' + key.replace('Mobile','').toLowerCase() + ' mobile number.'); });
+  ['FatherEmail','MotherEmail'].forEach(function (key) { if (out[key]) { out[key] = out[key].toLowerCase(); if (!admissionDbValidEmail_(out[key])) throw new Error('Enter a valid ' + key.replace('Email','').toLowerCase() + ' email address.'); } });
   var categories = ['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS'];
   if (out.Category && categories.indexOf(out.Category) < 0) throw new Error('Select a valid admission category.');
   var shs = gradeIndex >= 13;
