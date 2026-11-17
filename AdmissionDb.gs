@@ -53,7 +53,7 @@ var ADM_DB = {
     'EmSource',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
-    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace'
+    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace', 'PrivacyConsent'
   ]
 };
 
@@ -174,9 +174,22 @@ function admissionDbNormalizeApplicant_(input, account) {
   if (!out.SchoolYear || !/^20\d{2}-20\d{2}$/.test(out.SchoolYear)) throw new Error('Select a valid school year.');
   var sy = out.SchoolYear.split('-');
   if (Number(sy[1]) !== Number(sy[0]) + 1) throw new Error('Select a valid consecutive school year.');
-  if (!out.GradeLevel) throw new Error('Select an intended grade level.');
+  var allowedGrades = ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+  var gradeIndex = allowedGrades.indexOf(out.GradeLevel);
+  if (gradeIndex < 0) throw new Error('Select a valid K–12 grade level.');
+  var department = gradeIndex < 3 ? 'Preschool' : gradeIndex < 9 ? 'Elementary' : gradeIndex < 13 ? 'Junior High School' : 'Senior High School';
+  out.Department = department;
   if (out.LRN && !/^[1-5]\d{11}$/.test(out.LRN)) throw new Error('LRN must contain 12 digits and start with 1, 2, 3, 4 or 5.');
-  if (out.Mobile && !/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit mobile number.');
+  if (!/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit applicant mobile number.');
+  var categories = ['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS'];
+  if (out.Category && categories.indexOf(out.Category) < 0) throw new Error('Select a valid admission category.');
+  var shs = gradeIndex >= 13;
+  var clusters = ['Science, Technology, Engineering, and Mathematics','Arts, Social Sciences, and Humanities','Business and Entrepreneurship','ICT Support and Computer Programming Technologies','Hospitality and Tourism'];
+  if (shs && clusters.indexOf(out.Cluster) < 0) throw new Error('Select a Senior High School strand / cluster.');
+  if (!shs) out.Cluster = '';
+  if (out.PrevSY && !/^20\d{2}-20\d{2}$/.test(out.PrevSY)) throw new Error('Enter a valid previous school year.');
+  if (out.PrivacyConsent !== 'Yes') throw new Error('You must agree to the Privacy Notice before submitting.');
+  delete out.PrivacyConsent;
 
   // Applicants below 18 must provide a parent/legal guardian contact.
   var guardianValues = [out.GuardName, out.GuardRelation, out.GuardEmail, out.GuardMobile];
