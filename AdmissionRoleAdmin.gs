@@ -69,7 +69,7 @@ function admissionRoleListAccounts(token) {
     var data = authAllUsers_().filter(function (u) {
       return ['Applicant','Encoder','Admissions'].indexOf(u.role) >= 0;
     }).map(function (u) {
-      return { email: u.email, fullName: u.name || '', role: u.role, status: u.status };
+      return { email: u.email, fullName: u.name || '', role: u.role, status: u.status, studentLinked: !!u.studentId };
     }).sort(function (a, b) { return a.email.localeCompare(b.email); });
     return { success: true, data: data };
   } catch (err) {
