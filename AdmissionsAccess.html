@@ -64,7 +64,7 @@ function loadAccounts(){
   rows.forEach(function(u){
    var action='';
    if(u.role==='Admissions') action='<button class="danger" data-email="'+esc(u.email)+'" data-enable="false">Revoke access</button>';
-   else if(u.status==='Active'&&(u.role==='Applicant'||u.role==='Encoder')) action='<button class="primary" data-email="'+esc(u.email)+'" data-enable="true">Grant Admissions</button>';
+   else if(u.status==='Active'&&!u.studentLinked&&(u.role==='Applicant'||u.role==='Encoder')) action='<button class="primary" data-email="'+esc(u.email)+'" data-enable="true">Grant Admissions</button>';
    else action='<span class="status">Not eligible</span>';
    html+='<tr><td><strong>'+esc(u.fullName||'Name not provided')+'</strong><small>'+esc(u.email)+'</small></td><td><span class="role '+(u.role==='Admissions'?'admissions':'')+'">'+esc(u.role)+'</span></td><td><span class="status">'+esc(u.status)+'</span></td><td>'+action+'</td></tr>';
   });
