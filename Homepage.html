@@ -453,11 +453,19 @@ function resetLoginBtn(){$('outBtn').style.display='none';var b=$('loginBtn');b.
 /* TEMPORARY post-login behaviour until the Phase 4 dashboard exists: Owner gets a link to Homepage Management;
    Encoder and Student get a Sign out button. Replace this function when the dashboard is built. */
 function showSignedIn(u,quiet){
+ var b=$('loginBtn');
  if(u.role==='Applicant'||u.role==='Student'){
-  if(APP_BASE)window.top.location.href=APP_BASE+'?page=applicant-portal';else window.location.href='?page=applicant-portal';
+  /* HtmlService may block top-frame navigation from an asynchronous server callback.
+     Keep the signed-in session and expose a real target=_top link for the user's click. */
+  b.textContent='Open Applicant Portal';
+  b.href=(APP_BASE||'')+'?page=applicant-portal';
+  b.target='_top';
+  b.onclick=null;
+  $('outBtn').style.display='';
+  $('outBtn').onclick=function(e){e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');call(API.signOut,[t],function(){},function(){})};
+  if(!quiet)toast('Signed in. Select Open Applicant Portal to continue.');
   return;
  }
- var b=$('loginBtn');
  if(u.role==='Owner'){b.textContent='Homepage Management';b.onclick=null;if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
   $('outBtn').style.display='';$('outBtn').onclick=function(e){e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');call(API.signOut,[t],function(){},function(){})};
   if(!quiet)toast('Signed in as Owner.')}
