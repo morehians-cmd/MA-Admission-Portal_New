@@ -133,25 +133,29 @@ function authRequireRole_(token, roles) {
  * Internal account-to-admission link. Call only from a trusted server-side admission workflow.
  * Requires an active Applicant/Student account, a migrated StudentID column, and a unique link.
  */
-function authLinkStudent_(email, studentId) {
+function authLinkStudentLocked_(email, studentId) {
   email = authEmail_(email);
   studentId = String(studentId == null ? '' : studentId).trim();
   if (!email || !/^[A-Za-z0-9_-]{3,40}$/.test(studentId)) throw new Error('Invalid account or StudentID.');
+  var all = authAllUsers_(), u = null;
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].email === email) u = all[i];
+    else if (all[i].studentId && all[i].studentId === studentId) throw new Error('StudentID is already linked to another account.');
+  }
+  if (!u || u.status !== 'Active' || ['Applicant', 'Student'].indexOf(u.role) < 0) throw new Error('Active applicant account not found.');
+  if (u.studentId && u.studentId !== studentId) throw new Error('This account is already linked to another StudentID.');
+  var sh = authSheet_(), header = String(sh.getRange(1, AUTH.HEADERS.length).getValue() || '');
+  if (header !== 'StudentID') throw new Error('Run the approved Users schema migration before linking student records.');
+  sh.getRange(u.row, AUTH.HEADERS.length).setNumberFormat('@').setValue(studentId);
+  authAudit_(email, 'student-link', studentId);
+  return true;
+}
+
+/** Internal wrapper for trusted server-side workflows that are not already holding the script lock. */
+function authLinkStudent_(email, studentId) {
   var lock = LockService.getScriptLock(); lock.waitLock(15000);
-  try {
-    var all = authAllUsers_(), u = null;
-    for (var i = 0; i < all.length; i++) {
-      if (all[i].email === email) u = all[i];
-      else if (all[i].studentId && all[i].studentId === studentId) throw new Error('StudentID is already linked to another account.');
-    }
-    if (!u || u.status !== 'Active' || ['Applicant', 'Student'].indexOf(u.role) < 0) throw new Error('Active applicant account not found.');
-    if (u.studentId && u.studentId !== studentId) throw new Error('This account is already linked to another StudentID.');
-    var sh = authSheet_(), header = String(sh.getRange(1, AUTH.HEADERS.length).getValue() || '');
-    if (header !== 'StudentID') throw new Error('Run the approved Users schema migration before linking student records.');
-    sh.getRange(u.row, AUTH.HEADERS.length).setNumberFormat('@').setValue(studentId);
-    authAudit_(email, 'student-link', studentId);
-    return true;
-  } finally { lock.releaseLock(); }
+  try { return authLinkStudentLocked_(email, studentId); }
+  finally { lock.releaseLock(); }
 }
 
 /* ====================== EDITOR-ONLY (run from the Apps Script editor) ====================== */
