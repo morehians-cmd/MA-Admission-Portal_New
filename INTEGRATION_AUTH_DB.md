@@ -230,3 +230,45 @@ Suggested statuses: Submitted, Under Review, For Verification, For Additional In
 ### Implementation gate
 
 The initial My Application submission flow and the November 17 form refinements must first pass staging runtime tests using dummy accounts and a copied staging spreadsheet. Only then should this correction-request phase be implemented. K–12 remains the scope; College workflows are deferred.
+
+
+## Application Correction Requests — initial implementation
+
+Implemented on `integration/auth-db-foundation` as the next K–12 applicant module:
+
+- Added `AdmissionCorrections.gs` with separate `CorrectionRequests`, `CorrectionDocuments`, and `CorrectionAudit` schemas. The initial application row is not overwritten when a correction is requested.
+- Added `ApplicantCorrections.html` and the `?page=applicant-corrections` route. Applicants and linked Students can submit one field correction at a time and see only requests associated with their own linked StudentID and account email.
+- Added a field allowlist. Applicants cannot request changes to StudentID, account email, system fields, enrollment status, or Admissions-controlled requirement statuses.
+- Sensitive identity fields (legal name components, birth date, place of birth, and LRN) require either supporting-document upload or an in-person verification request. A typed value or uploaded file alone does not change the official record.
+- Supporting documents accept PDF/JPG/PNG only, up to two files at 5 MB each. The server checks file signatures and MIME type, stores files in a request-specific subfolder, and does not return Drive file IDs or URLs to applicants.
+- The setup function `admissionCorrectionSetup_()` creates/verifies the three correction sheets and creates a private Drive folder. It uses Script Property `ADM_CORRECTION_DRIVE_FOLDER_ID`. The folder, request subfolders, and files are set to PRIVATE with no link sharing.
+- Added `CorrectionAdmin.html` at `?page=admin-corrections`, with Owner-only queue/detail/download/review endpoints. Encoders are not implicitly authorized.
+- Owner approval revalidates the proposed value, confirms the original value has not changed since submission, applies only the allowlisted field, recalculates FullName/Age where applicable, and records before/after values in CorrectionAudit.
+- Applicant request history shows the status and Admissions note. Applicants never receive private Drive URLs or document IDs.
+
+### Important access boundary
+
+The Drive folder is private and initially grants no staff access beyond the script owner's account. Do not add staff permissions until the school identifies the exact authorized Admissions email addresses. The current portal review queue is Owner-only.
+
+The correction sheets contain proposed and original personal information. Google Sheets does not provide per-sheet read restrictions for spreadsheet editors. Therefore, the database spreadsheet itself must remain shared only with the system owner and specifically authorized data handlers; sheet protection alone is not a confidentiality boundary. Do not give general Encoders or other staff editor access to the database spreadsheet.
+
+### Staging setup and tests still required
+
+This code has passed static JavaScript syntax checks only. It has not been executed in Apps Script, and no Drive folder or correction sheet has been created by this implementation. Before enabling the module in staging:
+
+1. Sync the branch files into the disposable staging Apps Script project.
+2. Confirm its Script Property `DB_SHEET_ID` points only to the copied staging spreadsheet.
+3. Confirm the staging spreadsheet is not broadly shared.
+4. In the Apps Script editor, run `admissionCorrectionSetup_()` manually as the system owner. Verify the three empty sheets and private Drive folder are created; inspect folder sharing and confirm no link access or staff access was granted.
+5. Test a normal contact/address correction with dummy data; confirm the original AdmissionStudents value stays unchanged and the request appears in the applicant history and Owner queue.
+6. Test a sensitive correction using dummy data with a dummy PDF/JPG/PNG; confirm the uploaded file is private and applicants cannot retrieve its Drive URL or file ID.
+7. Test the in-person verification path without an upload.
+8. As Owner, download the dummy document through the Owner review page, verify it, approve the request, and confirm only the requested allowlisted field changes. For a name correction, verify FullName; for a birth-date correction, verify Age.
+9. Test rejection, For Additional Information, duplicate active requests for the same field, unauthorized Applicant access to another StudentID, and non-Owner access to the review endpoints.
+10. Confirm CorrectionAudit records the reviewer, request reference, field, before/after values, verification method, and action.
+
+Do not run setup or tests against production. Do not upload real identity documents during initial staging validation. No public deployment, production spreadsheet, production Drive folder, trigger, or `main` branch has been changed.
+
+### Current implementation boundary
+
+The applicant submission, private upload, status tracking, and Owner review/approval code are present in the branch. Runtime behavior and Drive permissions remain unverified until the user completes the staging setup and tests above. Automated applicant follow-up uploads for requests marked For Additional Information, configurable staff reviewer permissions, and a formal document-retention/deletion schedule remain future enhancements.
