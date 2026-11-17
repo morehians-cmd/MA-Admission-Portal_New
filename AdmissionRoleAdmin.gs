@@ -58,7 +58,7 @@ function admissionRoleAuditRows_() {
 }
 
 function admissionRoleClean_(value, max) {
-  return String(value == null ? '' : value).replace(/[\\u0000-\\u001F\\u007F]/g, ' ').trim().slice(0, max);
+  return String(value == null ? '' : value).replace(/[\\x00-\\x1F\\x7F]/g, ' ').trim().slice(0, max);
 }
 
 /** Owner-only list. Returns no password, OTP, token, or other authentication secrets. */
@@ -123,10 +123,12 @@ function admissionRoleSetAdmissionsAccess(token, targetEmail, enabled, reason) {
         action = 'REVOKE_ADMISSIONS';
       }
 
-      var sh = authSheet_(), roleCol = AUTH.HEADERS.indexOf('Role') + 1, versionCol = AUTH.HEADERS.indexOf('TokenVersion') + 1;
-      if (roleCol < 1 || versionCol < 1) throw new Error('Users schema is missing required authentication columns.');
-      sh.getRange(target.row, roleCol).setValue(newRole);
-      sh.getRange(target.row, versionCol).setValue((Number(target.tv) || 1) + 1);
+      var sh = authSheet_(), roleCol = AUTH.HEADERS.indexOf('Role'), versionCol = AUTH.HEADERS.indexOf('TokenVersion');
+      if (roleCol < 0 || versionCol < 0) throw new Error('Users schema is missing required authentication columns.');
+      var userRange = sh.getRange(target.row, 1, 1, AUTH.HEADERS.length);
+      var userValues = userRange.getValues()[0];
+      userValues[roleCol] = newRole;
+      userValues[versionCol] = (Number(target.tv) || 1) + 1;
 
       now = new Date().toISOString();
       var audit = {
@@ -135,7 +137,14 @@ function admissionRoleSetAdmissionsAccess(token, targetEmail, enabled, reason) {
         Reason: reason, ActorEmail: owner.email, EventAt: now
       };
       var auditSheet = admissionRoleAuditSheet_(), row = ADM_ROLE.HEADERS.map(function (h) { return audit[h] || ''; });
-      auditSheet.getRange(auditSheet.getLastRow() + 1, 1, 1, row.length).setNumberFormat('@').setValues([row]);
+      var auditRow = auditSheet.getLastRow() + 1;
+      auditSheet.getRange(auditRow, 1, 1, row.length).setNumberFormat('@').setValues([row]);
+      try {
+        userRange.setValues([userValues]);
+      } catch (writeError) {
+        auditSheet.deleteRow(auditRow);
+        throw writeError;
+      }
     } finally {
       lock.releaseLock();
     }
