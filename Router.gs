@@ -4,8 +4,8 @@
  * HomepageAdmin.html and PagesAdmin.html need: APP_BASE = '<?= baseUrl ?>'
  * Admin screens: ?page=admin-homepage, ?page=admin-pages
  */
-var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin' };
-var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management' };
+var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admin-corrections': 'CorrectionAdmin' };
+var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', CorrectionAdmin: 'Application Correction Review' };
 var PORTAL_PAGES_ = { 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication', 'applicant-corrections': 'ApplicantCorrections' };
 
 function doGet(e) {
