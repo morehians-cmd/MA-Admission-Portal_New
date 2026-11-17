@@ -108,3 +108,30 @@ The inspected source core also contains legacy hard-coded security/configuration
 - Importing live student records or user accounts.
 - Changing the production deployment, default branch, spreadsheet binding, Script Properties, triggers, or Drive permissions.
 - Importing the source portal wholesale or copying its `doGet(e)`.
+
+## Applicant Portal — Phase 1: Dashboard
+
+Implemented on `integration/auth-db-foundation`:
+
+- Added `ApplicantPortal.html` as a separate applicant-facing dashboard.
+- Added the `?page=applicant-portal` route in `Router.gs`.
+- Updated `Homepage.html` so authenticated Applicant and linked Student accounts are redirected to the Applicant Portal after sign-in, email verification, or session restoration.
+- The dashboard verifies the session through `authWhoAmI(token)` and loads only the signed-in account's linked record through `admissionGetMyApplication(token)`.
+- The dashboard displays an account-created state before first application submission, and a submitted state plus the generated Student ID after a record is linked.
+- The six navigation areas are shown, with Phases 2–6 marked as coming next. No other module has been implemented yet.
+- The dashboard uses the existing homepage identity: navy `#062E70`, blue `#0648AD`, orange `#FF941F`, light blue `#EEF4FF`, Poppins headings, and Open Sans body text.
+- Sign-out clears the browser token and calls the existing `authSignOut` endpoint.
+
+### Phase 1 validation status
+
+Static source review completed. The following still require execution in the user's staging Apps Script project with dummy accounts:
+
+1. Applicant email verification redirects to `?page=applicant-portal`.
+2. Applicant sign-in redirects to the dashboard.
+3. Refresh restores the applicant session and dashboard.
+4. A newly verified applicant with no application sees the account-created state and no Student ID.
+5. A dummy account with a linked AdmissionStudents record sees the submitted state and its Student ID.
+6. Owner and Encoder sign-in behavior remains unchanged.
+7. Applicant sign-out invalidates the session and returns to the homepage.
+
+No production Apps Script project, deployment, spreadsheet, trigger, or production data was changed. The dashboard does not create or modify admission records. Application submission remains Phase 2's responsibility.
