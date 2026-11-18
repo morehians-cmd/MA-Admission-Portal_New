@@ -58,6 +58,18 @@ function applicationCreateDraft(token, creationRequestId, draft) {
           serverValues: { Email: account.email }
         });
       }
+      var priorAudit = admissionWorkflowDataFindMany_('AdmissionWorkflowAudit', {
+        EntityID: prior.ApplicationID,
+        CorrelationID: requestId,
+        Action: 'DRAFT_CREATED'
+      }, { pageSize: 2, offset: 0 });
+      if (!priorAudit.records.length) {
+        try {
+          applicantWorkflowAudit_('AdmissionApplication', prior.ApplicationID, 'DRAFT_CREATED', '', 'DRAFT', requestId, account);
+        } catch (recoveryAuditError) {
+          return applicantWorkflowFailure_('The draft exists, but its creation audit outcome is uncertain. Do not create another draft. Reference: ' + prior.ApplicationID, 'WORKFLOW_AUDIT_OUTCOME_UNCERTAIN');
+        }
+      }
       return applicantWorkflowSuccess_('Draft recovered.', {
         applicationId: prior.ApplicationID,
         status: prior.ApplicationStatus,
@@ -172,8 +184,14 @@ function applicationSubmit(token, applicationId) {
     if (errors.length) return applicantWorkflowFailure_('Please complete the required application information: ' + errors.join(', '), 'WORKFLOW_SUBMISSION_VALIDATION_FAILED');
 
     var now = new Date().toISOString();
-    admissionWorkflowDataUpdateById_('ApplicationProfiles', owned.profile.ProfileSnapshotID, {}, {
-      serverValues: { SubmittedAt: now, SubmittedBy: account.email }
+    admissionWorkflowDataUpdateById_('ApplicationProfiles', owned.profile.ProfileSnapshotID, {
+      PrivacyConsent: owned.profile.PrivacyConsent
+    }, {
+      serverValues: {
+        PrivacyConsentAt: now,
+        SubmittedAt: now,
+        SubmittedBy: account.email
+      }
     });
     admissionWorkflowDataUpdateById_('AdmissionApplications', applicationId, {
       ApplicationStatus: 'SUBMITTED'
@@ -220,7 +238,7 @@ function applicantWorkflowNormalizeDraft_(input) {
   var out = {};
   Object.keys(input).forEach(function(key) {
     if (key === 'GenderIdentity' || key === 'Email' || key === 'ApplicationID' || key === 'ProfileSnapshotID' ||
-        key === 'SchemaVersion' || key === 'SubmittedAt' || key === 'SubmittedBy') {
+        key === 'SchemaVersion' || key === 'SubmittedAt' || key === 'SubmittedBy' || key === 'PrivacyConsentAt') {
       throw new Error('WORKFLOW_INVALID_FIELD');
     }
     if (APPLICANT_WORKFLOW.PROFILE_FIELDS.indexOf(key) < 0 &&
