@@ -57,8 +57,8 @@
 
 <section id="staff" class="card hidden">
 <h2>Admissions Records</h2><div id="stats" class="stats"></div>
-<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><button class="btn blue" id="searchBtn">Search</button></div>
-<div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
+<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
+<div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
 </section>
 </div></main>
 <script>
@@ -76,14 +76,19 @@ function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k)
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
 $('refreshApplicant').onclick=load;
 function drawStats(s){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+Object.keys(s.byStatus).map(function(k){return '<div class="stat"><span>'+esc(k)+'</span><strong>'+s.byStatus[k]+'</strong></div>'}).join('')}
-function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="7">No records found.</td></tr>'})}
+function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
-    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
+    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
     var categoryOptions=['Regular','PUB-QVR','QVA PASSER','TLC','ESC','PEAC Grantee','TLC-OVAP'];
     var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
+      if(k==='ApplicationStatus'){
+        var currentStatus=String(x[k]||'Submitted');
+        var statusOptions=['Submitted','Under Review','Approved','Declined'];
+        return '<div><label>Application Status</label><select data-edit="ApplicationStatus">'+statusOptions.map(function(v){return '<option value="'+esc(v)+'" '+(v===currentStatus?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>';
+      }
       if(k==='Category'){
         var current=String(x[k]||'');
         var options=categoryOptions.slice();
