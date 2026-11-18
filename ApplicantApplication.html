@@ -63,7 +63,7 @@
           <div class="note">Your application will be submitted to Moreh Academy. You will not be able to submit a second first-time application using this account. Document uploads and requirement tracking will be handled in a later module.</div>
         </section>
         <div class="error" id="formError" role="alert"></div>
-        <div class="actions"><button type="button" class="btn secondary" id="previous" disabled>Previous</button><button type="button" class="btn" id="next">Continue</button></div>
+        <div class="actions"><span id="draftStatus" style="align-self:center;color:var(--muted);font-size:11px"></span><button type="button" class="btn secondary" id="previous" disabled>Previous</button><button type="button" class="btn" id="next">Continue</button></div>
       </form>
     </div>
     <div class="panel result" id="submittedResult">
@@ -81,6 +81,33 @@
 </div>
 <script>
 var APP_BASE='<?= baseUrl ?>',TOKEN_KEY='ma_token',currentStep=0,account=null;
+var DRAFT_TIMER=null,DRAFT_PREFIX='ma_admission_draft_v1_';
+function draftKey(){return DRAFT_PREFIX+String(account&&account.email||'').trim().toLowerCase()}
+function saveDraft(){
+  if(!account||!account.email)return;
+  try{localStorage.setItem(draftKey(),JSON.stringify({step:currentStep,data:collect(),savedAt:new Date().toISOString()}));setDraftStatus('Draft saved ✓')}catch(e){}
+}
+function queueDraftSave(){clearTimeout(DRAFT_TIMER);DRAFT_TIMER=setTimeout(saveDraft,450)}
+function clearDraft(){try{if(account&&account.email)localStorage.removeItem(draftKey())}catch(e){}setDraftStatus('')}
+function setDraftStatus(msg){
+  var el=document.getElementById('draftStatus');
+  if(el)el.textContent=msg||'';
+}
+function restoreDraft(){
+  if(!account||!account.email)return;
+  try{
+    var raw=localStorage.getItem(draftKey());if(!raw)return;
+    var d=JSON.parse(raw);if(!d||!d.data)return;
+    Object.keys(d.data).forEach(function(k){
+      var el=document.querySelector('[data-key="'+k+'"]');if(!el)return;
+      if(el.type==='checkbox')el.checked=!!d.data[k];else el.value=d.data[k]==null?'':String(d.data[k]);
+    });
+    updateGradeRules();updateGuardianRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+    if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
+    setDraftStatus('Draft restored ✓');
+  }catch(e){}
+}
+
 function token(){try{return sessionStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}}
 function goHome(){window.top.location.href=APP_BASE||'?page=home'}
 function run(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend is unavailable.');return}google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail(e&&e.message?e.message:'Something went wrong. Please try again.')})[fn].apply(null,args)}
@@ -124,10 +151,12 @@ function buildFields(){
   field('FatherName','Father’s Full Name','text')+field('FatherStatus','Father’s Status','select',status)+
   field('FatherOccupation','Father’s Occupation','text')+field('FatherEducation','Highest Educational Attainment','select',edu)+
   field('FatherMobile','Father’s Mobile Number','tel')+field('FatherEmail','Father’s Email Address','email')+
+  field('FatherReligion','Father’s Religion','text')+field('FatherReligionOther','Father’s Religion (Other)','text',null,false,'Specify only when applicable.')+
   '<div class="subhead">Mother’s information (optional)</div>'+
   field('MotherName','Mother’s Full Name','text')+field('MotherStatus','Mother’s Status','select',status)+
   field('MotherOccupation','Mother’s Occupation','text')+field('MotherEducation','Highest Educational Attainment','select',edu)+
   field('MotherMobile','Mother’s Mobile Number','tel')+field('MotherEmail','Mother’s Email Address','email')+
+  field('MotherReligion','Mother’s Religion','text')+field('MotherReligionOther','Mother’s Religion (Other)','text',null,false,'Specify only when applicable.')+
   '<div class="subhead">Parent / legal guardian contact (required for applicants below 18)</div>'+
   field('GuardName','Parent / Legal Guardian Full Name','text',null,false)+field('GuardRelation','Relationship to Applicant','text',null,false)+
   field('GuardEmail','Parent / Guardian Email Address','email',null,false)+field('GuardMobile','Parent / Guardian Mobile Number','tel',null,false)+
@@ -148,7 +177,10 @@ function updateGradeRules(){
  document.getElementById('f_Cluster').closest('.field').style.display=isShs?'':'none';
 }
 function setFieldsDisabled(keys,disabled){keys.forEach(function(k){var el=document.getElementById('f_'+k);if(!el)return;el.disabled=disabled;el.closest('.field').classList.toggle('is-disabled',disabled);if(disabled){el.value='';el.required=false}})}
-function updateParentRules(parent){var deceased=value(parent+'Status')==='Deceased';setFieldsDisabled([parent+'Occupation',parent+'Education',parent+'Mobile',parent+'Email'],deceased)}
+function updateParentRules(parent){
+ var deceased=value(parent+'Status')==='Deceased';
+ setFieldsDisabled([parent+'Occupation',parent+'Education',parent+'Mobile',parent+'Email',parent+'Religion',parent+'ReligionOther'],deceased);
+}
 function updatePreviousClusterRules(){var applicable=value('PrevGrade')==='Grade 11'||value('PrevGrade')==='Grade 12';var el=document.getElementById('f_PrevCluster');if(!el)return;el.disabled=!applicable;el.closest('.field').classList.toggle('is-disabled',!applicable);if(!applicable)el.value=''}
 function updateEmergencyRules(){var same=value('EmSameAddr')===true;var address=document.getElementById('f_EmAddress');if(address)address.required=!same;}
 function updateGuardianRules(){
@@ -186,13 +218,15 @@ function validateStep(){
 function submitApplication(){
  var form=document.getElementById('applicationForm');
  if(!form.checkValidity()){var bad=form.querySelector(':invalid');if(bad){var section=bad.closest('.section');if(section)setStep(Number(section.dataset.step));bad.reportValidity()}return}
- var d=collect();d.PrivacyConsent=!!d.PrivacyConsent;
+ var d=collect();d.PrivacyConsent=undefined;
+ delete d.PrivacyConsent;
  var btn=document.getElementById('next');btn.disabled=true;btn.textContent='Submitting…';showError('');
  run('admissionCreateApplication',[token(),d],function(r){
   if(!r||r.success!==true){btn.disabled=false;btn.textContent='Submit Application';showError((r&&r.message)||'We could not submit your application. Please review the information and try again.');return}
   document.getElementById('formPanel').style.display='none';
   document.getElementById('submittedResult').classList.add('show');
   document.getElementById('generatedId').textContent=r.data&&r.data.studentId?'Student ID: '+r.data.studentId:'Application submitted';
+  clearDraft();
  },function(e){btn.disabled=false;btn.textContent='Submit Application';showError(e)});
 }
 function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
@@ -205,13 +239,18 @@ document.getElementById('year').textContent=new Date().getFullYear();
 document.getElementById('previous').onclick=function(){setStep(currentStep-1);showError('')};
 document.getElementById('next').onclick=function(){if(!validateStep())return;if(currentStep<3)setStep(currentStep+1);else submitApplication()};
 document.addEventListener('change',function(e){if(e.target.id==='f_GradeLevel')updateGradeRules();if(e.target.id==='f_Birthdate')updateGuardianRules();if(e.target.id==='f_EmSameAddr')updateEmergencyRules();if(e.target.id==='f_FatherStatus')updateParentRules('Father');if(e.target.id==='f_MotherStatus')updateParentRules('Mother');if(e.target.id==='f_PrevGrade')updatePreviousClusterRules()});
-document.addEventListener('input',function(e){if(e.target.id==='f_LRN')e.target.value=e.target.value.replace(/\D/g,'').slice(0,12)});
+document.addEventListener('input',function(e){
+ if(e.target.id==='f_LRN')e.target.value=e.target.value.replace(/\D/g,'').slice(0,12);
+ queueDraftSave();
+});
+document.addEventListener('change',function(e){queueDraftSave()});
 buildFields();updateGradeRules();updateGuardianRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
 (function boot(){
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
   if(!r||r.success!==true){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome();return}
   account=r.data||{};if(['Applicant','Student'].indexOf(account.role)<0){goHome();return}
+  restoreDraft();
   document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';document.getElementById('userEmail').textContent=account.email||'';document.getElementById('avatar').textContent=initials(account.fullName);
   run('admissionGetMyApplication',[t],function(a){
    document.getElementById('loading').style.display='none';
