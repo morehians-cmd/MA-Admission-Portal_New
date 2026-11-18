@@ -390,8 +390,9 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-try{buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
+var formInitOk=true;try{buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
+ if(!formInitOk)return;
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
   if(!r||r.success!==true){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome();return}
