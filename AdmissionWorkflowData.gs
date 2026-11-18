@@ -472,6 +472,7 @@ function admissionWorkflowDataUpdateById_(sheetName, id, changes, options) {
     Object.keys(changes).forEach(function(key) { candidate[key] = changes[key]; });
     Object.keys(serverValues).forEach(function(key) { candidate[key] = serverValues[key]; });
     if (headers.indexOf('UpdatedAt') >= 0) candidate.UpdatedAt = new Date().toISOString();
+    admissionWorkflowDataAssertRequired_(sheetName, candidate);
     admissionWorkflowDataAssertUnique_(sheetName, candidate, id);
     var updated = headers.map(function(field) {
       var value = candidate[field];
