@@ -260,6 +260,7 @@ function requirementConfig(record){
   ReqTransferee:level==='JHS'?'TLC Transfer Form (TLC scholars only) or ESC Certification (ESC grantees only)':'ESC Certificate, TLC Transfer Form, or Voucher Certificate (SHSVP / PUB-QVR / QVA)'
  };
  var notes=[];
+ if(['Nursery','Kinder 1','Kinder 2'].indexOf(grade)>=0)notes.push('All preschool applicants must undergo assessment and evaluation. Please approach Teacher Christine Teodoro at the LC1 Building.');
  if(level==='SHS'){
   notes.push('Initial requirements for evaluation: report card (photocopy, grades up to at least the 3rd grading period), PSA Birth Certificate (photocopy), three 2x2 photos, and long brown expandable envelope.');
   notes.push('Requirements for completion upon official admission: original report card, original PSA Birth Certificate, original Good Moral Certificate, and original Form 137 / SF10.');
