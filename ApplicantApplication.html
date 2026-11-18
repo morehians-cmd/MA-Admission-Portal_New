@@ -106,6 +106,7 @@ function restoreDraft(){
       if(el.type==='checkbox')el.checked=!!d.data[k];else el.value=d.data[k]==null?'':String(d.data[k]);
     });
     updatePreviousSchoolRules();
+    updateAdmissionCategoryRules();
     var savedPrevSchool=d.data.PrevSchool||'';
     updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updatePreviousClusterRules();updateRequirementRules();
     var prevSchoolEl=document.getElementById('f_PrevSchool');
@@ -175,16 +176,7 @@ function buildFields(){
   field('Surname','Surname','text',null,true)+field('FirstName','First Name','text',null,true)+field('MiddleName','Middle Name','text')+field('Suffix','Suffix (e.g. Jr., III)','text')+
   field('GradeLevel','Intended Grade Level','select',opts(GRADES),true)+field('Department','Department','text',null,false,'Automatically determined from the selected grade level.')+
   field('Cluster','Senior High School Strand / Cluster','select',opts(CLUSTERS),false,'Required for Grade 11 and Grade 12.',true)+
-  field('Category','Admission Category (if known)','select',opts(['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS']),false,'If you are unsure, leave this blank.')+
-  field('ReferredBy','Referred By','text',null,false,'If someone referred the applicant, enter the name or organization.');
- document.getElementById('personalFields').innerHTML=
-  field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
-  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Prefer not to disclose']))+
-  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
-  field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
-  field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
-  field('City','City / Municipality','text',null,true)+
-  '<div class="subhead">Previous school information (if applicable)</div>'+
+  '<div class="subhead">Previous school information</div>'+
   field('PrevSchoolType','Filter Previous Schools','select',opts(['Public Elementary Schools','Public High Schools','Private Schools','Others, Please Specify']),false,'Choose a school category to filter the school list.')+
   field('PrevSchool','Previous School Name','select',[],false,'Leave blank if this is the learner’s first school.')+
   field('PrevSY','Previous School Year','text',null,false,'Example: 2025-2026.')+
@@ -192,7 +184,15 @@ function buildFields(){
   field('PrevCluster','Previous SHS Strand / Cluster','select',opts(CLUSTERS),false,'Applicable only if the previous grade level was Grade 11 or Grade 12.')+
   field('PrevSection','Previous Section','text')+field('PrevAdviser','Previous Adviser','text')+
   field('PrevScholarship','Previous Scholarship (if any)','select',opts(['PUB-QVR','TLC','ESC JHS','ESC SHS','QVA PASSER']))+
-  field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'');
+  field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'')+
+  field('Category','Admission Category','select',[],false,'Options depend on the intended grade level and previous school type.');
+ document.getElementById('personalFields').innerHTML=
+  field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
+  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Prefer not to disclose']))+
+  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
+  field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
+  field('City','City / Municipality','text',null,true);
  var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
  var status=opts(['Alive','Deceased']);
  var relOpts=opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']);
@@ -262,6 +262,33 @@ function updateReligionRules(prefix){
    other.closest('.field').classList.toggle('is-disabled',!active);
    if(!active){other.value='';other.required=false}
  });
+}
+function updateAdmissionCategoryRules(){
+ var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),schoolType=value('PrevSchoolType');
+ var category=document.getElementById('f_Category');if(!category)return;
+ var publicSchool=schoolType==='Public Elementary Schools'||schoolType==='Public High Schools';
+ var privateSchool=schoolType==='Private Schools';
+ var options=[];
+ if(idx>=0&&idx<=8){
+   options=['REGULAR'];
+ }else if(idx===9){
+   options=publicSchool?['TLC','ESC','REGULAR']:privateSchool?['ESC','REGULAR']:['TLC','ESC','REGULAR'];
+ }else if(idx>=10&&idx<=12){
+   options=publicSchool?['REGULAR']:privateSchool?['TLC','ESC','REGULAR']:['TLC','ESC','REGULAR'];
+ }else if(idx===13){
+   options=publicSchool?['PUB-QVR']:privateSchool?['QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+ }else if(idx===14){
+   options=publicSchool?['REGULAR']:privateSchool?['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+ }
+ var previous=category.value;
+ category.innerHTML='<option value="">Select admission category</option>'+options.map(function(v){
+   var label=v==='REGULAR'?'Regular':v==='QVA PASSER'?'QVA Passer':v;
+   return '<option value="'+esc(v)+'">'+esc(label)+'</option>';
+ }).join('');
+ category.disabled=options.length===0;
+ category.closest('.field').classList.toggle('is-disabled',category.disabled);
+ if(options.indexOf(previous)>=0)category.value=previous;
+ else category.value='';
 }
 function updateRequirementRules(){
  var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),isPre=idx>=0&&idx<3,isElem=idx>=3&&idx<9,isJhs=idx>=9&&idx<13,isShs=idx>=13;
@@ -430,9 +457,10 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_FatherStatus')updateParentRules('Father');
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
  if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
- if(e.target.id==='f_PrevSchoolType'||e.target.id==='f_PrevSchool')updatePreviousSchoolRules();
+ if(e.target.id==='f_PrevSchoolType'||e.target.id==='f_PrevSchoolType'){updatePreviousSchoolRules();updateAdmissionCategoryRules();}
  if(['f_Religion','f_FatherReligion','f_MotherReligion','f_RelReligion'].indexOf(e.target.id)>=0){updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');}
- if(e.target.id==='f_GradeLevel'||e.target.id==='f_Category')updateRequirementRules();
+ if(e.target.id==='f_GradeLevel'){updateGradeRules();updateAdmissionCategoryRules();updateRequirementRules();}
+ if(e.target.id==='f_Category')updateRequirementRules();
  if(e.target.dataset.src)applyEmergencySource(e.target.checked?e.target.dataset.src:'');
 });
 
@@ -441,7 +469,7 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
+var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateAdmissionCategoryRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
  if(!formInitOk)return;
  var loading=document.getElementById('loading');
