@@ -58,7 +58,7 @@
           <div class="field-grid" id="familyFields"></div>
         </section>
         <section class="section" data-step="3">
-          <h2>Requirements & Review</h2><p class="hint">Indicate the current status of the admission requirements, then review the information before submitting.</p>
+          <h2>Review & Submit</h2><p class="hint">Review the information below before submitting your application.</p>
           <div class="field-grid" id="requirementsFields"></div>
           <div class="subhead">Application review</div>
           <div class="review" id="reviewSummary"></div>
@@ -105,7 +105,10 @@ function restoreDraft(){
       var el=document.querySelector('[data-key="'+k+'"]');if(!el)return;
       if(el.type==='checkbox')el.checked=!!d.data[k];else el.value=d.data[k]==null?'':String(d.data[k]);
     });
+    updatePreviousSchoolRules();
+    var savedPrevSchool=d.data.PrevSchool||'';
     updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
+    var prevSchoolEl=document.getElementById('f_PrevSchool');if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
     setDraftStatus('Draft restored ✓');
   }catch(e){}
@@ -126,6 +129,29 @@ function localToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMo
 function opts(values){return values.map(function(v){return [v,v]})}
 var GRADES=['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
 var CLUSTERS=['Science, Technology, Engineering, and Mathematics','Arts, Social Sciences, and Humanities','Business and Entrepreneurship','ICT Support and Computer Programming Technologies','Hospitality and Tourism'];
+var PREVIOUS_SCHOOLS={
+ 'Public Elementary Schools':[
+ 'Bagong Tanyag Elementary School Annex A','Bagong Tanyag Integrated School','Cipriano P. Santa Teresa Elementary School','Daanghari Elementary School',"EM's Signal Village Elementary School",'Kapt. Jose Cardones Integrated School','Maharlika Integrated School','Ricardo P. Cruz, Sr. Elementary School','Silangan Elementary School','Upper Bicutan Elementary School'
+ ],
+ 'Public High Schools':[
+ 'Bagong Tanyag Integrated School','Bagumbayan National High School','Kapt. Jose Cardones Integrated School','Ma. Asuncion R. Tiñga Memorial High School','Maharlika Integrated School','Signal Village National High School','Taguig National High School','Upper Bicutan National High School','Western Bicutan National High School'
+ ],
+ 'Private Schools':[
+ 'Moreh Academy','Arandia College Taguig',"Army's Angel's Integrated School",'Asian Christian Technological School and Colleges, Inc.','Bicutan Parochial School','FTJCA Christian Academy','Good Shepherd of Taguig Colleges','Grant Cecilia Integrated School, Inc',"Heaven's Door Christian Academy",'Huckleberry Montessori School, Inc.','Learn and Explore Montessori School, Inc.','MCA Montessori School','Monlimar Development Academy',"Noah's Academy",'Saint Francis of Assisi College','Saint Ives School','Saint Theodore School'
+ ]
+};
+function updatePreviousSchoolRules(){
+ var type=document.getElementById('f_PrevSchoolType'),school=document.getElementById('f_PrevSchool'),other=document.getElementById('f_PrevSchoolOther');
+ if(!type||!school||!other)return;
+ var category=type.value,old=school.value;
+ var list=PREVIOUS_SCHOOLS[category]||[];
+ school.innerHTML='<option value="">Select previous school name</option>'+list.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('')+(category==='Others, Please Specify'?'<option value="__OTHER__">Others, Please Specify</option>':'');
+ if(old&&Array.prototype.some.call(school.options,function(o){return o.value===old}))school.value=old;
+ var isOther=category==='Others, Please Specify'&&school.value==='__OTHER__';
+ other.closest('.field').style.display=isOther?'':'none';
+ if(!isOther)other.value='';
+}
+
 function buildFields(){
  var sy=opts(['2026-2027','2027-2028','2028-2029']);
  document.getElementById('academicFields').innerHTML=
@@ -137,13 +163,15 @@ function buildFields(){
   field('ReferredBy','Referred By','text',null,false,'If someone referred the applicant, enter the name or organization.');
  document.getElementById('personalFields').innerHTML=
   field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
-  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine']))+
+  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Prefer not to disclose']))+
   field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
   field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true)+
   '<div class="subhead">Previous school information (if applicable)</div>'+
-  field('PrevSchool','Previous School Name','text',null,false,'Leave blank if this is the learner’s first school.')+
+  field('PrevSchoolType','Filter Previous Schools','select',opts(['Public Elementary Schools','Public High Schools','Private Schools','Others, Please Specify']),false,'Choose a school category to filter the school list.')+
+  field('PrevSchool','Previous School Name','select',[],false,'Leave blank if this is the learner’s first school.')+
+  field('PrevSchoolOther','Specify Other Previous School','text',null,false,'Enter the school name.',true)+
   field('PrevSY','Previous School Year','text',null,false,'Example: 2025-2026.')+
   field('PrevGrade','Last Grade Level Completed','select',opts(GRADES))+
   field('PrevCluster','Previous SHS Strand / Cluster','select',opts(CLUSTERS),false,'Applicable only if the previous grade level was Grade 11 or Grade 12.')+
@@ -206,13 +234,7 @@ function buildRequirementFields(){
   field('ReqJHS','JHS Completion Certificate','select',ro)+field('ReqPhoto','2x2 ID Photo','select',photo)+
   field('ReqTransferee','Transferee Certification','select',tf)+field('ReqConsent','Parental Consent & Data Privacy Undertaking Form','select',consent)+
   field('ReqEnvelope','Long Brown Expandable Envelope','select',opts(['None','Submitted']))+
-  '<div class="subhead">Date submitted for each requirement</div>'+
-  field('ReqSF9Date','SF9 / Report Card – Date Submitted','date')+field('ReqF137Date','Form 137 – Date Submitted','date')+
-  field('ReqBirthDate','Birth Certificate – Date Submitted','date')+field('ReqMoralDate','Good Moral Certificate – Date Submitted','date')+
-  field('ReqJHSDate','JHS Completion Certificate – Date Submitted','date')+field('ReqPhotoDate','2x2 ID Photo – Date Submitted','date')+
-  field('ReqTransfereeDate','Transferee Certification – Date Submitted','date')+field('ReqConsentDate','Parental Consent & Data Privacy Undertaking Form – Date Submitted','date')+
-  field('ReqEnvelopeDate','Long Brown Expandable Envelope – Date Submitted','date')+
-  field('ReqRemarks','Requirement Remarks','textarea',null,false,'Add any relevant requirement note or clarification.',true);
+remove requirement submitted dates  field('ReqRemarks','Requirement Remarks','textarea',null,false,'Add any relevant requirement note or clarification.',true);
 }
 function updateRequirementRules(){
  var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),isPre=idx>=0&&idx<3,isElem=idx>=3&&idx<9,isJhs=idx>=9&&idx<13,isShs=idx>=13;
@@ -314,7 +336,9 @@ function applyEmergencySource(src){
  updateEmergencyRules();
 }
 function collect(){
- var out={};document.querySelectorAll('#applicationForm [data-key]').forEach(function(el){out[el.dataset.key]=el.type==='checkbox'?el.checked:el.value.trim()});return out;
+ var out={};document.querySelectorAll('#applicationForm [data-key]').forEach(function(el){out[el.dataset.key]=el.type==='checkbox'?el.checked:el.value.trim()});
+ if(out.PrevSchool==='__OTHER__')out.PrevSchool=out.PrevSchoolOther||'';
+ return out;
 }
 function renderReview(){
  var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Sex',d.SexualOrient],['Gender identity',d.GenderOrient],['Religion',d.Religion],['Facebook',d.Facebook||'Not provided'],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
@@ -381,6 +405,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_FatherStatus')updateParentRules('Father');
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
  if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
+ if(e.target.id==='f_PrevSchoolType'||e.target.id==='f_PrevSchool')updatePreviousSchoolRules();
  if(e.target.id==='f_GradeLevel'||e.target.id==='f_Category')updateRequirementRules();
  if(e.target.dataset.src)applyEmergencySource(e.target.checked?e.target.dataset.src:'');
 });
@@ -390,7 +415,7 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-var formInitOk=true;try{buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
+var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
  if(!formInitOk)return;
  var loading=document.getElementById('loading');
