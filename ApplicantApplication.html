@@ -509,7 +509,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_FatherStatus')updateParentRules('Father');
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
  if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
- if(e.target.id==='f_PrevSchoolType'){updatePreviousSchoolRules();updateAdmissionCategoryRules();}
+ if(e.target.id==='f_PrevSchoolType'){updatePreviousSchoolRules();updateAdmissionCategoryRules();updateRequirementRules();}
  if(['f_Religion','f_FatherReligion','f_MotherReligion','f_RelReligion'].indexOf(e.target.id)>=0){updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');}
  if(e.target.id==='f_GradeLevel'){updateGradeRules();updateAdmissionCategoryRules();updateRequirementRules();}
  if(e.target.id==='f_Category')updateRequirementRules();
