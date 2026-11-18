@@ -106,27 +106,40 @@ function admissionPortalSaveStudent(token, studentId, changes) {
 
 /** Only Admission Personnel (Encoder / Owner) may update document verification statuses. */
 function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
+  var lock = null;
   try {
     var actor = authRequireRole_(token, ['Encoder', 'Owner']);
+    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('Invalid requirement status data.');
+    var allowedStatuses = ['Pending Submission', 'Received', 'Verified', 'Incomplete'];
     var record = admissionDbFindById_(studentId);
     if (!record) throw new Error('Admission record not found.');
-    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('Invalid requirement status data.');
     var applicable = admissionDbRequirementItems_(record), allowedKeys = {};
     applicable.forEach(function (item) { allowedKeys[item.statusKey] = item; });
-    var allowedStatuses = ['Pending Submission', 'Received', 'Verified', 'Incomplete'];
-    var updates = [];
+    var staged = [];
     Object.keys(changes).forEach(function (key) {
       if (!allowedKeys[key]) throw new Error('This document is not applicable to the learner.');
       var status = admissionDbCleanText_(changes[key], 40);
       if (allowedStatuses.indexOf(status) < 0) throw new Error('Invalid document status.');
-      if (String(record[key] || 'Pending Submission') !== status) {
-        var col = ADM_DB.HEADERS.indexOf(key) + 1;
-        admissionDbSheet_().getRange(record._row, col).setNumberFormat('@').setValue(status);
-        admissionDbAudit_(actor.email, 'requirement-status-updated', record.StudentID,
-          allowedKeys[key].label + ': ' + String(record[key] || 'Pending Submission') + ' -> ' + status);
-        record[key] = status;
-        updates.push(key);
-      }
+      staged.push({ key: key, label: allowedKeys[key].label, status: status });
+    });
+    lock = LockService.getScriptLock();
+    if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
+    record = admissionDbFindById_(studentId);
+    if (!record) throw new Error('Admission record not found.');
+    var latestAllowed = {};
+    admissionDbRequirementItems_(record).forEach(function (item) { latestAllowed[item.statusKey] = item; });
+    staged.forEach(function (item) {
+      if (!latestAllowed[item.key]) throw new Error('The learner requirements changed. Reload the record and try again.');
+    });
+    var updates = [];
+    staged.forEach(function (item) {
+      var oldStatus = String(record[item.key] || 'Pending Submission');
+      if (oldStatus === item.status) return;
+      var col = ADM_DB.HEADERS.indexOf(item.key) + 1;
+      admissionDbSheet_().getRange(record._row, col).setNumberFormat('@').setValue(item.status);
+      admissionDbAudit_(actor.email, 'requirement-status-updated', record.StudentID,
+        item.label + ': ' + oldStatus + ' -> ' + item.status);
+      updates.push(item.key);
     });
     if (updates.length) maAdmissionSpeedBump_();
     var fresh = admissionDbFindById_(record.StudentID);
@@ -135,6 +148,8 @@ function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
     return { success: true, message: updates.length ? 'Document statuses updated and recorded.' : 'No document status changes were made.', data: fresh };
   } catch (err) {
     return authFail_(err.message || 'Could not update document statuses.');
+  } finally {
+    if (lock) { try { lock.releaseLock(); } catch (e) {} }
   }
 }
 
