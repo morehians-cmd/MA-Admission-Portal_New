@@ -35,7 +35,7 @@ function admissionPortalSearch(token, q, status, limit, grade, sy) {
     grade = String(grade == null ? '' : grade).trim();
     sy = String(sy == null ? '' : sy).trim();
     limit = Math.max(1, Math.min(100, Number(limit || 25)));
-    var rows = admissionDbRows_().filter(function (r) {
+    var rows = maAdmissionSpeedRecords_().filter(function (r) {
       if (status && r.EnrollStatus !== status) return false;
       if (grade && r.GradeLevel !== grade) return false;
       if (sy && r.SchoolYear !== sy) return false;
@@ -93,6 +93,7 @@ function admissionPortalSaveStudent(token, studentId, changes) {
       var col = ADM_DB.HEADERS.indexOf(key) + 1;
       sh.getRange(row, col).setNumberFormat('@').setValue(update[key]);
     });
+    maAdmissionSpeedBump_();
     admissionDbAudit_(actor.email, 'student-updated', r.StudentID, Object.keys(update).join(', '));
     var fresh = admissionDbFindById_(r.StudentID); delete fresh._row;
     return { success: true, message: 'Admission record saved.', data: fresh };
@@ -111,7 +112,7 @@ function admissionPortalDashboard(token) {
 }
 
 function admissionPortalDashboard_(role) {
-  var rows = admissionDbRows_();
+  var rows = maAdmissionSpeedRecords_();
   var byStatus = {}, byGrade = {}, byCategory = {};
   rows.forEach(function (r) {
     var s = r.EnrollStatus || 'Unspecified';
