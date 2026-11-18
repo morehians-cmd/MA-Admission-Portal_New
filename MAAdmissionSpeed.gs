@@ -15,10 +15,10 @@
  */
 
 var MA_ADM_SPEED = {
-  VERSION: 1,
+  VERSION: 2,
   FIELDS: [
     'StudentID', 'FullName', 'LRN', 'GradeLevel', 'Section',
-    'EnrollStatus', 'SchoolYear', 'Category', 'Department', 'Cluster',
+    'EnrollStatus', 'SchoolYear', 'Category', 'Department', 'Cluster', 'PrevSchool', 'PrevSchoolType', 'PrevScholarship', 'SexualOrient', 'GenderOrient',
     'Email', 'CreatedAt', 'ApplicationStatus', 'ReqConsent', 'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus', 'ReqPhotoStatus', 'ReqEnvelopeStatus', 'ReqF137Status', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'TempUntil'
   ],
   CHUNK: 60000,
