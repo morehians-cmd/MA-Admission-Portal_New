@@ -238,51 +238,55 @@ function buildFields(){
   '<input type="hidden" data-key="EmSource" id="f_EmSource" value="">';
 }
 var REQUIREMENT_LABELS = {
- ReqSF9:'SF9 / Report Card',ReqF137:'Form 137 / SF10',ReqBirth:'PSA Birth Certificate',
- ReqMoral:'Good Moral Certificate',ReqPhoto:'2x2 ID Photo',ReqTransferee:'Transferee / Scholarship Certification',
- ReqConsent:'Parental Consent & Data Privacy Undertaking Form',ReqEnvelope:'Long Brown Expandable Envelope'
+ ReqSF9Initial:'Report Card — Photocopy',ReqSF9Completion:'Report Card — Original',
+ ReqBirthInitial:'PSA Birth Certificate — Photocopy',ReqBirthCompletion:'PSA Birth Certificate — Original',
+ ReqF137:'Form 137 / SF10',ReqMoral:'Good Moral Certificate',
+ ReqJHS:'JHS Completion Certificate',ReqPhoto:'Three (3) 2x2 ID Photos',
+ ReqTransferee:'Transferee / Scholarship Certification',
+ ReqConsent:'Parental Consent & Data Privacy Undertaking Form',
+ ReqEnvelope:'Long Brown Expandable Envelope'
 };
 function requirementConfig(record){
  var grade=String(record.GradeLevel||''),idx=GRADES.indexOf(grade),level=idx<0?'':idx<2?'PRE':idx<9?'ELEM':idx<13?'JHS':'SHS';
- if(!level)return {level:'',items:[],notes:[]};
- var keys=level==='PRE'?['ReqBirth','ReqPhoto','ReqEnvelope','ReqConsent']:
-   ['ReqSF9','ReqF137','ReqMoral','ReqBirth','ReqPhoto','ReqEnvelope','ReqConsent'];
+ if(!level)return {level:'',groups:[],notes:[]};
+ var initial=[],completion=[];
+ if(level!=='PRE')initial.push({key:'ReqSF9Initial',label:REQUIREMENT_LABELS.ReqSF9Initial,hint:level==='SHS'?'Photocopy of the latest available report card, with recent grading records (up to at least the 3rd grading period).':'Photocopy of the latest report card.'});
+ initial.push({key:'ReqBirthInitial',label:REQUIREMENT_LABELS.ReqBirthInitial,hint:'Photocopy of PSA Birth Certificate.'});
+ initial.push({key:'ReqPhoto',label:REQUIREMENT_LABELS.ReqPhoto,hint:'Three (3) pieces; recent photo (taken within the last six months); white background; nametag must show Surname, First Name, Middle Name (e.g., Santos, Eddie S.).'});
+ initial.push({key:'ReqEnvelope',label:REQUIREMENT_LABELS.ReqEnvelope,hint:'Long brown expandable envelope, clean and free of writings or markings.'});
+ if(level!=='PRE'){
+  completion.push({key:'ReqSF9Completion',label:REQUIREMENT_LABELS.ReqSF9Completion,hint:'Submit the original report card for completion of admission requirements.'});
+  completion.push({key:'ReqF137',label:REQUIREMENT_LABELS.ReqF137,hint:level==='SHS'?'Original Form 137 / SF10, upon admission.':'Original Form 137 / Permanent Record.'});
+  completion.push({key:'ReqMoral',label:REQUIREMENT_LABELS.ReqMoral,hint:level==='SHS'?'Original Good Moral Certificate, upon admission.':'Original Good Moral Certificate.'});
+ }
+ if(level==='SHS')completion.push({key:'ReqBirthCompletion',label:REQUIREMENT_LABELS.ReqBirthCompletion,hint:'Original PSA Birth Certificate, upon official admission.'});
+ if(grade==='Grade 11')completion.push({key:'ReqJHS',label:REQUIREMENT_LABELS.ReqJHS,hint:'Required for all incoming Grade 11 applicants.'});
  var eligible=(level==='JHS'||level==='SHS')&&['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category||'').toUpperCase())>=0;
- if(eligible)keys.push('ReqTransferee');
- var hints={
-  ReqBirth:'PSA Birth Certificate (photocopy)',
-  ReqPhoto:'Three (3) 2x2 photos, white background, with nametag',
-  ReqEnvelope:'Long brown expandable envelope, clean and free of writings/markings',
-  ReqConsent:'Original, signed by parent / legal guardian',
-  ReqSF9:level==='SHS'?'Photocopy (grades up to 3rd grading) for evaluation; original upon admission':'Original official report card',
-  ReqF137:level==='JHS'?'Original Form 137 / SF10':level==='SHS'?'Original Form 137 / SF10, upon admission':'Original Form 137 / Permanent Record',
-  ReqMoral:level==='SHS'?'Original, upon admission':'Original certificate',
-  ReqTransferee:level==='JHS'?'TLC Transfer Form (TLC scholars only) or ESC Certification (ESC grantees only)':'ESC Certificate, TLC Transfer Form, or Voucher Certificate (SHSVP / PUB-QVR / QVA)'
- };
+ if(eligible)completion.push({key:'ReqTransferee',label:REQUIREMENT_LABELS.ReqTransferee,hint:level==='JHS'?'TLC Transfer Form (TLC scholars) or ESC Certification (ESC grantees).':'ESC Certificate, TLC Transfer Form, or Voucher Certificate (SHSVP / PUB-QVR / QVA).'});
+ completion.push({key:'ReqConsent',label:REQUIREMENT_LABELS.ReqConsent,hint:'Original, signed by parent / legal guardian.'});
  var notes=[];
  if(['Nursery','Kinder 1','Kinder 2'].indexOf(grade)>=0)notes.push('All preschool applicants must undergo assessment and evaluation. Please approach Teacher Christine Teodoro at the LC1 Building.');
- if(level==='SHS'){
-  notes.push('Initial requirements for evaluation: report card (photocopy, grades up to at least the 3rd grading period), PSA Birth Certificate (photocopy), three 2x2 photos, and long brown expandable envelope.');
-  notes.push('Requirements for completion upon official admission: original report card, original PSA Birth Certificate, original Good Moral Certificate, and original Form 137 / SF10.');
- }
  if(level==='PRE'&&grade==='Kinder 1')notes.push('Kinder 1: must be 4 years old on or before October 31 of the applicable school year. Learners who turn 4 between November 1 and December 31 may be admitted only if they pass the Philippine ECD Checklist (DepEd Order No. 015, s. 2025).');
  if(level==='ELEM'&&grade==='Kinder 2')notes.push('Kinder 2: must be 5 years old on or before October 31 of the applicable school year. Learners who turn 5 between November 1 and December 31 may be admitted only with a Certificate of Completion from an ECCD program or by passing the Philippine ECD Checklist (DepEd Order No. 015, s. 2025).');
  if(level==='ELEM'&&grade==='Grade 1')notes.push('Grade 1: must have completed Kinder 2 in a DepEd-accredited school, or be at least 6 years old on or before October 31 of the applicable school year. Learners who completed an ECCD or home-based kindergarten program may be admitted if they pass the Kindergarten Readiness Assessment (KRA) or the Philippine ECD Checklist.');
- return {level:level,items:keys.map(function(k){return {key:k,label:REQUIREMENT_LABELS[k],hint:hints[k]||''}}),notes:notes};
+ return {level:level,groups:[{label:'Initial Requirements',items:initial},{label:'For Completion',items:completion}],notes:notes};
 }
 function requirementMarkup(record,submitted){
  var cfg=requirementConfig(record||{});
  if(!cfg.level)return '<div class="subhead">Documentary Requirements to Submit</div><p class="hint">Select the intended grade level in Section 1 to view the applicable documents.</p>';
  var statuses={};(record.RequirementItems||[]).forEach(function(x){statuses[x.key]=x.status});
- var list=cfg.items.map(function(item){
-  var status=submitted?(statuses[item.key]||'Pending Submission'):'To Submit';
-  var cls=status==='Verified'?'verified':status==='Received'?'received':'';
-  return '<div class="doc-item"><div><strong>'+esc(item.label)+'</strong>'+(item.hint?'<small>'+esc(item.hint)+'</small>':'')+'</div><span class="doc-state '+cls+'">'+esc(status)+'</span></div>';
+ var groups=cfg.groups.map(function(group){
+  var list=group.items.map(function(item){
+   var status=submitted?(statuses[item.key]||'Pending Submission'):'To Submit';
+   var cls=status==='Verified'?'verified':status==='Received'?'received':'';
+   return '<div class="doc-item"><div><strong>'+esc(item.label)+'</strong>'+(item.hint?'<small>'+esc(item.hint)+'</small>':'')+'</div><span class="doc-state '+cls+'">'+esc(status)+'</span></div>';
+  }).join('');
+  return '<div class="subhead">'+esc(group.label)+'</div><div class="doc-list">'+list+'</div>';
  }).join('');
  var notes=cfg.notes.length?'<div class="doc-reminder"><strong>Important reminders</strong><ul>'+cfg.notes.map(function(n){return '<li>'+esc(n)+'</li>'}).join('')+'</ul></div>':'';
  var downloads='<div class="doc-downloads"><button type="button" class="btn secondary" onclick="downloadConsentForm()">Print / Save PDF — Parental Consent &amp; Data Privacy Undertaking Form</button><button type="button" class="btn secondary" onclick="downloadApplicationForm()">Print / Save PDF — Student Application Form</button></div>';
  var reminder='<div class="doc-reminder"><strong>Reminder:</strong> Please submit the required physical documents to the Moreh Academy Admission Office. Only authorized Admission Personnel can receive, verify, and update the status of submitted documents. Please check your Applicant Dashboard for status updates.</div>';
- return '<div class="subhead">Documentary Requirements to Submit</div><p class="hint">The following requirements are based on the selected grade level and applicable admission category.</p><div class="doc-list">'+list+'</div>'+notes+reminder+downloads;
+ return '<div class="subhead">Documentary Requirements to Submit</div><p class="hint">Initial documents are for evaluation. Submit the remaining applicable documents under For Completion to the Admission Office.</p>'+groups+notes+reminder+downloads;
 }
 function buildRequirementFields(){document.getElementById('requirementsFields').innerHTML=requirementMarkup(collect(),false);}
 function renderRequirementChecklist(){var el=document.getElementById('requirementsFields');if(el)el.innerHTML=requirementMarkup(collect(),false);}
