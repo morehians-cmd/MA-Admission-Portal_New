@@ -75,7 +75,7 @@ function admissionWorkflowDataRunStagingTests() {
     // Validation checks are deliberately run before the first write.
     expectError('reject_missing_required_field', 'WORKFLOW_REQUIRED_FIELD_MISSING', function() {
       admissionWorkflowDataInsert_('AdmissionApplications', {
-        SchoolYear: schoolYear,
+        // UserID is supplied by the trusted server; SchoolYear is deliberately omitted.
         IntakeMethod: 'STAGE2_8_TEST',
         GradeLevelApplied: 'Grade 7',
         Department: 'Junior High School',
@@ -141,13 +141,29 @@ function admissionWorkflowDataRunStagingTests() {
     var page2 = admissionWorkflowDataReadAll_('AdmissionApplications', {
       pageSize: 1, offset: page1.nextOffset, criteria: { UserID: syntheticUserId }
     });
+    var page1Ids = page1.records.map(function(item) { return item.ApplicationID; });
+    var page2Ids = page2.records.map(function(item) { return item.ApplicationID; });
+    var observedIds = page1Ids.concat(page2Ids).sort();
+    var expectedIds = [first.id, second.id].sort();
     var paginationPassed = page1.records.length === 1 && page1.hasMore === true &&
       page1.nextOffset === 1 && page2.records.length === 1 &&
       page2.hasMore === false && page2.nextOffset === null &&
-      page1.records[0].ApplicationID === first.id &&
-      page2.records[0].ApplicationID === second.id;
+      observedIds.length === 2 &&
+      observedIds[0] === expectedIds[0] && observedIds[1] === expectedIds[1] &&
+      page1Ids[0] !== page2Ids[0];
     record('filtered_pagination', paginationPassed,
-      'Page size one returned both matching synthetic records in separate pages.');
+      JSON.stringify({
+        page1Count: page1.records.length,
+        page1Ids: page1Ids,
+        page1HasMore: page1.hasMore,
+        page1NextOffset: page1.nextOffset,
+        page2Count: page2.records.length,
+        page2Ids: page2Ids,
+        page2HasMore: page2.hasMore,
+        page2NextOffset: page2.nextOffset,
+        expectedSyntheticIds: expectedIds,
+        distinctIdsAcrossPages: page1Ids.length === 1 && page2Ids.length === 1 && page1Ids[0] !== page2Ids[0]
+      }));
 
     var found = admissionWorkflowDataFindById_('AdmissionApplications', first.id);
     record('exact_id_lookup', !!found && found.ApplicationID === first.id,
