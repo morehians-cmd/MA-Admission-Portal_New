@@ -151,6 +151,7 @@ function updatePreviousSchoolRules(){
  if(old&&Array.prototype.some.call(school.options,function(o){return o.value===old}))school.value=old;
  var isOther=category==='Others, Please Specify'&&school.value==='__OTHER__';
  other.closest('.field').style.display=isOther?'':'none';
+ other.required=isOther;
  if(!isOther)other.value='';
 }
 
@@ -243,13 +244,11 @@ function updateRequirementRules(){
  var reqMap={ReqSF9:!isPre,ReqF137:!isPre,ReqBirth:true,ReqMoral:!isPre,ReqJHS:false,ReqPhoto:true,ReqTransferee:false,ReqConsent:true,ReqEnvelope:true};
  if(isJhs||isShs)reqMap.ReqTransferee=false;
  Object.keys(reqMap).forEach(function(k){var el=document.getElementById('f_'+k);if(el)el.required=reqMap[k]});
- var jhs=document.getElementById('f_ReqJHS'),jhsDate=document.getElementById('f_ReqJHSDate');
+ var jhs=document.getElementById('f_ReqJHS');
  if(jhs){jhs.closest('.field').style.display=isJhs||isShs?'':'none';if(!(isJhs||isShs)){jhs.value='';jhs.required=false}}
- if(jhsDate){jhsDate.closest('.field').style.display=isJhs||isShs?'':'none';if(!(isJhs||isShs))jhsDate.value=''}
- var tf=document.getElementById('f_ReqTransferee'),tfd=document.getElementById('f_ReqTransfereeDate');
+ var tf=document.getElementById('f_ReqTransferee');
  var cat=value('Category'),tfCat=['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(cat)>=0;
  if(tf){tf.closest('.field').style.display=tfCat?'':'none';if(!tfCat){tf.value='';tf.required=false}}
- if(tfd){tfd.closest('.field').style.display=tfCat?'':'none';if(!tfCat)tfd.value=''}
 }
 function value(key){var el=document.querySelector('[data-key="'+key+'"]');if(!el)return '';return el.type==='checkbox'?el.checked:el.value.trim()}
 function setValue(key,v){var el=document.querySelector('[data-key="'+key+'"]');if(el)el.value=v||''}
