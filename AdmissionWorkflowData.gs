@@ -467,6 +467,13 @@ function admissionWorkflowDataUpdateById_(sheetName, id, changes, options) {
     }
     if (foundRow < 0) throw new Error('WORKFLOW_RECORD_NOT_FOUND');
     var current = sheet.getRange(foundRow, 1, 1, headers.length).getValues()[0];
+    if (sheetName === 'ApplicationProfiles') {
+      var parentApplicationId = current[headers.indexOf('ApplicationID')];
+      var parentApplication = admissionWorkflowDataFindById_('AdmissionApplications', parentApplicationId);
+      if (!parentApplication || parentApplication.ApplicationStatus !== 'DRAFT') {
+        throw new Error('WORKFLOW_DRAFT_LOCKED');
+      }
+    }
     var candidate = {};
     for (var c = 0; c < headers.length; c++) candidate[headers[c]] = current[c];
     Object.keys(changes).forEach(function(key) { candidate[key] = changes[key]; });
@@ -538,6 +545,7 @@ function admissionWorkflowDataErrorCode_(error) {
     'WORKFLOW_IMMUTABLE_RECORD',
     'WORKFLOW_RECORD_NOT_FOUND',
     'WORKFLOW_DUPLICATE_RECORD',
+    'WORKFLOW_DRAFT_LOCKED',
     'WORKFLOW_LOCK_TIMEOUT',
     'WORKFLOW_AUDIT_OUTCOME_UNCERTAIN'
   ];
