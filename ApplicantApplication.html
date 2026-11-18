@@ -294,8 +294,19 @@ function setStep(n){
 function validateStep(){
  var section=document.querySelector('.section[data-step="'+currentStep+'"]');
  var fields=section.querySelectorAll('input,select,textarea');
- for(var i=0;i<fields.length;i++){if(fields[i].type==='checkbox'&&!fields[i].required)continue;if(!fields[i].checkValidity()){fields[i].reportValidity();return false}}
- showError('');return true;
+ for(var i=0;i<fields.length;i++){
+   var el=fields[i];
+   if(el.type==='checkbox'&&!el.required)continue;
+   if(el.disabled||el.closest('[style*="display:none"]'))continue;
+   if(!el.checkValidity()){
+     showError(el.validationMessage||'Please complete the required fields before continuing.');
+     try{el.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+     try{el.reportValidity()}catch(e){}
+     return false;
+   }
+ }
+ showError('');
+ return true;
 }
 function submitApplication(){
  var form=document.getElementById('applicationForm');
