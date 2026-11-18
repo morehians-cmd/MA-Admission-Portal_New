@@ -250,11 +250,11 @@ function requirementConfig(record){
  var grade=String(record.GradeLevel||''),idx=GRADES.indexOf(grade),level=idx<0?'':idx<2?'PRE':idx<9?'ELEM':idx<13?'JHS':'SHS';
  if(!level)return {level:'',groups:[],notes:[]};
  var initial=[],completion=[];
- if(level!=='PRE')initial.push({key:'ReqSF9Initial',label:REQUIREMENT_LABELS.ReqSF9Initial,hint:level==='SHS'?'Photocopy of the latest available report card, with recent grading records (up to at least the 3rd grading period).':'Photocopy of the latest report card.'});
+ if(idx>=3)initial.push({key:'ReqSF9Initial',label:REQUIREMENT_LABELS.ReqSF9Initial,hint:level==='SHS'?'Photocopy of the latest available report card, with recent grading records (up to at least the 3rd grading period).':'Photocopy of the latest report card.'});
  initial.push({key:'ReqBirthInitial',label:REQUIREMENT_LABELS.ReqBirthInitial,hint:'Photocopy of PSA Birth Certificate.'});
  initial.push({key:'ReqPhoto',label:REQUIREMENT_LABELS.ReqPhoto,hint:'Three (3) pieces; recent photo (taken within the last six months); white background; nametag must show Surname, First Name, Middle Name (e.g., Santos, Eddie S.).'});
  initial.push({key:'ReqEnvelope',label:REQUIREMENT_LABELS.ReqEnvelope,hint:'Long brown expandable envelope, clean and free of writings or markings.'});
- if(level!=='PRE'){
+ if(idx>=3){
   completion.push({key:'ReqSF9Completion',label:REQUIREMENT_LABELS.ReqSF9Completion,hint:'Submit the original report card for completion of admission requirements.'});
   completion.push({key:'ReqF137',label:REQUIREMENT_LABELS.ReqF137,hint:level==='SHS'?'Original Form 137 / SF10, upon admission.':'Original Form 137 / Permanent Record.'});
   completion.push({key:'ReqMoral',label:REQUIREMENT_LABELS.ReqMoral,hint:level==='SHS'?'Original Good Moral Certificate, upon admission.':'Original Good Moral Certificate.'});
