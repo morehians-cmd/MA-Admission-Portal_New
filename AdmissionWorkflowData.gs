@@ -100,7 +100,7 @@ var ADMISSION_WORKFLOW_DATA = {
 /** Fields which may only be supplied through the trusted internal serverValues option. */
 var ADMISSION_WORKFLOW_DATA_SERVER_FIELDS_ = [
   'CreatedAt', 'CreatedBy', 'UpdatedAt', 'UpdatedBy',
-  'SubmittedAt', 'SubmittedBy', 'LastStatusChangedAt',
+  'StudentID', 'UserID', 'Email', 'SubmittedAt', 'SubmittedBy', 'LastStatusChangedAt',
   'PrivacyConsentAt', 'AssignedByEmail', 'AssignedAt',
   'ReviewerEmail', 'ReviewerRole', 'ReviewedAt',
   'DecidedByEmail', 'DecidedByRole', 'DecisionAt',
@@ -110,7 +110,10 @@ var ADMISSION_WORKFLOW_DATA_SERVER_FIELDS_ = [
   'ReceivedAt', 'ReceivedByEmail', 'PreliminaryByEmail',
   'PreliminaryAt', 'FinalVerifiedByEmail', 'FinalVerifiedAt',
   'EnrolledAt', 'EnrolledByEmail', 'CancelledAt',
-  'GeneratedAt', 'GeneratedByEmail', 'IssuedAt',
+  'GeneratedAt', 'GeneratedByEmail', 'IssuedAt', 'DriveFileID',
+  'ConditionalEnrollmentID', 'ConditionalEnrollmentAuthorizedBy',
+  'ConditionalEnrollmentAuthorizedAt', 'ConditionalEnrollmentDeadline',
+  'ApprovalReferenceID',
   'ActorEmail', 'ActorRole', 'OccurredAt'
 ];
 
