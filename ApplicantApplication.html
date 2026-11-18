@@ -107,7 +107,7 @@ function restoreDraft(){
     });
     updatePreviousSchoolRules();
     var savedPrevSchool=d.data.PrevSchool||'';
-    updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
+    updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updatePreviousClusterRules();updateRequirementRules();
     var prevSchoolEl=document.getElementById('f_PrevSchool');
     if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
@@ -251,6 +251,18 @@ function buildRequirementFields(){
   field('ReqEnvelope','Long Brown Expandable Envelope','select',opts(['None','Submitted']))+
   field('ReqRemarks','Requirement Remarks','textarea',null,false,'Add any relevant requirement note or clarification.',true);
 }
+function updateReligionRules(prefix){
+ var pairs=prefix?[[prefix+'Religion',prefix+'ReligionOther']]:[['Religion','ReligionOther'],['FatherReligion','FatherReligionOther'],['MotherReligion','MotherReligionOther'],['RelReligion','RelReligionOther']];
+ pairs.forEach(function(pair){
+   var religion=document.getElementById('f_'+pair[0]),other=document.getElementById('f_'+pair[1]);
+   if(!religion||!other)return;
+   var deceased=(prefix==='Father'||prefix==='Mother')&&value(prefix+'Status')==='Deceased';
+   var active=religion.value==='Others, specify'&&!deceased;
+   other.disabled=!active;
+   other.closest('.field').classList.toggle('is-disabled',!active);
+   if(!active){other.value='';other.required=false}
+ });
+}
 function updateRequirementRules(){
  var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),isPre=idx>=0&&idx<3,isElem=idx>=3&&idx<9,isJhs=idx>=9&&idx<13,isShs=idx>=13;
  var reqMap={ReqSF9:!isPre,ReqF137:!isPre,ReqBirth:true,ReqMoral:!isPre,ReqJHS:false,ReqPhoto:true,ReqTransferee:false,ReqConsent:true,ReqEnvelope:true};
@@ -276,6 +288,7 @@ function setFieldsDisabled(keys,disabled){keys.forEach(function(k){var el=docume
 function updateParentRules(parent){
  var deceased=value(parent+'Status')==='Deceased';
  setFieldsDisabled([parent+'Occupation',parent+'Education',parent+'Mobile',parent+'Email',parent+'Religion',parent+'ReligionOther'],deceased);
+ updateReligionRules(parent);
 }
 function updatePreviousClusterRules(){var applicable=value('PrevGrade')==='Grade 11'||value('PrevGrade')==='Grade 12';var el=document.getElementById('f_PrevCluster');if(!el)return;el.disabled=!applicable;el.closest('.field').classList.toggle('is-disabled',!applicable);if(!applicable)el.value=''}
 function updateEmergencyRules(){
@@ -418,6 +431,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
  if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
  if(e.target.id==='f_PrevSchoolType'||e.target.id==='f_PrevSchool')updatePreviousSchoolRules();
+ if(['f_Religion','f_FatherReligion','f_MotherReligion','f_RelReligion'].indexOf(e.target.id)>=0){updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');}
  if(e.target.id==='f_GradeLevel'||e.target.id==='f_Category')updateRequirementRules();
  if(e.target.dataset.src)applyEmergencySource(e.target.checked?e.target.dataset.src:'');
 });
@@ -427,7 +441,7 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
+var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
  if(!formInitOk)return;
  var loading=document.getElementById('loading');
