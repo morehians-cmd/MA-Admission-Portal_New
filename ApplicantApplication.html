@@ -147,12 +147,12 @@ function buildFields(){
  var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
  var status=opts(['Alive','Deceased']);
  document.getElementById('familyFields').innerHTML=
-  '<div class="subhead">Father’s information (optional)</div>'+
+  '<div class="subhead">Father’s information</div>'+
   field('FatherName','Father’s Full Name','text')+field('FatherStatus','Father’s Status','select',status)+
   field('FatherOccupation','Father’s Occupation','text')+field('FatherEducation','Highest Educational Attainment','select',edu)+
   field('FatherMobile','Father’s Mobile Number','tel')+field('FatherEmail','Father’s Email Address','email')+
   field('FatherReligion','Father’s Religion','text')+field('FatherReligionOther','Father’s Religion (Other)','text',null,false,'Specify only when applicable.')+
-  '<div class="subhead">Mother’s information (optional)</div>'+
+  '<div class="subhead">Mother’s information</div>'+
   field('MotherName','Mother’s Full Name','text')+field('MotherStatus','Mother’s Status','select',status)+
   field('MotherOccupation','Mother’s Occupation','text')+field('MotherEducation','Highest Educational Attainment','select',edu)+
   field('MotherMobile','Mother’s Mobile Number','tel')+field('MotherEmail','Mother’s Email Address','email')+
@@ -163,16 +163,21 @@ function buildFields(){
   '<div class="subhead">Living arrangement</div>'+
   field('LivingWith','Who does the student currently live with?','select',opts(['Both Father and Mother','Father only','Mother only','Relatives / Legal Guardian','Independent / Boarding / Living alone']),true,'This determines which parent/guardian information can be used for the emergency-contact helper.',true)+
   '<div id="relativeFields" class="field-grid full" style="display:none">'+
-  field('RelName','Relative / Legal Guardian Full Name','text',null,false)+field('RelRelation','Relationship to Applicant','text',null,false)+
+  '<div class="subhead">Relative / Legal Guardian’s information</div>'+
+  field('RelName','Relative / Legal Guardian Full Name','text',null,false)+field('RelStatus','Relative / Guardian Status','select',status)+
+  field('RelOccupation','Relative / Guardian Occupation','text')+field('RelEducation','Highest Educational Attainment','select',edu)+
+  field('RelMobile','Relative / Guardian Mobile Number','tel')+field('RelEmail','Relative / Guardian Email Address','email')+
+  field('RelReligion','Relative / Guardian Religion','text')+field('RelReligionOther','Relative / Guardian Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('RelRelation','Relationship to Applicant','text',null,false)+
   field('RelBirthdate','Relative / Guardian Birth Date','date')+field('RelAge','Age','text',null,false,'Automatically determined from birth date.')+
   field('RelSex','Sex Assigned at Birth / Biological Sex','select',opts(['Male','Female']))+field('RelGender','Gender Orientation / Identity','select',opts(['Masculine','Feminine','Others, specify']))+
-  field('RelGenderOther','Specify Gender Identity','text')+field('RelMobile','Relative / Guardian Mobile Number','tel')+
+  field('RelGenderOther','Specify Gender Identity','text')+
   field('RelCivil','Civil Status','select',opts(['Single','Married','Widowed','Separated','Divorced','Annulled','Live-in']))+
   field('RelSameAddr','Same address as the applicant','select',opts(['Yes','No']))+
   field('RelAddress','Relative / Guardian Address','text',null,false,'Required when the relative/guardian has a different address.',true)+
   field('RelSide','Parental Relationship with Student','select',opts(["Father's Side","Mother's Side",'None']))+
   '</div>'+
-  '<div class="subhead">Emergency contact</div>'+
+  '<div class="subhead">Primary Contact Person</div>'+
   field('EmName','Emergency Contact Full Name','text',null,true)+field('EmRelation','Relationship to Applicant','text',null,true)+
   field('EmMobile','Emergency Contact Mobile Number','tel',null,true)+
   '<div class="field full"><label style="display:block;font:600 11px var(--head);color:#53627d;margin-bottom:6px">Quick selection: autofill from</label><div class="checkline" style="gap:18px;flex-wrap:wrap">'+
@@ -215,16 +220,18 @@ function updateLivingRules(){
  var rel=String(living)==='Relatives / Legal Guardian';
  var box=document.getElementById('relativeFields');
  if(box)box.style.display=rel?'grid':'none';
- ['RelName','RelRelation','RelBirthdate','RelSex','RelGender','RelMobile','RelCivil','RelSameAddr','RelSide'].forEach(function(k){
+ ['RelName','RelRelation','RelBirthdate','RelSex','RelGender','RelMobile','RelCivil','RelSameAddr','RelSide','RelStatus','RelOccupation','RelEducation','RelEmail','RelReligion','RelReligionOther'].forEach(function(k){
    var el=document.getElementById('f_'+k);if(el)el.required=rel&&(k==='RelName'||k==='RelRelation'||k==='RelMobile');
  });
  var ra=document.getElementById('f_RelAddress');
  if(ra)ra.required=rel&&value('RelSameAddr')!=='Yes';
  if(!rel){
-   ['RelName','RelRelation','RelBirthdate','RelAge','RelSex','RelGender','RelGenderOther','RelMobile','RelCivil','RelSameAddr','RelAddress','RelSide'].forEach(function(k){setValue(k,'')});
+   ['RelName','RelRelation','RelBirthdate','RelAge','RelSex','RelGender','RelGenderOther','RelMobile','RelCivil','RelSameAddr','RelAddress','RelSide','RelStatus','RelOccupation','RelEducation','RelEmail','RelReligion','RelReligionOther'].forEach(function(k){setValue(k,'')});
  }
 }
 function updateRelativeRules(){
+ var deceased=value('RelStatus')==='Deceased';
+ setFieldsDisabled(['RelOccupation','RelEducation','RelMobile','RelEmail','RelReligion','RelReligionOther'],deceased);
  var b=value('RelBirthdate'),age='';
  if(b){var d=new Date(b+'T00:00:00'),n=new Date();age=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;}
  setValue('RelAge',age);
@@ -322,7 +329,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_GradeLevel')updateGradeRules();
  if(e.target.id==='f_Birthdate'){updateGuardianRules();updateLivingRules();updateRelativeRules()}
  if(e.target.id==='f_LivingWith'){updateLivingRules();updateEmergencyRules()}
- if(e.target.id==='f_RelBirthdate'||e.target.id==='f_RelSameAddr')updateRelativeRules();
+ if(e.target.id==='f_RelBirthdate'||e.target.id==='f_RelSameAddr'||e.target.id==='f_RelStatus')updateRelativeRules();
  if(e.target.id==='f_EmSameAddr')updateEmergencyRules();
  if(e.target.id==='f_FatherStatus')updateParentRules('Father');
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
