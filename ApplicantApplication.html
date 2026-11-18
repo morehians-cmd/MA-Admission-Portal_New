@@ -393,20 +393,23 @@ document.addEventListener('change',function(e){queueDraftSave()});
 var formInitOk=true;try{buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
  if(!formInitOk)return;
+ var loading=document.getElementById('loading');
+ loading.textContent='Checking your account…';
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
-  if(!r||r.success!==true){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome();return}
-  account=r.data||{};if(['Applicant','Student'].indexOf(account.role)<0){goHome();return}
+  if(!r||r.success!==true){loading.textContent=(r&&r.message)||'Your session could not be verified. Please sign in again.';return}
+  account=r.data||{};if(['Applicant','Student'].indexOf(account.role)<0){loading.textContent='This account does not have applicant access.';return}
   restoreDraft();
   document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';document.getElementById('userEmail').textContent=account.email||'';document.getElementById('avatar').textContent=initials(account.fullName);
+  loading.textContent='Account verified. Loading your application…';
   run('admissionGetMyApplication',[t],function(a){
-   document.getElementById('loading').style.display='none';
+   loading.style.display='none';
    if(!a||a.success!==true){document.getElementById('applicationView').hidden=false;showError((a&&a.message)||'Unable to load your application.');return}
    if(a.data){showExisting(a.data);return}
    if(account.role!=='Applicant'){document.getElementById('applicationView').hidden=false;document.getElementById('formPanel').innerHTML='<p>Your account does not have an application linked yet. Please contact the Admissions Office for assistance.</p>';return}
    document.getElementById('applicationView').hidden=false;
-  },function(e){document.getElementById('loading').textContent=e});
- },function(){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome()});
+  },function(e){loading.textContent='Application lookup failed: '+e});
+ },function(e){loading.textContent='Account check failed: '+e});
 })();
 </script>
 </body></html>
