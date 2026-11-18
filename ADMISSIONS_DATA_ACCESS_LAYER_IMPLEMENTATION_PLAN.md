@@ -1,6 +1,6 @@
 # Stage 2.8 — Shared Admissions Data Access Layer Implementation Plan
 
-**Status:** Design decisions incorporated; awaiting final implementation approval  
+**Status:** Implemented on approved branch; static validation completed; staging validation pending separate approval  
 **Date:** November 18, 2026  
 **Repository:** `morehians-cmd/MA-Admission-Portal_New`  
 **Work branch:** `integration/auth-db-foundation`  
@@ -270,11 +270,32 @@ Stage 2.8 implementation is ready for staging only when:
 - No legacy sheet, schema, auth implementation, correction module, UI, property, trigger, or production resource is changed.
 - Static checks pass and staging tests are separately authorized and user-reported.
 
-**No code has been written and no staging or production operation has been performed as part of this plan.**
+**Implementation status:** The isolated `AdmissionWorkflowData.gs` source file has now been added on the approved branch. No Apps Script sync, staging execution, staging write test, production operation, or deployment has been performed as part of this implementation.
 
 
 ## 13. Decision review outcome
 
-All five user decisions are consistent with the architecture in this plan. The audit-failure refinement above is mandatory because a spreadsheet write and a separate audit append cannot be treated as one atomic transaction. This section records the agreed design; it does not authorize implementation or staging execution.
+All five user decisions are consistent with the architecture in this plan. The audit-failure refinement above is mandatory because a spreadsheet write and a separate audit append cannot be treated as one atomic transaction.
 
-**Next gate:** obtain the user's explicit approval to implement the isolated `AdmissionWorkflowData.gs` file on `integration/auth-db-foundation`. After implementation, perform static validation and present the code/commit for review. Staging sync and any staging write tests remain separate approval gates.
+### Implementation result
+
+- Added `AdmissionWorkflowData.gs` as the only new source file for this stage.
+- Reuses `ADMISSION_WORKFLOW_SCHEMA.HEADERS`; it does not duplicate the 12 header arrays.
+- Provides internal-only schema validation, header mapping, paginated reads, exact-ID lookup, filtered reads, controlled insert/update helpers, UUID generation, uniqueness checks, ScriptLock coordination, and append-only workflow audit writing.
+- Uses per-sheet primary-key, required-field, uniqueness, and mutable-field policies for all 12 approved workflow sheets.
+- Generic reads redact `GenderIdentity` by default. Any future Owner-only retrieval must first be authorized by its feature endpoint before the internal helper is called with sensitive-field inclusion.
+- Insert/update/audit helpers are lock-protected. Update rejects immutable and server-managed fields from the ordinary changes object; trusted server values are supplied separately by internal feature code.
+- The data layer does not create/repair sheets, expose browser CRUD, perform Drive operations, change Script Properties, or modify legacy modules.
+- Audit append is a separate write. Feature endpoints must handle a post-mutation audit failure as an uncertain outcome and must not blindly retry.
+
+### Static validation performed
+
+- JavaScript syntax parse: passed.
+- Schema version read: `2.4.1`.
+- Schema target count and data-layer policy count: 12 and 12.
+- Every policy primary key, required field, mutable field, and declared uniqueness field exists in the authoritative header array: passed.
+- Confirmed no public generic CRUD function, sheet-creation/deletion/clear call, Drive operation, or Script Property mutation in the new file.
+- Confirmed the three write paths (insert, update, audit append) use the shared ScriptLock helper.
+- Helper-name searches returned no matches in the code-search results available; branch-wide collision certainty is limited because GitHub code search indexes the default branch, not this feature branch.
+
+Static validation is not Apps Script runtime validation. The user must separately authorize syncing the new file and running the read-only staging check. Synthetic write tests require another explicit approval. No staging or production operation has been performed.
