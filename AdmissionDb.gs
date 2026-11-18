@@ -87,6 +87,18 @@ function admissionDbSetup_() {
   var ss = authSpreadsheet_();
   admissionDbEnsureSchemaSheet_(ss, ADM_DB.STUDENTS, ADM_DB.HEADERS);
   admissionDbEnsureSchemaSheet_(ss, ADM_DB.AUDIT, ADM_DB.AUDIT_HEADERS);
+
+  // Final header normalization: always restore the application schema headers
+  // in their exact expected positions without touching any data rows.
+  var studentSheet = ss.getSheetByName(ADM_DB.STUDENTS);
+  if (studentSheet.getMaxColumns() < ADM_DB.HEADERS.length) {
+    studentSheet.insertColumnsAfter(studentSheet.getMaxColumns(), ADM_DB.HEADERS.length - studentSheet.getMaxColumns());
+  }
+  studentSheet.getRange(1, 1, 1, ADM_DB.HEADERS.length)
+    .setValues([ADM_DB.HEADERS])
+    .setFontWeight('bold');
+  studentSheet.setFrozenRows(1);
+
   Logger.log('Admission database schema v' + ADM_DB.VERSION + ' is ready in ' + ss.getName() + '. No source data was imported.');
 }
 
