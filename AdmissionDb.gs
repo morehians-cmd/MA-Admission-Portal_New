@@ -148,12 +148,15 @@ function admissionDbCleanText_(value, max) {
 function admissionDbNormalizeApplicant_(input, account) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid application data.');
   var out = {};
+  if (input.PrivacyConsent !== true) throw new Error('You must accept the Data Privacy consent before submitting.');
   Object.keys(input).forEach(function (key) {
+    if (key === 'PrivacyConsent') return;
     if (ADM_DB.APPLICANT_FIELDS.indexOf(key) < 0) throw new Error('Unsupported application field: ' + key);
     var v = input[key];
     if (typeof v === 'boolean') v = v ? 'Yes' : 'No';
     out[key] = admissionDbCleanText_(v, 1000);
   });
+  out.ConsentAt = new Date().toISOString();
   out.Surname = admissionDbCleanText_(out.Surname, 80).toUpperCase();
   out.FirstName = admissionDbCleanText_(out.FirstName, 80).toUpperCase();
   if (!out.Surname || !out.FirstName) throw new Error('Surname and first name are required.');
