@@ -113,7 +113,7 @@ function restoreDraft(){
 
 function token(){try{return sessionStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}}
 function goHome(){window.top.location.href=APP_BASE||'?page=home'}
-function run(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend is unavailable.');return}google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail(e&&e.message?e.message:'Something went wrong. Please try again.')})[fn].apply(null,args)}
+function run(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend is unavailable.');return}var settled=false,timer=setTimeout(function(){if(settled)return;settled=true;fail('The server is taking too long to respond. Please reload the page and try again. If this continues, contact the Admissions Office.')},30000);google.script.run.withSuccessHandler(function(r){if(settled)return;settled=true;clearTimeout(timer);ok(r)}).withFailureHandler(function(e){if(settled)return;settled=true;clearTimeout(timer);fail(e&&e.message?e.message:'Something went wrong. Please try again.')})[fn].apply(null,args)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function initials(n){var p=String(n||'Moreh Applicant').trim().split(/\s+/);return (p[0]||'M').charAt(0).toUpperCase()+(p.length>1?p[p.length-1].charAt(0).toUpperCase():'A')}
 function field(key,label,type,opts,required,help,full){
@@ -390,7 +390,7 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
+try{buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();}catch(initError){console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
