@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 2,
+  VERSION: 3,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -39,7 +39,8 @@ var ADM_DB = {
     'ReqSF9Date', 'ReqF137Date', 'ReqBirthDate', 'ReqMoralDate', 'ReqJHSDate', 'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate',
     'ReqEnvelope', 'ReqEnvelopeDate',
     'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID',
-    'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus'
+    'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus',
+    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus'
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
   REQUIREMENTS: [
@@ -51,7 +52,11 @@ var ADM_DB = {
     { key: 'ReqPhoto', label: 'Three (3) 2x2 ID photos, white background, with nametag', statusKey: 'ReqPhotoStatus' },
     { key: 'ReqTransferee', label: 'Transferee / Scholarship Certification', statusKey: 'ReqTransfereeStatus' },
     { key: 'ReqConsent', label: 'Parental Consent & Data Privacy Undertaking Form', statusKey: 'ReqConsentStatus' },
-    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' }
+    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' },
+    { key: 'ReqSF9Initial', label: 'Report Card — Photocopy (Initial)', statusKey: 'ReqSF9InitialStatus' },
+    { key: 'ReqSF9Completion', label: 'Report Card — Original (Completion)', statusKey: 'ReqSF9CompletionStatus' },
+    { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy (Initial)', statusKey: 'ReqBirthInitialStatus' },
+    { key: 'ReqBirthCompletion', label: 'PSA Birth Certificate — Original (Completion)', statusKey: 'ReqBirthCompletionStatus' }
   ],
   APPLICANT_FIELDS: [
     'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'Category', 'GradeLevel',
@@ -191,23 +196,28 @@ function admissionDbRequirementItems_(record) {
   var index = grades.indexOf(String(record.GradeLevel || ''));
   if (index < 0) return [];
   var level = index < 2 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
-  var required = level === 'PRE'
-    ? ['ReqBirth','ReqPhoto','ReqEnvelope','ReqConsent']
-    : ['ReqSF9','ReqF137','ReqMoral','ReqBirth','ReqPhoto','ReqEnvelope','ReqConsent'];
-  var showTransferee = (level === 'JHS' || level === 'SHS') &&
+  var applicable = [];
+  if (level !== 'PRE') applicable.push('ReqSF9Initial', 'ReqSF9Completion');
+  applicable.push('ReqBirthInitial', 'ReqPhoto', 'ReqEnvelope');
+  if (level !== 'PRE') applicable.push('ReqF137', 'ReqMoral');
+  if (level === 'SHS') applicable.push('ReqBirthCompletion');
+  if (String(record.GradeLevel) === 'Grade 11') applicable.push('ReqJHS');
+  var eligible = (level === 'JHS' || level === 'SHS') &&
     ['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category || '').toUpperCase()) >= 0;
-  if (showTransferee) required.push('ReqTransferee');
-  return ADM_DB.REQUIREMENTS.filter(function (item) {
-    return required.indexOf(item.key) >= 0;
-  }).map(function (item) {
-    return {
+  if (eligible) applicable.push('ReqTransferee');
+  applicable.push('ReqConsent');
+  var items = [];
+  ADM_DB.REQUIREMENTS.forEach(function (item) {
+    if (applicable.indexOf(item.key) < 0) return;
+    items.push({
       key: item.key,
       statusKey: item.statusKey,
       label: item.label,
       required: true,
       status: String(record[item.statusKey] || 'Pending Submission')
-    };
+    });
   });
+  return items;
 }
 
 function admissionDbNewStudentId_() {
