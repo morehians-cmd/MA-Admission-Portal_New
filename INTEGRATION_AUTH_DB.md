@@ -396,6 +396,8 @@ The user approved implementation after confirming UUID primary keys, fail-on-aud
 - Internal-only read helpers: bounded pagination, exact-match criteria, ID lookup, and multi-record lookup.
 - Controlled insert and update helpers with UUID keys, required-field checks, per-sheet field allowlists, immutable-field protection, and approved logical uniqueness checks.
 - Shared ScriptLock around every insert, update, and audit append.
+- Server-managed identity/actor/timestamp fields are rejected from ordinary record payloads and accepted only through trusted internal server-values arguments. Audit actor/role and optional StudentID are server-derived by the feature endpoint.
+- Formula-leading text is written as literal text to prevent spreadsheet formula interpretation.
 - Append-only `AdmissionWorkflowAudit` writer.
 - `GenderIdentity` is excluded from generic read results by default; Owner-only access must be authorized by a feature endpoint before requesting sensitive-field inclusion.
 - Safe error-code translation; no generic browser-callable CRUD entry points.
