@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 1,
+  VERSION: 3,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -32,17 +32,36 @@ var ADM_DB = {
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
     'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'EmSource',
+    'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther',
     'CancelReasonOther', 'DestSchool', 'DestAddress', 'DestType', 'DestGrade',
     'ProcessedBy', 'ProcessedDate', 'ProcessedTime', 'BirthPlace',
     'PrevSchoolID', 'PrevAddress',
     'ReqSF9Date', 'ReqF137Date', 'ReqBirthDate', 'ReqMoralDate', 'ReqJHSDate', 'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate',
     'ReqEnvelope', 'ReqEnvelopeDate',
-    'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID'
+    'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID',
+    'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus',
+    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus'
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
+  REQUIREMENTS: [
+    { key: 'ReqSF9Initial', label: 'Report Card — Photocopy', statusKey: 'ReqSF9InitialStatus' },
+    { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy', statusKey: 'ReqBirthInitialStatus' },
+    { key: 'ReqPhoto', label: 'Three (3) 2x2 ID photos, white background, with nametag', statusKey: 'ReqPhotoStatus' },
+    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' },
+    { key: 'ReqSF9Completion', label: 'Report Card — Original', statusKey: 'ReqSF9CompletionStatus' },
+    { key: 'ReqF137', label: 'Form 137 / SF10', statusKey: 'ReqF137Status' },
+    { key: 'ReqMoral', label: 'Good Moral Certificate', statusKey: 'ReqMoralStatus' },
+    { key: 'ReqBirthCompletion', label: 'PSA Birth Certificate — Original', statusKey: 'ReqBirthCompletionStatus' },
+    { key: 'ReqJHS', label: 'JHS Completion Certificate', statusKey: 'ReqJHSStatus' },
+    { key: 'ReqTransferee', label: 'Transferee / Scholarship Certification', statusKey: 'ReqTransfereeStatus' },
+    { key: 'ReqConsent', label: 'Parental Consent & Data Privacy Undertaking Form', statusKey: 'ReqConsentStatus' },
+    // Legacy status columns are retained for compatibility with existing records.
+    { key: 'ReqSF9', label: 'Legacy Report Card Status', statusKey: 'ReqSF9Status' },
+    { key: 'ReqBirth', label: 'Legacy Birth Certificate Status', statusKey: 'ReqBirthStatus' }
+  ],
   APPLICANT_FIELDS: [
     'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'Category', 'GradeLevel',
-    'Department', 'Cluster', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection',
+    'Department', 'Cluster', 'ReferredBy', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection',
     'PrevAdviser', 'PrevScholarship', 'PrevSchoolID', 'PrevAddress',
     'FatherName', 'FatherStatus', 'FatherOccupation', 'FatherEducation', 'FatherMobile', 'FatherReligion', 'FatherReligionOther',
     'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherReligion', 'MotherReligionOther',
@@ -50,12 +69,10 @@ var ADM_DB = {
     'Birthdate', 'Mobile', 'SexualOrient', 'GenderOrient', 'Religion', 'ReligionOther',
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile',
-    'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee',
-    'ReqConsent', 'ReqRemarks', 'ReqSF9Date', 'ReqF137Date', 'ReqBirthDate', 'ReqMoralDate', 'ReqJHSDate',
-    'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate', 'ReqEnvelope', 'ReqEnvelopeDate', 'EmSource',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
-    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace'
+    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace',
+    'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther'
   ]
 };
 
@@ -72,29 +89,105 @@ function admissionDbSetup_() {
   Logger.log('Admission database schema v' + ADM_DB.VERSION + ' is ready in ' + ss.getName() + '. No source data was imported.');
 }
 
-/** Creates an empty schema sheet or verifies an existing one without rewriting its headers. */
+/**
+ * Creates a schema sheet or migrates an existing one by header name.
+ *
+ * Existing columns are never matched by position during migration. This is important
+ * because newer schema fields may have been added in the middle of an older sheet.
+ * The migration:
+ *   1. validates that existing header names are unique;
+ *   2. builds the desired schema in ADM_DB.HEADERS order;
+ *   3. keeps any legacy headers that are not in the desired schema after the new schema;
+ *   4. moves each existing value with its header, so records are not misaligned;
+ *   5. appends genuinely new fields as blank columns.
+ *
+ * No source records are imported or deleted.
+ */
 function admissionDbEnsureSchemaSheet_(ss, name, headers) {
   var sh = ss.getSheetByName(name);
+
   if (!sh) {
     sh = ss.insertSheet(name);
-    if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    if (sh.getMaxColumns() < headers.length) {
+      sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
     return sh;
   }
+
   if (sh.getLastRow() === 0) {
-    if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    if (sh.getMaxColumns() < headers.length) {
+      sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
     return sh;
   }
-  if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
-  var actual = sh.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
-  for (var i = 0; i < headers.length; i++) {
-    if (String(actual[i] || '') !== headers[i]) {
-      throw new Error('Schema mismatch in ' + name + ' at column ' + (i + 1) + '. No headers or records were changed.');
+
+  var lastCol = Math.max(sh.getLastColumn(), 1);
+  var existingHeaders = sh.getRange(1, 1, 1, lastCol).getDisplayValues()[0].map(function (h) {
+    return String(h || '').trim();
+  });
+
+  var indexByHeader = {};
+  for (var i = 0; i < existingHeaders.length; i++) {
+    var existing = existingHeaders[i];
+    if (!existing) continue;
+    if (Object.prototype.hasOwnProperty.call(indexByHeader, existing)) {
+      throw new Error('Duplicate header "' + existing + '" found in ' + name + '. No headers or records were changed.');
+    }
+    indexByHeader[existing] = i;
+  }
+
+  // Desired headers always occupy the positions expected by the application code.
+  // Any legacy headers are retained after them so no existing field is discarded.
+  var targetHeaders = headers.slice();
+  existingHeaders.forEach(function (h) {
+    if (h && targetHeaders.indexOf(h) < 0) targetHeaders.push(h);
+  });
+
+  var schemaAlreadyAligned = targetHeaders.length === existingHeaders.length;
+  if (schemaAlreadyAligned) {
+    for (var s = 0; s < targetHeaders.length; s++) {
+      if (targetHeaders[s] !== existingHeaders[s]) {
+        schemaAlreadyAligned = false;
+        break;
+      }
     }
   }
+
+  if (schemaAlreadyAligned) {
+    sh.setFrozenRows(1);
+    return sh;
+  }
+
+  var lastRow = sh.getLastRow();
+  var sourceValues = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  var migratedValues = new Array(lastRow);
+
+  for (var r = 0; r < lastRow; r++) {
+    migratedValues[r] = new Array(targetHeaders.length);
+    for (var c = 0; c < targetHeaders.length; c++) {
+      var sourceIndex = indexByHeader[targetHeaders[c]];
+      migratedValues[r][c] = sourceIndex == null ? '' : sourceValues[r][sourceIndex];
+    }
+  }
+
+  if (sh.getMaxColumns() < targetHeaders.length) {
+    sh.insertColumnsAfter(sh.getMaxColumns(), targetHeaders.length - sh.getMaxColumns());
+  }
+
+  // Write the complete migrated matrix in one operation. Every value is sourced
+  // by its header name, so inserting RelStatus/other fields cannot shift data
+  // underneath a different field.
+  sh.getRange(1, 1, lastRow, targetHeaders.length).setValues(migratedValues);
+  sh.getRange(1, 1, 1, targetHeaders.length).setFontWeight('bold');
+  sh.setFrozenRows(1);
+
+  Logger.log('Migrated ' + name + ' schema by header name: ' +
+             existingHeaders.length + ' existing columns -> ' + targetHeaders.length + ' columns.');
+
   return sh;
 }
 
@@ -123,6 +216,9 @@ function admissionDbRows_() {
 }
 
 function admissionDbFindById_(studentId) {
+  var fast = maAdmissionSpeedFindStudent_(studentId);
+  if (fast) return fast;
+
   var found = admissionDbRows_().filter(function (r) { return r.StudentID === String(studentId || ''); });
   if (found.length > 1) throw new Error('Admission database integrity error: duplicate StudentID.');
   return found.length ? found[0] : null;
@@ -145,12 +241,15 @@ function admissionDbCleanText_(value, max) {
 function admissionDbNormalizeApplicant_(input, account) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid application data.');
   var out = {};
+  if (input.PrivacyConsent !== true) throw new Error('You must accept the Data Privacy consent before submitting.');
   Object.keys(input).forEach(function (key) {
+    if (key === 'PrivacyConsent') return;
     if (ADM_DB.APPLICANT_FIELDS.indexOf(key) < 0) throw new Error('Unsupported application field: ' + key);
     var v = input[key];
     if (typeof v === 'boolean') v = v ? 'Yes' : 'No';
     out[key] = admissionDbCleanText_(v, 1000);
   });
+  out.ConsentAt = new Date().toISOString();
   out.Surname = admissionDbCleanText_(out.Surname, 80).toUpperCase();
   out.FirstName = admissionDbCleanText_(out.FirstName, 80).toUpperCase();
   if (!out.Surname || !out.FirstName) throw new Error('Surname and first name are required.');
@@ -164,7 +263,39 @@ function admissionDbNormalizeApplicant_(input, account) {
   out.Classification = 'New';
   out.Age = admissionDbAge_(out.Birthdate);
   out.EnrollStatus = 'Not Enrolled';
+  ADM_DB.REQUIREMENTS.forEach(function (item) { out[item.statusKey] = 'Not Applicable'; });
+  admissionDbRequirementItems_(out).forEach(function (item) { out[item.statusKey] = 'Pending Submission'; });
   return out;
+}
+
+function admissionDbRequirementItems_(record) {
+  var grades = ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+  var index = grades.indexOf(String(record.GradeLevel || ''));
+  if (index < 0) return [];
+  var level = index < 2 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
+  var applicable = [];
+  if (index >= 3) applicable.push('ReqSF9Initial', 'ReqSF9Completion');
+  applicable.push('ReqBirthInitial', 'ReqPhoto', 'ReqEnvelope');
+  if (level !== 'PRE') applicable.push('ReqF137', 'ReqMoral');
+  if (level === 'SHS') applicable.push('ReqBirthCompletion');
+  if (String(record.GradeLevel) === 'Grade 11') applicable.push('ReqJHS');
+  var eligible = (level === 'JHS' || level === 'SHS') &&
+    ['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category || '').toUpperCase()) >= 0;
+  if (eligible) applicable.push('ReqTransferee');
+  applicable.push('ReqConsent');
+  var items = [];
+  ADM_DB.REQUIREMENTS.forEach(function (item) {
+    if (applicable.indexOf(item.key) < 0) return;
+    items.push({
+      key: item.key,
+      statusKey: item.statusKey,
+      label: item.label,
+      stage: (item.key.indexOf('Initial') >= 0 || item.key === 'ReqPhoto' || item.key === 'ReqEnvelope') ? 'Initial Requirements' : 'For Completion',
+      required: true,
+      status: String(record[item.statusKey] || ((item.key === 'ReqSF9Initial' || item.key === 'ReqSF9Completion') ? record.ReqSF9Status : item.key === 'ReqBirthInitial' ? record.ReqBirthStatus : '') || 'Pending Submission')
+    });
+  });
+  return items;
 }
 
 function admissionDbNewStudentId_() {
@@ -203,6 +334,7 @@ function admissionCreateApplication(token, input) {
       insertedRow = sh.getLastRow() + 1;
       sh.getRange(insertedRow, 1, 1, ADM_DB.HEADERS.length).setNumberFormat('@').setValues(values);
       authLinkStudentLocked_(account.email, studentId);
+      maAdmissionSpeedBump_();
       admissionDbAudit_(account.email, 'application-created', studentId, 'Initial application record created');
     } catch (err) {
       if (insertedRow && sh) sh.deleteRow(insertedRow);
@@ -223,6 +355,7 @@ function admissionGetMyApplication(token) {
     if (!account.studentId) return { success: true, message: 'No application has been submitted yet.', data: null };
     var record = admissionDbFindById_(account.studentId);
     if (!record) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
+    record.RequirementItems = admissionDbRequirementItems_(record);
     delete record._row;
     return { success: true, message: 'Application loaded.', data: record };
   } catch (err) {

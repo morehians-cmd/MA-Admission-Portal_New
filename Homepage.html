@@ -450,15 +450,25 @@ function getToken(){try{return sessionStorage.getItem('ma_token')||MEM_TOKEN}cat
 function saveToken(t){MEM_TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function clearToken(){MEM_TOKEN='';try{sessionStorage.removeItem('ma_token')}catch(e){}}
 function resetLoginBtn(){$('outBtn').style.display='none';var b=$('loginBtn');b.textContent='Portal Login';b.removeAttribute('target');b.href='#';b.onclick=function(e){e.preventDefault();openM('mSignin')}}
-/* TEMPORARY post-login behaviour until the Phase 4 dashboard exists: Owner gets a link to Homepage Management;
-   Encoder and Student get a Sign out button. Replace this function when the dashboard is built. */
+/* Signed-in users keep the existing Homepage controls, with a direct entry to the
+   migrated Admissions Portal. */
 function showSignedIn(u,quiet){
  var b=$('loginBtn');
- if(u.role==='Owner'){b.textContent='Homepage Management';b.onclick=null;if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
-  $('outBtn').style.display='';$('outBtn').onclick=function(e){e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');call(API.signOut,[t],function(){},function(){})};
-  if(!quiet)toast('Signed in as Owner.')}
- else{b.textContent='Sign out';b.href='#';b.onclick=function(e){e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');call(API.signOut,[t],function(){},function(){})};
-  if(!quiet)toast('Signed in as '+u.role+'. The portal dashboard is not built yet.')}
+ var menu=$('menu');
+ if(u.role==='Owner'){
+  b.textContent='Homepage Management';b.onclick=null;
+  if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
+ }else{
+  b.textContent='Admissions Portal';b.onclick=null;
+  b.href=APP_BASE?APP_BASE+'?page='+(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission'):'#/'+(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission');
+  if(APP_BASE)b.target='_top';
+ }
+ $('outBtn').style.display='';
+ $('outBtn').onclick=function(e){
+  e.preventDefault();var t=getToken();clearToken();resetLoginBtn();toast('Signed out.');
+  call(API.signOut,[t],function(){},function(){});
+ };
+ if(!quiet)toast('Signed in as '+u.role+'.');
 }
 
 function mark(ids,bad){ids.forEach(function(i){$(i).classList.toggle('bad',bad.indexOf(i)>-1)})}
@@ -496,7 +506,7 @@ $('vGo').onclick=function(){var c=$('vCode').value.replace(/\D/g,'');if(c.length
  var b=this;busyBtn(b,true,'Verifying…');
  call(API.verify,[PEND.email,c],function(r){busyBtn(b,false);
   if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Verification failed.';return}
-  saveToken(r.data.token);closeM();showSignedIn(r.data,true);toast('Email verified. Welcome to Moreh Academy!')},
+  saveToken(r.data.token);closeM();showSignedIn(r.data,true);if(r.data&&(r.data.role==='Applicant'||r.data.role==='Student')&&APP_BASE){location.href=APP_BASE+'?page=applicant-portal';return}toast('Email verified. Welcome to Moreh Academy!')},
   function(e){busyBtn(b,false);$('vErr').textContent=e})};
 $('vResend').onclick=function(){call(API.resend,[PEND.email],function(r){
   if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Could not send the code.';return}
