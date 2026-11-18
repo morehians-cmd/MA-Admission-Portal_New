@@ -1,6 +1,6 @@
 # Stage 2.8 — Shared Admissions Data Access Layer Implementation Plan
 
-**Status:** Proposed for user review; no implementation authorized  
+**Status:** Design decisions incorporated; awaiting final implementation approval  
 **Date:** November 18, 2026  
 **Repository:** `morehians-cmd/MA-Admission-Portal_New`  
 **Work branch:** `integration/auth-db-foundation`  
@@ -233,15 +233,29 @@ The user must provide execution logs/results. Static checks do not count as Apps
 
 Approval of this plan does not authorize staging writes, production configuration, production deployment, or data migration.
 
-## 11. Decisions to confirm before implementation
+## 11. User decisions and final design constraints
 
-The plan deliberately does not invent these details:
+The user reviewed the Stage 2.8 plan and confirmed all five design decisions:
 
-1. **ID convention:** confirm UUID-based IDs for new workflow primary keys, or specify another text format.
-2. **Audit failure policy:** for critical writes, should the feature fail if its audit row cannot be appended, or should we design a durable retry/outbox mechanism?
-3. **Data access API scope:** approve the internal helper set as proposed, with no browser-callable generic CRUD endpoint.
-4. **Read model:** approve bounded server-side filtering/pagination rather than returning full sheet contents.
-5. **Existing 26-tab workbook:** confirm the shared layer must not manage any of the 14 non-workflow sheets, including correction, identity, role, homepage, student, and authentication sheets.
+1. **Primary key format:** UUID-based IDs generated server-side. The client must not supply primary keys.
+2. **Audit failure policy:** fail critical operations rather than report success when required audit persistence fails.
+3. **Helper accessibility:** internal server-side helpers only; no generic browser-callable CRUD endpoint.
+4. **Read model:** bounded filtering and pagination; do not return full workflow sheets to the browser.
+5. **Scope:** only the 12 approved admissions workflow sheets. The other 14 tabs remain outside this layer.
+
+### 11.1 Required audit-failure refinement
+
+Google Sheets does not provide an atomic transaction across multiple sheets. A business record may be written successfully while its subsequent audit append fails. Returning an ordinary failure in that situation can cause a retry to duplicate an operation; returning success would violate the user's audit policy.
+
+Therefore, feature-level mutation flows must distinguish at least these outcomes:
+
+- **Not committed:** the business mutation did not occur; return a safe failure.
+- **Committed and audited:** both the business mutation and its required audit event were persisted; return success.
+- **Committed, audit uncertain/failed:** the business mutation may have persisted but its required completion audit did not; do not return success. Return a distinct safe `WORKFLOW_AUDIT_OUTCOME_UNCERTAIN` result with a server-generated correlation/reference ID and require reconciliation before retrying.
+
+For critical multi-step operations, the feature implementation must define the write order, pre-write audit/intent strategy where appropriate, post-write audit event, reconciliation procedure, and idempotency mechanism. A pre-write intent event is not proof that the business mutation completed. A post-write audit event is required to confirm completion.
+
+The generic layer must not claim transactional rollback. It must not add an outbox sheet, new columns, or hidden metadata store in this stage. If a durable idempotency/outbox design requires schema changes or a new sheet, stop and obtain separate approval before changing the approved 12-sheet schema. Until a feature-specific idempotency strategy is documented, do not automatically retry an operation whose commit outcome is uncertain.
 
 Any new unique constraint, mutable-field policy, or domain validation rule discovered during implementation must be documented and brought back for approval rather than assumed.
 
@@ -252,8 +266,15 @@ Stage 2.8 implementation is ready for staging only when:
 - The exact Stage 2.6 header contract is reused without duplication.
 - All writes are guarded by lock, field allowlists, uniqueness checks, and server-generated identity/timestamps.
 - Authorization and ownership remain in server-side feature endpoints.
-- Audit events are append-only and critical audit failure cannot be silently ignored.
+- Audit events are append-only; critical audit failure is surfaced distinctly, never silently ignored, and an uncertain commit outcome is not retried blindly.
 - No legacy sheet, schema, auth implementation, correction module, UI, property, trigger, or production resource is changed.
 - Static checks pass and staging tests are separately authorized and user-reported.
 
 **No code has been written and no staging or production operation has been performed as part of this plan.**
+
+
+## 13. Decision review outcome
+
+All five user decisions are consistent with the architecture in this plan. The audit-failure refinement above is mandatory because a spreadsheet write and a separate audit append cannot be treated as one atomic transaction. This section records the agreed design; it does not authorize implementation or staging execution.
+
+**Next gate:** obtain the user's explicit approval to implement the isolated `AdmissionWorkflowData.gs` file on `integration/auth-db-foundation`. After implementation, perform static validation and present the code/commit for review. Staging sync and any staging write tests remain separate approval gates.
