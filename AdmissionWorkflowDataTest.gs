@@ -19,7 +19,7 @@ function admissionWorkflowDataRunStagingTests() {
     success: false,
     dryRun: false,
     environment: 'STAGING_ONLY',
-    testSuite: 'ADMISSION_WORKFLOW_DATA_STAGE_2_8',
+    testSuite: 'ADMISSION_WORKFLOW_DATA_STAGE_2_8_1',
     startedAt: startedAt,
     completedAt: null,
     tests: [],
@@ -85,6 +85,7 @@ function admissionWorkflowDataRunStagingTests() {
 
     expectError('reject_unknown_field', 'WORKFLOW_INVALID_FIELD', function() {
       admissionWorkflowDataInsert_('AdmissionApplications', {
+        CreationRequestID: 'STAGE29_REQ_UNKNOWN_' + token,
         SchoolYear: schoolYear,
         IntakeMethod: 'STAGE2_8_TEST',
         GradeLevelApplied: 'Grade 7',
@@ -97,6 +98,7 @@ function admissionWorkflowDataRunStagingTests() {
     expectError('reject_client_supplied_server_field', 'WORKFLOW_SERVER_FIELD_REQUIRED', function() {
       admissionWorkflowDataInsert_('AdmissionApplications', {
         UserID: syntheticUserId,
+        CreationRequestID: 'STAGE29_REQ_SERVER_' + token,
         SchoolYear: schoolYear,
         IntakeMethod: 'STAGE2_8_TEST',
         GradeLevelApplied: 'Grade 7',
@@ -111,6 +113,9 @@ function admissionWorkflowDataRunStagingTests() {
 
     // Two synthetic applications enable deterministic page-size-one pagination.
     var first = admissionWorkflowDataInsert_('AdmissionApplications', {
+      CreationRequestID: 'STAGE29_REQ_MISSING_' + token,
+      CreationRequestID: 'STAGE29_REQ_A_' + token,
+      CreationRequestID: 'STAGE29_REQ_B_' + token,
       SchoolYear: schoolYear,
       IntakeMethod: 'STAGE2_8_TEST',
       GradeLevelApplied: 'Grade 7',
