@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 4,
+  VERSION: 5,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -147,6 +147,26 @@ function admissionDbEnsureSchemaSheet_(ss, name, headers) {
   existingHeaders.forEach(function (h) {
     if (h && targetHeaders.indexOf(h) < 0) targetHeaders.push(h);
   });
+
+  // If the existing sheet already has exactly the expected number of columns and
+  // the migration layout is otherwise positional, repair the header row directly.
+  // This specifically handles sheets whose header cells became blank while the
+  // corresponding data columns remained in the correct schema positions.
+  if (targetHeaders.length === headers.length && existingHeaders.length === headers.length) {
+    var headerNeedsRepair = false;
+    for (var h = 0; h < headers.length; h++) {
+      if (existingHeaders[h] !== headers[h]) {
+        headerNeedsRepair = true;
+        break;
+      }
+    }
+    if (headerNeedsRepair) {
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+      Logger.log('Repaired ' + name + ' header row: restored ' + headers.length + ' schema headers in expected positions.');
+      return sh;
+    }
+  }
 
   var schemaAlreadyAligned = targetHeaders.length === existingHeaders.length;
   if (schemaAlreadyAligned) {
