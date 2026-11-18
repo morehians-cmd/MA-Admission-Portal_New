@@ -167,7 +167,8 @@ function admissionPortalDashboard(token) {
 
 function admissionPortalDashboard_(role) {
   var rows = maAdmissionSpeedRecords_();
-  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {};
+  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {}, needsAction = [], needsActionTotal = 0;
+  var requirementStatusFields = ['ReqSF9InitialStatus','ReqSF9CompletionStatus','ReqBirthInitialStatus','ReqBirthCompletionStatus','ReqPhotoStatus','ReqEnvelopeStatus','ReqF137Status','ReqMoralStatus','ReqJHSStatus','ReqTransfereeStatus','ReqConsentStatus'];
   rows.forEach(function (r) {
     var s = r.EnrollStatus || 'Unspecified';
     var a = r.ApplicationStatus || 'Submitted';
@@ -177,8 +178,13 @@ function admissionPortalDashboard_(role) {
     byApplicationStatus[a] = (byApplicationStatus[a] || 0) + 1;
     byGrade[g] = (byGrade[g] || 0) + 1;
     byCategory[c] = (byCategory[c] || 0) + 1;
+    var reason = '';
+    if (a === 'Submitted') reason = 'Waiting for initial review';
+    else if (a === 'Under Review' && requirementStatusFields.some(function(f){return String(r[f]||'') === 'Incomplete';})) reason = 'Incomplete documents need follow-up';
+    else if (a === 'Approved' && String(r.EnrollStatus || '') !== 'Enrolled') reason = 'Ready for enrollment processing';
+    if (reason) { needsActionTotal++; if (needsAction.length < 12) needsAction.push({StudentID:r.StudentID,FullName:r.FullName,GradeLevel:r.GradeLevel,Category:r.Category,ApplicationStatus:a,EnrollStatus:r.EnrollStatus,Reason:reason}); }
   });
-  return { total: rows.length, byStatus: byStatus, byApplicationStatus: byApplicationStatus, byGrade: byGrade, byCategory: byCategory, role: role };
+  return { total: rows.length, byStatus: byStatus, byApplicationStatus: byApplicationStatus, byGrade: byGrade, byCategory: byCategory, needsAction: needsAction, needsActionTotal: needsActionTotal, role: role };
 }
 
 function admissionPortalPublicRecord_(r) {
