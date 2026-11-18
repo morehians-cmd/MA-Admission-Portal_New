@@ -337,7 +337,7 @@ function admissionDbRequirementItems_(record) {
       key: item.key,
       statusKey: item.statusKey,
       label: item.label,
-      stage: (item.key.indexOf('Initial') >= 0 || item.key === 'ReqPhoto' || item.key === 'ReqEnvelope') ? 'Initial Requirements' : 'For Completion',
+      stage: (item.key.indexOf('Initial') >= 0 || item.key === 'ReqPhoto' || item.key === 'ReqEnvelope' || item.key === 'ReqConsent') ? 'Initial Requirements' : 'For Completion',
       required: true,
       status: String(record[item.statusKey] || ((item.key === 'ReqSF9Initial' || item.key === 'ReqSF9Completion') ? record.ReqSF9Status : item.key === 'ReqBirthInitial' ? record.ReqBirthStatus : '') || 'Pending Submission')
     });
