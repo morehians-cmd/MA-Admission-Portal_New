@@ -218,8 +218,7 @@ function validateStep(){
 function submitApplication(){
  var form=document.getElementById('applicationForm');
  if(!form.checkValidity()){var bad=form.querySelector(':invalid');if(bad){var section=bad.closest('.section');if(section)setStep(Number(section.dataset.step));bad.reportValidity()}return}
- var d=collect();d.PrivacyConsent=undefined;
- delete d.PrivacyConsent;
+ var d=collect();d.PrivacyConsent=!!d.PrivacyConsent;
  var btn=document.getElementById('next');btn.disabled=true;btn.textContent='Submitting…';showError('');
  run('admissionCreateApplication',[token(),d],function(r){
   if(!r||r.success!==true){btn.disabled=false;btn.textContent='Submit Application';showError((r&&r.message)||'We could not submit your application. Please review the information and try again.');return}
