@@ -71,7 +71,8 @@ function admissionPortalSaveStudent(token, studentId, changes) {
     if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('Invalid record data.');
 
     var blocked = { StudentID: true, CreatedAt: true, FullName: true, Age: true, Email: true };
-    ADM_DB.REQUIREMENTS.forEach(function (item) { blocked[item.statusKey] = true; });
+    ADM_DB.REQUIREMENTS.forEach(function (item) { blocked[item.statusKey] = true; blocked[item.key] = true; blocked[item.key + 'Date'] = true; });
+    blocked.ReqRemarks = true;
     var update = {};
     Object.keys(changes).forEach(function (key) {
       if (blocked[key]) return;
