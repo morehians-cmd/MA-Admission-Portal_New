@@ -108,9 +108,8 @@ function restoreDraft(){
     updatePreviousSchoolRules();
     var savedPrevSchool=d.data.PrevSchool||'';
     updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
-    var prevSchoolEl=document.getElementById('f_PrevSchool'),prevSchoolOther=document.getElementById('f_PrevSchoolOther');
-    if(prevSchoolEl&&d.data.PrevSchoolType==='Others, Please Specify'){prevSchoolEl.value='__OTHER__';if(prevSchoolOther)prevSchoolOther.value=savedPrevSchool||d.data.PrevSchoolOther||'';}
-    else if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
+    var prevSchoolEl=document.getElementById('f_PrevSchool');
+    if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
     setDraftStatus('Draft restored ✓');
   }catch(e){}
@@ -143,16 +142,30 @@ var PREVIOUS_SCHOOLS={
  ]
 };
 function updatePreviousSchoolRules(){
- var type=document.getElementById('f_PrevSchoolType'),school=document.getElementById('f_PrevSchool'),other=document.getElementById('f_PrevSchoolOther');
- if(!type||!school||!other)return;
- var category=type.value,old=school.value;
+ var type=document.getElementById('f_PrevSchoolType'),school=document.getElementById('f_PrevSchool');
+ if(!type||!school)return;
+ var category=type.value,old=school.value,wrap=school.closest('.field');
+ if(category==='Others, Please Specify'){
+   if(school.tagName!=='INPUT'){
+     var input=document.createElement('input');
+     input.type='text';input.id='f_PrevSchool';input.setAttribute('data-key','PrevSchool');
+     input.placeholder='Enter previous school name';input.value=old==='__OTHER__'?'':old;
+     input.required=false;
+     school.replaceWith(input);
+   }
+   var textInput=document.getElementById('f_PrevSchool');
+   textInput.placeholder='Enter previous school name';
+   textInput.required=false;
+   return;
+ }
+ if(school.tagName!=='SELECT'){
+   var select=document.createElement('select');
+   select.id='f_PrevSchool';select.setAttribute('data-key','PrevSchool');
+   school.replaceWith(select);school=select;
+ }
  var list=PREVIOUS_SCHOOLS[category]||[];
- school.innerHTML='<option value="">Select previous school name</option>'+list.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('')+(category==='Others, Please Specify'?'<option value="__OTHER__">Others, Please Specify</option>':'');
- if(old&&Array.prototype.some.call(school.options,function(o){return o.value===old}))school.value=old;
- var isOther=category==='Others, Please Specify'&&school.value==='__OTHER__';
- other.closest('.field').style.display=isOther?'':'none';
- other.required=isOther;
- if(!isOther)other.value='';
+ school.innerHTML='<option value="">Select previous school name</option>'+list.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');
+ if(old&&list.indexOf(old)>=0)school.value=old;
 }
 
 function buildFields(){
@@ -174,7 +187,6 @@ function buildFields(){
   '<div class="subhead">Previous school information (if applicable)</div>'+
   field('PrevSchoolType','Filter Previous Schools','select',opts(['Public Elementary Schools','Public High Schools','Private Schools','Others, Please Specify']),false,'Choose a school category to filter the school list.')+
   field('PrevSchool','Previous School Name','select',[],false,'Leave blank if this is the learner’s first school.')+
-  field('PrevSchoolOther','Specify Other Previous School','text',null,false,'Enter the school name.',true)+
   field('PrevSY','Previous School Year','text',null,false,'Example: 2025-2026.')+
   field('PrevGrade','Last Grade Level Completed','select',opts(GRADES))+
   field('PrevCluster','Previous SHS Strand / Cluster','select',opts(CLUSTERS),false,'Applicable only if the previous grade level was Grade 11 or Grade 12.')+
@@ -338,7 +350,6 @@ function applyEmergencySource(src){
 }
 function collect(){
  var out={};document.querySelectorAll('#applicationForm [data-key]').forEach(function(el){out[el.dataset.key]=el.type==='checkbox'?el.checked:el.value.trim()});
- if(out.PrevSchool==='__OTHER__')out.PrevSchool=out.PrevSchoolOther||'';
  return out;
 }
 function renderReview(){
