@@ -4,8 +4,8 @@
  * HomepageAdmin.html and PagesAdmin.html need: APP_BASE = '<?= baseUrl ?>'
  * Admin screens: ?page=admin-homepage, ?page=admin-pages
  */
-var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'MAAdmissionPage' };
-var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', MAAdmissionPage: 'Admissions Portal' };
+var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'MAAdmissionPage', 'applicant-portal': 'ApplicantPortal' };
+var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', MAAdmissionPage: 'Admissions Portal', ApplicantPortal: 'Applicant Dashboard | Moreh Academy' };
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
