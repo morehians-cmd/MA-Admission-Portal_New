@@ -58,7 +58,9 @@
           <div class="field-grid" id="familyFields"></div>
         </section>
         <section class="section" data-step="3">
-          <h2>Review your application</h2><p class="hint">Check the summary below. Your Student ID will be generated after successful first submission.</p>
+          <h2>Requirements & Review</h2><p class="hint">Indicate the current status of the admission requirements, then review the information before submitting.</p>
+          <div class="field-grid" id="requirementsFields"></div>
+          <div class="subhead">Application review</div>
           <div class="review" id="reviewSummary"></div>
           <label class="checkline"><input type="checkbox" data-key="PrivacyConsent" id="privacyConsent" required><span>I confirm that the information I provided is accurate and I have read and understood Moreh Academy’s <a href="<?= baseUrl ?>?page=privacy" target="_blank" rel="noopener">Privacy Policy</a>. I consent to the collection and processing of the information necessary for this admission application.</span></label>
           <div class="note">Your application will be submitted to Moreh Academy. You will not be able to submit a second first-time application using this account. Document uploads and requirement tracking will be handled in a later module.</div>
@@ -103,7 +105,7 @@ function restoreDraft(){
       var el=document.querySelector('[data-key="'+k+'"]');if(!el)return;
       if(el.type==='checkbox')el.checked=!!d.data[k];else el.value=d.data[k]==null?'':String(d.data[k]);
     });
-    updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+    updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
     setDraftStatus('Draft restored ✓');
   }catch(e){}
@@ -131,9 +133,14 @@ function buildFields(){
   field('Surname','Surname','text',null,true)+field('FirstName','First Name','text',null,true)+field('MiddleName','Middle Name','text')+field('Suffix','Suffix (e.g. Jr., III)','text')+
   field('GradeLevel','Intended Grade Level','select',opts(GRADES),true)+field('Department','Department','text',null,false,'Automatically determined from the selected grade level.')+
   field('Cluster','Senior High School Strand / Cluster','select',opts(CLUSTERS),false,'Required for Grade 11 and Grade 12.',true)+
-  field('Category','Admission Category (if known)','select',opts(['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS']),false,'If you are unsure, leave this blank.');
+  field('Category','Admission Category (if known)','select',opts(['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS']),false,'If you are unsure, leave this blank.')+
+  field('ReferredBy','Referred By','text',null,false,'If someone referred the applicant, enter the name or organization.');
  document.getElementById('personalFields').innerHTML=
   field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
+  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Others, specify']))+
+  field('GenderOther','Gender Identity (Other)','text',null,false,'Specify only when applicable.')+
+  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church',\"Jehovah's Witnesses\",'The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+
   field('BirthPlace','Place of Birth','text')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true)+
@@ -147,17 +154,18 @@ function buildFields(){
   field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'');
  var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
  var status=opts(['Alive','Deceased']);
+ var relOpts=opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church',\"Jehovah's Witnesses\",'The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']);
  document.getElementById('familyFields').innerHTML=
   '<div class="subhead">Father’s information</div>'+
   field('FatherName','Father’s Full Name','text')+field('FatherStatus','Father’s Status','select',status)+
   field('FatherOccupation','Father’s Occupation','text')+field('FatherEducation','Highest Educational Attainment','select',edu)+
   field('FatherMobile','Father’s Mobile Number','tel')+field('FatherEmail','Father’s Email Address','email')+
-  field('FatherReligion','Father’s Religion','text')+field('FatherReligionOther','Father’s Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('FatherReligion','Father’s Religion','select',relOpts)+field('FatherReligionOther','Father’s Religion (Other)','text',null,false,'Specify only when applicable.')+
   '<div class="subhead">Mother’s information</div>'+
   field('MotherName','Mother’s Full Name','text')+field('MotherStatus','Mother’s Status','select',status)+
   field('MotherOccupation','Mother’s Occupation','text')+field('MotherEducation','Highest Educational Attainment','select',edu)+
   field('MotherMobile','Mother’s Mobile Number','tel')+field('MotherEmail','Mother’s Email Address','email')+
-  field('MotherReligion','Mother’s Religion','text')+field('MotherReligionOther','Mother’s Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('MotherReligion','Mother’s Religion','select',relOpts)+field('MotherReligionOther','Mother’s Religion (Other)','text',null,false,'Specify only when applicable.')+
   '<div class="subhead">Parent / legal guardian contact (required for applicants below 18)</div>'+
   field('GuardName','Parent / Legal Guardian Full Name','text',null,false)+field('GuardRelation','Relationship to Applicant','text',null,false)+
   field('GuardEmail','Parent / Guardian Email Address','email',null,false)+field('GuardMobile','Parent / Guardian Mobile Number','tel',null,false)+
@@ -168,7 +176,7 @@ function buildFields(){
   field('RelName','Relative / Legal Guardian Full Name','text',null,false)+
   field('RelOccupation','Relative / Guardian Occupation','text')+field('RelEducation','Highest Educational Attainment','select',edu)+
   field('RelMobile','Relative / Guardian Mobile Number','tel')+field('RelEmail','Relative / Guardian Email Address','email')+
-  field('RelReligion','Relative / Guardian Religion','text')+field('RelReligionOther','Relative / Guardian Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('RelReligion','Relative / Guardian Religion','select',relOpts)+field('RelReligionOther','Relative / Guardian Religion (Other)','text',null,false,'Specify only when applicable.')+
   field('RelRelation','Relationship to Applicant','text',null,false)+
   field('RelBirthdate','Relative / Guardian Birth Date','date')+field('RelAge','Age','text',null,false,'Automatically determined from birth date.')+
   field('RelSex','Sex Assigned at Birth / Biological Sex','select',opts(['Male','Female']))+field('RelGender','Gender Orientation / Identity','select',opts(['Masculine','Feminine','Others, specify']))+
@@ -189,6 +197,40 @@ function buildFields(){
   '<div class="field full"><label class="checkline"><input type="checkbox" data-key="EmSameAddr" id="f_EmSameAddr"><span>Primary Contact has the same address as the applicant.</span></label></div>'+
   field('EmAddress','Emergency Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true)+
   '<input type="hidden" data-key="EmSource" id="f_EmSource" value="">';
+}
+function buildRequirementFields(){
+ var ro=opts(['None','Original','Photocopy','Original & Photocopy']);
+ var birth=opts(['None','PSA Original','PSA Photocopy','PSA Original & Photocopy','NSO Original','NSO Photocopy','NSO Original & Photocopy','Live Birth Certificate Original','Live Birth Certificate Photocopy','Live Birth Certificate Original & Photocopy','Foreign-Issued Birth Certificate-P','PSA No Record-CRS Form No. 1']);
+ var photo=opts(['None','1 Piece','2 Pieces','3 Pieces']);
+ var tf=opts(['None','TLC TF Original','TLC TF Photocopy','TLC TF Original & Photocopy','ESC Certificate Original','ESC Certificate Photocopy','ESC Certificate Original & Photocopy','Voucher Certificate Original','Voucher Certificate Photocopy','Voucher Certificate Original & Photocopy']);
+ var consent=opts(['None','Original']);
+ document.getElementById('requirementsFields').innerHTML=
+  '<div class="subhead">Required / submitted documents</div>'+
+  field('ReqSF9','SF9 / Report Card','select',ro)+field('ReqF137','Form 137','select',ro)+
+  field('ReqBirth','Birth Certificate','select',birth)+field('ReqMoral','Good Moral Certificate','select',ro)+
+  field('ReqJHS','JHS Completion Certificate','select',ro)+field('ReqPhoto','2x2 ID Photo','select',photo)+
+  field('ReqTransferee','Transferee Certification','select',tf)+field('ReqConsent','Parental Consent & Data Privacy Undertaking Form','select',consent)+
+  field('ReqEnvelope','Long Brown Expandable Envelope','select',opts(['None','Submitted']))+
+  '<div class="subhead">Date submitted for each requirement</div>'+
+  field('ReqSF9Date','SF9 / Report Card – Date Submitted','date')+field('ReqF137Date','Form 137 – Date Submitted','date')+
+  field('ReqBirthDate','Birth Certificate – Date Submitted','date')+field('ReqMoralDate','Good Moral Certificate – Date Submitted','date')+
+  field('ReqJHSDate','JHS Completion Certificate – Date Submitted','date')+field('ReqPhotoDate','2x2 ID Photo – Date Submitted','date')+
+  field('ReqTransfereeDate','Transferee Certification – Date Submitted','date')+field('ReqConsentDate','Parental Consent & Data Privacy Undertaking Form – Date Submitted','date')+
+  field('ReqEnvelopeDate','Long Brown Expandable Envelope – Date Submitted','date')+
+  field('ReqRemarks','Requirement Remarks','textarea',null,false,'Add any relevant requirement note or clarification.',true);
+}
+function updateRequirementRules(){
+ var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),isPre=idx>=0&&idx<3,isElem=idx>=3&&idx<9,isJhs=idx>=9&&idx<13,isShs=idx>=13;
+ var reqMap={ReqSF9:!isPre,ReqF137:!isPre,ReqBirth:true,ReqMoral:!isPre,ReqJHS:false,ReqPhoto:true,ReqTransferee:false,ReqConsent:true,ReqEnvelope:true};
+ if(isJhs||isShs)reqMap.ReqTransferee=false;
+ Object.keys(reqMap).forEach(function(k){var el=document.getElementById('f_'+k);if(el)el.required=reqMap[k]});
+ var jhs=document.getElementById('f_ReqJHS'),jhsDate=document.getElementById('f_ReqJHSDate');
+ if(jhs){jhs.closest('.field').style.display=isJhs||isShs?'':'none';if(!(isJhs||isShs)){jhs.value='';jhs.required=false}}
+ if(jhsDate){jhsDate.closest('.field').style.display=isJhs||isShs?'':'none';if(!(isJhs||isShs))jhsDate.value=''}
+ var tf=document.getElementById('f_ReqTransferee'),tfd=document.getElementById('f_ReqTransfereeDate');
+ var cat=value('Category'),tfCat=['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(cat)>=0;
+ if(tf){tf.closest('.field').style.display=tfCat?'':'none';if(!tfCat){tf.value='';tf.required=false}}
+ if(tfd){tfd.closest('.field').style.display=tfCat?'':'none';if(!tfCat)tfd.value=''}
 }
 function value(key){var el=document.querySelector('[data-key="'+key+'"]');if(!el)return '';return el.type==='checkbox'?el.checked:el.value.trim()}
 function setValue(key,v){var el=document.querySelector('[data-key="'+key+'"]');if(el)el.value=v||''}
@@ -280,7 +322,7 @@ function collect(){
  var out={};document.querySelectorAll('#applicationForm [data-key]').forEach(function(el){out[el.dataset.key]=el.type==='checkbox'?el.checked:el.value.trim()});return out;
 }
 function renderReview(){
- var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
+ var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Sex',d.SexualOrient],['Gender identity',d.GenderOrient],['Religion',d.Religion],['Facebook',d.Facebook||'Not provided'],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
  document.getElementById('reviewSummary').innerHTML=items.map(function(x){return '<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'—')+'</strong></div>'}).join('');
 }
 function setStep(n){
@@ -289,7 +331,7 @@ function setStep(n){
  document.querySelectorAll('.step').forEach(function(s,i){s.classList.toggle('active',i===currentStep);s.classList.toggle('done',i<currentStep)});
  document.getElementById('previous').disabled=currentStep===0;
  syncNavButtons();
- if(currentStep===3)renderReview();
+ if(currentStep===3){updateRequirementRules();renderReview();}
  window.scrollTo(0,0);
 }
 function validateStep(){
@@ -344,6 +386,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_FatherStatus')updateParentRules('Father');
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
  if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
+ if(e.target.id==='f_GradeLevel'||e.target.id==='f_Category')updateRequirementRules();
  if(e.target.dataset.src)applyEmergencySource(e.target.checked?e.target.dataset.src:'');
 });
 
@@ -352,7 +395,7 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-buildFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+buildFields();buildRequirementFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
 (function boot(){
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
