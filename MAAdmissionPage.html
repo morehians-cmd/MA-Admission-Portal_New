@@ -109,7 +109,7 @@ function drawStats(s){
   var gradeClusterHtml='<div class="dash-panel"><h3>Applications by Grade & Cluster</h3><div class="analytics-list">'+(gcRows.join('')||'<div class="muted">No cluster data yet.</div>')+'</div></div>';
 
   var sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('')+'</div></div>';
-  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){return Number(s.byPreviousSchool[b])-Number(s.byPreviousSchool[a]}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){return Number(s.byPreviousSchool[b])-Number(s.byPreviousSchool[a])).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
 
   var recent=s.recent||[];
   var recentHtml='<div class="dash-panel"><h3>Recent Applications</h3>'+
