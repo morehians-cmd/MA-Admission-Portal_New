@@ -15,7 +15,7 @@
  */
 
 var ADMISSION_WORKFLOW_SCHEMA = {
-  VERSION: '2.4.1',
+  VERSION: '2.5.0',
   REQUIREMENT_RULE_VERSION: 'ADMISSION_REQUIREMENTS_BASELINE_2026',
   ENV_PROPERTY: 'ADMISSION_WORKFLOW_ENVIRONMENT',
   STAGING_ID_PROPERTY: 'ADMISSION_WORKFLOW_STAGING_SPREADSHEET_ID',
@@ -34,7 +34,7 @@ var ADMISSION_WORKFLOW_SCHEMA = {
     'AdmissionWorkflowAudit'
   ],
   HEADERS: {
-    AdmissionApplications: ['ApplicationID','StudentID','UserID','SchoolYear','IntakeMethod','GradeLevelApplied','Department','Category','SHSCluster','ApplicationStatus','SubmittedAt','LastStatusChangedAt','CreatedAt','CreatedBy','UpdatedAt','UpdatedBy'],
+    AdmissionApplications: ['ApplicationID','StudentID','UserID','SchoolYear','IntakeMethod','GradeLevelApplied','Department','Category','SHSCluster','ApplicationStatus','SubmittedAt','LastStatusChangedAt','CreatedAt','CreatedBy','UpdatedAt','UpdatedBy','CreationRequestID'],
     ApplicationProfiles: ['ProfileSnapshotID','ApplicationID','SchemaVersion','Surname','FirstName','MiddleName','Suffix','Birthdate','BirthPlace','LRN','LegalSex','GenderIdentity','SchoolYear','GradeLevelApplied','Category','Department','SHSCluster','Email','Mobile','AddressLine1','AddressLine2','Barangay','City','LivingWith','LivingWithOtherDetails','FatherName','FatherStatus','FatherOccupation','FatherEducation','FatherMobile','FatherEmail','MotherName','MotherStatus','MotherOccupation','MotherEducation','MotherMobile','MotherEmail','GuardianName','GuardianStatus','GuardianOccupation','GuardianEducation','GuardianMobile','GuardianEmail','PrimaryContactName','PrimaryContactAddress','PrimaryContactRelationship','PrimaryContactNumber','PreviousSchool','PreviousSchoolYear','PreviousGrade','PreviousCluster','PreviousSection','PreviousAdviser','PreviousSchoolID','PreviousSchoolAddress','FacebookProfileLink','PrivacyConsent','PrivacyConsentAt','SubmittedAt','SubmittedBy'],
     ApplicationAssignments: ['AssignmentID','ApplicationID','AssignmentAction','AssignedToEmail','AssignedByEmail','AssignedAt','Reason','PreviousAssigneeEmail','CreatedAt'],
     ApplicationRequirements: ['ApplicationRequirementID','SourceType','SourceRecordID','ApplicationID','RegistrationID','EnrollmentID','RequirementCode','RequirementName','RequirementGroup','RequirementRuleVersion','IsApplicable','IsMandatory','ApplicabilityReason','ReceiptStatus','ReceivedAt','ReceivedByEmail','PreliminaryStatus','PreliminaryRemarks','PreliminaryByEmail','PreliminaryAt','FinalStatus','FinalRemarks','FinalVerifiedByEmail','FinalVerifiedAt','CorrectionReason','IsPendingAtEnrollment','ConditionalEnrollmentID','PendingReason','DeadlineAt','CompletedAt','OverdueFlag','UpdatedAt'],
