@@ -32,6 +32,7 @@ var ADM_DB = {
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
     'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'EmSource',
+    'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther',
     'CancelReasonOther', 'DestSchool', 'DestAddress', 'DestType', 'DestGrade',
     'ProcessedBy', 'ProcessedDate', 'ProcessedTime', 'BirthPlace',
     'PrevSchoolID', 'PrevAddress',
@@ -55,7 +56,8 @@ var ADM_DB = {
     'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate', 'ReqEnvelope', 'ReqEnvelopeDate', 'EmSource',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
-    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace'
+    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace',
+    'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther'
   ]
 };
 
