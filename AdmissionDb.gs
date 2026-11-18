@@ -418,6 +418,31 @@ function setupAdmissionDatabase() {
   admissionDbSetup_();
 }
 
+/**
+ * Public repair action for an existing AdmissionStudents sheet.
+ * Only the header row is replaced; all existing data rows remain untouched.
+ * This is intentionally separate from migration so a damaged/blank header row
+ * can be repaired without moving or rewriting student records.
+ */
+function repairAdmissionDatabaseHeaders() {
+  authRequireEditor_();
+  var ss = authSpreadsheet_();
+  var sh = ss.getSheetByName(ADM_DB.STUDENTS);
+  if (!sh) throw new Error('Admission database is not initialized. Run setupAdmissionDatabase first.');
+
+  if (sh.getMaxColumns() < ADM_DB.HEADERS.length) {
+    sh.insertColumnsAfter(sh.getMaxColumns(), ADM_DB.HEADERS.length - sh.getMaxColumns());
+  }
+
+  sh.getRange(1, 1, 1, ADM_DB.HEADERS.length)
+    .setValues([ADM_DB.HEADERS])
+    .setFontWeight('bold');
+  sh.setFrozenRows(1);
+
+  Logger.log('Repaired AdmissionStudents header row: restored ' +
+    ADM_DB.HEADERS.length + ' schema headers. Existing data rows were not changed.');
+}
+
 function runAdmissionDbSetup() {
   admissionDbSetup_();
 }
