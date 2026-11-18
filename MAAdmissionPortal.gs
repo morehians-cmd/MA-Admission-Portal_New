@@ -167,24 +167,128 @@ function admissionPortalDashboard(token) {
 
 function admissionPortalDashboard_(role) {
   var rows = maAdmissionSpeedRecords_();
-  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {}, needsAction = [], needsActionTotal = 0;
-  var requirementStatusFields = ['ReqSF9InitialStatus','ReqSF9CompletionStatus','ReqBirthInitialStatus','ReqBirthCompletionStatus','ReqPhotoStatus','ReqEnvelopeStatus','ReqF137Status','ReqMoralStatus','ReqJHSStatus','ReqTransfereeStatus','ReqConsentStatus'];
+  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {}, byCluster = {},
+      bySex = {}, byPrevSchool = {}, byScholarship = {}, recent = [], needsAction = [],
+      needsActionTotal = 0, today = new Date(), trend = [];
+
+  function inc(map, key) {
+    key = String(key || 'Unspecified').trim() || 'Unspecified';
+    map[key] = (map[key] || 0) + 1;
+  }
+  function dayKey(d) {
+    return Utilities.formatDate(d, 'Asia/Manila', 'yyyy-MM-dd');
+  }
+  function parseDate(v) {
+    var d = new Date(String(v || ''));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  for (var i = 13; i >= 0; i--) {
+    var d = new Date(today.getTime() - i * 86400000);
+    trend.push({ date: dayKey(d), label: Utilities.formatDate(d, 'Asia/Manila', 'MMM d'), count: 0 });
+  }
+  var trendIndex = {};
+  trend.forEach(function (x, i) { trendIndex[x.date] = i; });
+
+  var requirementStatusFields = [
+    'ReqSF9InitialStatus','ReqSF9CompletionStatus','ReqBirthInitialStatus',
+    'ReqBirthCompletionStatus','ReqPhotoStatus','ReqEnvelopeStatus',
+    'ReqF137Status','ReqMoralStatus','ReqJHSStatus','ReqTransfereeStatus','ReqConsentStatus'
+  ];
+  var certificateCategories = ['ESC','TLC','PUB-QVR','QVA PASSER'];
+
   rows.forEach(function (r) {
     var s = r.EnrollStatus || 'Unspecified';
     var a = r.ApplicationStatus || 'Submitted';
-    var g = r.GradeLevel || 'Unspecified';
-    var c = r.Category || 'Unspecified';
-    byStatus[s] = (byStatus[s] || 0) + 1;
-    byApplicationStatus[a] = (byApplicationStatus[a] || 0) + 1;
-    byGrade[g] = (byGrade[g] || 0) + 1;
-    byCategory[c] = (byCategory[c] || 0) + 1;
+    inc(byStatus, s);
+    inc(byApplicationStatus, a);
+    inc(byGrade, r.GradeLevel);
+    inc(byCategory, r.Category);
+    inc(bySex, r.SexualOrient);
+    inc(byPrevSchool, r.PrevSchool);
+    if (r.PrevScholarship) inc(byScholarship, r.PrevScholarship);
+    if (r.Cluster) inc(byCluster, (r.GradeLevel || 'Unspecified') + ' · ' + r.Cluster);
+
+    var created = parseDate(r.CreatedAt);
+    if (created) {
+      var dk = dayKey(created);
+      if (trendIndex[dk] != null) trend[trendIndex[dk]].count++;
+    }
+
     var reason = '';
+    var incomplete = requirementStatusFields.some(function (f) {
+      var v = String(r[f] || '');
+      return v === 'Incomplete' || v === 'Pending Submission';
+    });
+    var consentMissing = String(r.ReqConsentStatus || '') !== 'Verified' &&
+                         String(r.ReqConsentStatus || '') !== 'Received';
+    var certMissing = certificateCategories.indexOf(String(r.Category || '').toUpperCase()) >= 0 &&
+                      !String(r.CertNo || r.VoucherCertNo || r.EscCertNo || '').trim();
+
     if (a === 'Submitted') reason = 'Waiting for initial review';
-    else if (a === 'Under Review' && requirementStatusFields.some(function(f){return String(r[f]||'') === 'Incomplete';})) reason = 'Incomplete documents need follow-up';
-    else if (a === 'Approved' && String(r.EnrollStatus || '') !== 'Enrolled') reason = 'Ready for enrollment processing';
-    if (reason) { needsActionTotal++; if (needsAction.length < 12) needsAction.push({StudentID:r.StudentID,FullName:r.FullName,GradeLevel:r.GradeLevel,Category:r.Category,ApplicationStatus:a,EnrollStatus:r.EnrollStatus,Reason:reason}); }
+    else if (a === 'Under Review' && consentMissing) reason = 'Consent document needs verification';
+    else if (a === 'Under Review' && incomplete) reason = 'Incomplete requirements need follow-up';
+    else if (a === 'Under Review' && certMissing) reason = 'Scholarship certificate number is missing';
+    else if (a === 'Approved' && String(s) !== 'Enrolled') reason = 'Ready for enrollment processing';
+
+    if (reason) {
+      needsActionTotal++;
+      if (needsAction.length < 20) {
+        needsAction.push({
+          StudentID: r.StudentID,
+          FullName: r.FullName,
+          GradeLevel: r.GradeLevel,
+          Category: r.Category,
+          ApplicationStatus: a,
+          EnrollStatus: s,
+          Reason: reason
+        });
+      }
+    }
   });
-  return { total: rows.length, byStatus: byStatus, byApplicationStatus: byApplicationStatus, byGrade: byGrade, byCategory: byCategory, needsAction: needsAction, needsActionTotal: needsActionTotal, role: role };
+
+  rows.slice().sort(function(a,b){ return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); });
+  recent = rows.slice().sort(function(a,b){ return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); })
+    .slice(0, 5).map(function(r) {
+      return { StudentID:r.StudentID, FullName:r.FullName, GradeLevel:r.GradeLevel,
+        Category:r.Category, ApplicationStatus:r.ApplicationStatus || 'Submitted',
+        CreatedAt:r.CreatedAt };
+    });
+
+  var pipeline = {
+    'Not Enrolled': Number(byStatus['Not Enrolled'] || 0),
+    'Enrolled': Number(byStatus.Enrolled || 0),
+    'Temporary': Number(byStatus.Temporary || 0),
+    'Transferred': Number(byStatus.Transferred || byStatus['Transferred Out'] || 0),
+    'Cancelled': Number(byStatus.Cancelled || 0)
+  };
+
+  var gradeCluster = {};
+  Object.keys(byCluster).forEach(function(k) {
+    var parts = k.split(' · ');
+    var grade = parts.shift() || 'Unspecified';
+    var cluster = parts.join(' · ') || 'Unspecified';
+    if (!gradeCluster[grade]) gradeCluster[grade] = {};
+    gradeCluster[grade][cluster] = byCluster[k];
+  });
+
+  return {
+    total: rows.length,
+    byStatus: byStatus,
+    byApplicationStatus: byApplicationStatus,
+    byGrade: byGrade,
+    byCategory: byCategory,
+    pipeline: pipeline,
+    trend: trend,
+    recent: recent,
+    needsAction: needsAction,
+    needsActionTotal: needsActionTotal,
+    byGradeCluster: gradeCluster,
+    bySex: bySex,
+    byPreviousSchool: byPrevSchool,
+    byScholarship: byScholarship,
+    role: role
+  };
 }
 
 function admissionPortalPublicRecord_(r) {
