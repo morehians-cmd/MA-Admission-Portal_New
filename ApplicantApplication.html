@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Application | Moreh Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--ink:#14213d;--muted:#64748b;--line:#d8e3f8;--green:#16834a;--red:#b42318;--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#f5f8ff;color:var(--ink);font:400 14px/1.6 var(--body)}button,input,select,textarea{font:inherit}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ff941f;outline-offset:2px}
+.shell{min-height:100vh;display:grid;grid-template-columns:260px minmax(0,1fr)}.side{background:linear-gradient(165deg,#062E70,#041d49);color:#fff;padding:25px 18px;display:flex;flex-direction:column;gap:28px}.brand{display:flex;align-items:center;gap:12px;padding:4px 8px 20px;border-bottom:1px solid #ffffff29}.mark{width:43px;height:43px;border-radius:50%;background:#fff;color:var(--navy);display:grid;place-items:center;font:800 14px var(--head)}.brand strong{display:block;font:700 16px var(--head);line-height:1.2}.brand small{display:block;color:#d4e2ff;font-size:11px;margin-top:4px}.nav-label{padding:0 10px;color:#a9c4f4;text-transform:uppercase;letter-spacing:1.2px;font:600 10px var(--head)}.nav{display:grid;gap:6px}.nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;text-decoration:none;color:#e8f0ff;font:600 13px var(--head)}.nav a.active{background:#fff;color:var(--navy);box-shadow:0 6px 16px #0002}.nav .ico{width:22px;text-align:center;font-size:17px}.side-bottom{margin-top:auto;border-top:1px solid #ffffff29;padding-top:16px}.back{display:block;text-align:center;color:#fff;text-decoration:none;border:1px solid #ffffff73;border-radius:9px;padding:10px;font:600 12px var(--head)}
+.main{min-width:0}.top{min-height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:12px clamp(18px,4vw,48px);gap:16px}.crumb{font:600 12px var(--head);color:var(--muted)}.crumb a{color:var(--muted);text-decoration:none}.crumb strong{color:var(--navy)}.user{display:flex;align-items:center;gap:11px;min-width:0}.avatar{width:38px;height:38px;border-radius:50%;background:var(--light);color:var(--blue);display:grid;place-items:center;font:700 13px var(--head)}.user-info strong{display:block;font:600 12px var(--head);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-info small{display:block;color:var(--muted);font-size:11px}.logout{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;padding:8px 12px;font:600 11px var(--head);cursor:pointer}
+.content{max-width:1180px;margin:auto;padding:clamp(22px,4vw,42px)}.eyebrow{color:var(--blue);font:700 11px var(--head);letter-spacing:1.3px;text-transform:uppercase}h1{font:700 clamp(25px,3vw,34px)/1.2 var(--head);color:var(--navy);margin:5px 0 8px}.intro{color:var(--muted);margin:0 0 24px;max-width:760px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:clamp(18px,3vw,30px);box-shadow:0 5px 18px #062e700b}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:22px}.step{border:1px solid var(--line);border-radius:12px;padding:12px;background:#f9fbff;min-width:0}.step .num{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#e7eefb;color:var(--muted);font:700 11px var(--head);margin-bottom:7px}.step strong{display:block;font:600 11px var(--head);color:var(--muted)}.step.active{border-color:#7fa4e9;background:var(--light)}.step.active .num,.step.done .num{background:var(--blue);color:#fff}.step.active strong,.step.done strong{color:var(--navy)}
+.section{display:none}.section.active{display:block}.section h2{font:700 18px var(--head);color:var(--navy);margin:0 0 5px}.section .hint{color:var(--muted);font-size:12px;margin:0 0 20px}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px}.field{min-width:0}.field.full{grid-column:1/-1}.field label{display:block;font:600 11px var(--head);color:#53627d;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;min-height:44px;border:1px solid #d6e0f1;border-radius:9px;background:#fff;padding:10px 12px;color:var(--ink);font:400 13px var(--body)}.field textarea{min-height:80px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{outline:3px solid #0648ad1a;border-color:var(--blue)}.field input[readonly]{background:#f3f6fc;color:#52617a}.field.is-disabled input,.field.is-disabled select{background:#eef1f6!important;color:#8994a7!important;border-color:#e0e5ed!important;cursor:not-allowed}.field small{display:block;color:var(--muted);font-size:10px;margin-top:5px}.subhead{grid-column:1/-1;border-top:1px solid #edf1f8;padding-top:16px;margin-top:4px;color:var(--navy);font:700 13px var(--head)}.checkline{display:flex;gap:10px;align-items:flex-start;padding:14px;background:#f7f9fe;border:1px solid #e7edf8;border-radius:10px;font-size:12px}.checkline input{margin-top:3px;width:17px;height:17px;flex:none}.actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-top:18px;border-top:1px solid #edf1f8}.btn{border:0;border-radius:9px;padding:11px 18px;background:var(--blue);color:#fff;font:600 12px var(--head);cursor:pointer}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--navy)}.btn:disabled{opacity:.55;cursor:not-allowed}.error{display:none;margin:14px 0 0;padding:11px 13px;border-radius:9px;background:#fff0ef;border:1px solid #ffd2ce;color:var(--red);font-size:12px}.error.show{display:block}.note{margin-top:18px;padding:12px 14px;background:#fff8ed;border:1px solid #ffe2bd;border-radius:10px;color:#84500d;font-size:11px}.review{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 20px}.review div{background:#f7f9fe;border:1px solid #edf1f8;border-radius:9px;padding:10px 12px;min-width:0}.review small{display:block;color:var(--muted);font-size:10px}.review strong{display:block;color:var(--navy);font:600 12px var(--head);overflow-wrap:anywhere}.result{display:none;text-align:center;padding:34px 18px}.result.show{display:block}.result .symbol{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;background:#e8f6ee;color:var(--green);font-size:30px}.result h2{font:700 22px var(--head);color:var(--navy);margin:0 0 8px}.student-id{font:700 24px var(--head);color:var(--blue);margin:12px 0}.loading{text-align:center;padding:55px;color:var(--muted)}footer{text-align:center;color:#8793a8;font-size:10px;padding:25px 12px}
+@media(max-width:900px){.shell{grid-template-columns:220px minmax(0,1fr)}}
+@media(max-width:700px){.shell{display:block}.side{padding:13px 16px;gap:12px}.brand{padding:0 4px 12px}.nav-label{display:none}.nav{display:flex;overflow-x:auto}.nav a{white-space:nowrap;padding:9px 11px}.side-bottom{display:none}.top{min-height:64px;padding:10px 16px}.user-info{display:none}.content{padding:22px 15px}.steps{grid-template-columns:repeat(4,minmax(70px,1fr));overflow-x:auto}.step{padding:9px}.field-grid,.review{grid-template-columns:1fr}.field.full,.subhead{grid-column:1}.panel{padding:17px}.actions .btn{flex:1}.crumb{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <div class="brand"><div class="mark">MA</div><div><strong>MOREH ACADEMY</strong><small>Applicant Portal</small></div></div>
+  <div><div class="nav-label">Applicant workspace</div><nav class="nav" aria-label="Applicant navigation">
+    <a href="<?= baseUrl ?>?page=applicant-portal" target="_top"><span class="ico">▦</span>Dashboard</a>
+    <a class="active" href="<?= baseUrl ?>?page=applicant-application" target="_top" aria-current="page"><span class="ico">📝</span>My Application</a>
+    <a href="#" style="opacity:.45;pointer-events:none"><span class="ico">📎</span>Requirements</a>
+    <a href="#" style="opacity:.45;pointer-events:none"><span class="ico">◷</span>Application Tracking</a>
+    <a href="#" style="opacity:.45;pointer-events:none"><span class="ico">♙</span>My Profile</a>
+    <a href="#" style="opacity:.45;pointer-events:none"><span class="ico">♧</span>Notifications</a>
+  </nav></div>
+  <div class="side-bottom"><a class="back" href="<?= baseUrl ?>?page=home" target="_top">← Back to Moreh Academy website</a></div>
+</aside>
+<main class="main">
+<header class="top"><div class="crumb"><a href="<?= baseUrl ?>?page=applicant-portal" target="_top">APPLICANT WORKSPACE</a> / <strong>My Application</strong></div><div class="user"><div class="avatar" id="avatar">MA</div><div class="user-info"><strong id="userName">Loading account…</strong><small id="userEmail">Please wait</small></div><button class="logout" id="logout">Sign out</button></div></header>
+<section class="content">
+  <div id="loading" class="loading">Verifying your account and application…</div>
+  <div id="applicationView" hidden>
+    <div class="eyebrow">K–12 Admissions</div><h1>My Application</h1>
+    <p class="intro">Complete the information below to apply for admission to Moreh Academy. Please review your entries carefully before submitting.</p>
+    <div class="panel" id="formPanel">
+      <div class="steps" id="stepIndicators">
+        <div class="step active"><div class="num">1</div><strong>Academic</strong></div>
+        <div class="step"><div class="num">2</div><strong>Personal</strong></div>
+        <div class="step"><div class="num">3</div><strong>Family & Contacts</strong></div>
+        <div class="step"><div class="num">4</div><strong>Review & Submit</strong></div>
+      </div>
+      <form id="applicationForm" novalidate>
+        <section class="section active" data-step="0">
+          <h2>Student and academic information</h2><p class="hint">Enter the learner’s details and the grade level being applied for.</p>
+          <div class="field-grid" id="academicFields"></div>
+        </section>
+        <section class="section" data-step="1">
+          <h2>Personal information and address</h2><p class="hint">Provide the learner’s birth details, contact number, current address, and previous school information when applicable.</p>
+          <div class="field-grid" id="personalFields"></div>
+        </section>
+        <section class="section" data-step="2">
+          <h2>Parent, guardian, and emergency contacts</h2><p class="hint">A parent or legal guardian’s contact details are required when the applicant is below 18 years old.</p>
+          <div class="field-grid" id="familyFields"></div>
+        </section>
+        <section class="section" data-step="3">
+          <h2>Review your application</h2><p class="hint">Check the summary below. Your Student ID will be generated after successful first submission.</p>
+          <div class="review" id="reviewSummary"></div>
+          <label class="checkline"><input type="checkbox" data-key="PrivacyConsent" id="privacyConsent" required><span>I confirm that the information I provided is accurate and I have read and understood Moreh Academy’s <a href="<?= baseUrl ?>?page=privacy" target="_blank" rel="noopener">Privacy Policy</a>. I consent to the collection and processing of the information necessary for this admission application.</span></label>
+          <div class="note">Your application will be submitted to Moreh Academy. You will not be able to submit a second first-time application using this account. Document uploads and requirement tracking will be handled in a later module.</div>
+        </section>
+        <div class="error" id="formError" role="alert"></div>
+        <div class="actions"><button type="button" class="btn secondary" id="previous" disabled>Previous</button><button type="button" class="btn" id="next">Continue</button></div>
+      </form>
+    </div>
+    <div class="panel result" id="submittedResult">
+      <div class="symbol">✓</div><h2>Application submitted successfully</h2>
+      <p>Your K–12 application has been saved and linked to your Applicant account.</p>
+      <div class="student-id" id="generatedId"></div>
+      <p style="color:var(--muted);font-size:12px">Keep your Student ID for future reference. You can view your application status from your dashboard.</p>
+      <a class="btn" href="<?= baseUrl ?>?page=applicant-portal" target="_top" style="display:inline-block;text-decoration:none;margin-top:12px">Go to Dashboard</a>
+    </div>
+  </div>
+  <div id="existingApplication" class="panel" hidden></div>
+</section>
+<footer>© <span id="year"></span> Moreh Academy. All rights reserved.</footer>
+</main>
+</div>
+<script>
+var APP_BASE='<?= baseUrl ?>',TOKEN_KEY='ma_token',currentStep=0,account=null;
+function token(){try{return sessionStorage.getItem(TOKEN_KEY)||''}catch(e){return ''}}
+function goHome(){window.top.location.href=APP_BASE||'?page=home'}
+function run(fn,args,ok,fail){if(typeof google==='undefined'||!google.script){fail('Backend is unavailable.');return}google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail(e&&e.message?e.message:'Something went wrong. Please try again.')})[fn].apply(null,args)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function initials(n){var p=String(n||'Moreh Applicant').trim().split(/\s+/);return (p[0]||'M').charAt(0).toUpperCase()+(p.length>1?p[p.length-1].charAt(0).toUpperCase():'A')}
+function field(key,label,type,opts,required,help,full){
+ var html='<div class="field'+(full?' full':'')+'"><label for="f_'+key+'">'+esc(label)+(required?' *':'')+'</label>';
+ if(type==='select'){html+='<select id="f_'+key+'" data-key="'+key+'" '+(required?'required':'')+'><option value="">Select '+esc(label.toLowerCase())+'</option>'+(opts||[]).map(function(o){return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>'}).join('')+'</select>'}
+ else{html+='<input id="f_'+key+'" data-key="'+key+'" type="'+(type||'text')+'" '+(required?'required':'')+(key==='Department'?' readonly':'')+(key==='LRN'?' inputmode="numeric" maxlength="12" pattern="[1-5][0-9]{11}"':'')+(key==='Mobile'||key==='FatherMobile'||key==='MotherMobile'||key==='EmMobile'||key==='GuardMobile'?' inputmode="numeric" maxlength="11" pattern="09[0-9]{9}"':'')+(key==='Birthdate'?' max="'+localToday()+'"':'')+'>'}
+ if(help)html+='<small>'+esc(help)+'</small>';return html+'</div>'
+}
+function localToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function opts(values){return values.map(function(v){return [v,v]})}
+var GRADES=['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+var CLUSTERS=['Science, Technology, Engineering, and Mathematics','Arts, Social Sciences, and Humanities','Business and Entrepreneurship','ICT Support and Computer Programming Technologies','Hospitality and Tourism'];
+function buildFields(){
+ var sy=opts(['2026-2027','2027-2028','2028-2029']);
+ document.getElementById('academicFields').innerHTML=
+  field('SchoolYear','School Year','select',sy,true)+field('LRN','Learner Reference Number (LRN)','text',null,true,'Required. Enter exactly 12 digits beginning with 1, 2, 3, 4, or 5.')+
+  field('Surname','Surname','text',null,true)+field('FirstName','First Name','text',null,true)+field('MiddleName','Middle Name','text')+field('Suffix','Suffix (e.g. Jr., III)','text')+
+  field('GradeLevel','Intended Grade Level','select',opts(GRADES),true)+field('Department','Department','text',null,false,'Automatically determined from the selected grade level.')+
+  field('Cluster','Senior High School Strand / Cluster','select',opts(CLUSTERS),false,'Required for Grade 11 and Grade 12.',true)+
+  field('Category','Admission Category (if known)','select',opts(['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','IS']),false,'If you are unsure, leave this blank.');
+ document.getElementById('personalFields').innerHTML=
+  field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
+  field('BirthPlace','Place of Birth','text')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
+  field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
+  field('City','City / Municipality','text',null,true)+
+  '<div class="subhead">Previous school information (if applicable)</div>'+
+  field('PrevSchool','Previous School Name','text',null,false,'Leave blank if this is the learner’s first school.')+
+  field('PrevSY','Previous School Year','text',null,false,'Example: 2025-2026.')+
+  field('PrevGrade','Last Grade Level Completed','select',opts(GRADES))+
+  field('PrevCluster','Previous SHS Strand / Cluster','select',opts(CLUSTERS),false,'Applicable only if the previous grade level was Grade 11 or Grade 12.')+
+  field('PrevSection','Previous Section','text')+field('PrevAdviser','Previous Adviser','text')+
+  field('PrevScholarship','Previous Scholarship (if any)','select',opts(['PUB-QVR','TLC','ESC JHS','ESC SHS','QVA PASSER']))+
+  field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'');
+ var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
+ var status=opts(['Alive','Deceased']);
+ document.getElementById('familyFields').innerHTML=
+  '<div class="subhead">Father’s information (optional)</div>'+
+  field('FatherName','Father’s Full Name','text')+field('FatherStatus','Father’s Status','select',status)+
+  field('FatherOccupation','Father’s Occupation','text')+field('FatherEducation','Highest Educational Attainment','select',edu)+
+  field('FatherMobile','Father’s Mobile Number','tel')+field('FatherEmail','Father’s Email Address','email')+
+  '<div class="subhead">Mother’s information (optional)</div>'+
+  field('MotherName','Mother’s Full Name','text')+field('MotherStatus','Mother’s Status','select',status)+
+  field('MotherOccupation','Mother’s Occupation','text')+field('MotherEducation','Highest Educational Attainment','select',edu)+
+  field('MotherMobile','Mother’s Mobile Number','tel')+field('MotherEmail','Mother’s Email Address','email')+
+  '<div class="subhead">Parent / legal guardian contact (required for applicants below 18)</div>'+
+  field('GuardName','Parent / Legal Guardian Full Name','text',null,false)+field('GuardRelation','Relationship to Applicant','text',null,false)+
+  field('GuardEmail','Parent / Guardian Email Address','email',null,false)+field('GuardMobile','Parent / Guardian Mobile Number','tel',null,false)+
+  '<div class="subhead">Emergency contact</div>'+
+  field('EmName','Emergency Contact Full Name','text',null,true)+field('EmRelation','Relationship to Applicant','text',null,true)+
+  field('EmMobile','Emergency Contact Mobile Number','tel',null,true)+
+  '<div class="field full"><label class="checkline"><input type="checkbox" data-key="EmSameAddr" id="f_EmSameAddr"><span>Emergency contact has the same address as the applicant.</span></label></div>'+
+  field('EmAddress','Emergency Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true);
+}
+function value(key){var el=document.querySelector('[data-key="'+key+'"]');if(!el)return '';return el.type==='checkbox'?el.checked:el.value.trim()}
+function setValue(key,v){var el=document.querySelector('[data-key="'+key+'"]');if(el)el.value=v||''}
+function showError(msg){var e=document.getElementById('formError');e.textContent=msg||'';e.classList.toggle('show',!!msg)}
+function updateGradeRules(){
+ var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),isShs=idx>=13;
+ var dept=idx<0?'':idx<3?'Preschool':idx<9?'Elementary':idx<13?'Junior High School':'Senior High School';
+ setValue('Department',dept);
+ var cluster=document.getElementById('f_Cluster');cluster.required=isShs;
+ document.getElementById('f_Cluster').closest('.field').style.display=isShs?'':'none';
+}
+function setFieldsDisabled(keys,disabled){keys.forEach(function(k){var el=document.getElementById('f_'+k);if(!el)return;el.disabled=disabled;el.closest('.field').classList.toggle('is-disabled',disabled);if(disabled){el.value='';el.required=false}})}
+function updateParentRules(parent){var deceased=value(parent+'Status')==='Deceased';setFieldsDisabled([parent+'Occupation',parent+'Education',parent+'Mobile',parent+'Email'],deceased)}
+function updatePreviousClusterRules(){var applicable=value('PrevGrade')==='Grade 11'||value('PrevGrade')==='Grade 12';var el=document.getElementById('f_PrevCluster');if(!el)return;el.disabled=!applicable;el.closest('.field').classList.toggle('is-disabled',!applicable);if(!applicable)el.value=''}
+function updateEmergencyRules(){var same=value('EmSameAddr')===true;var address=document.getElementById('f_EmAddress');if(address)address.required=!same;}
+function updateGuardianRules(){
+ var birth=value('Birthdate'),age=null;
+ if(birth){var d=new Date(birth+'T00:00:00'),now=new Date();age=now.getFullYear()-d.getFullYear();if(now.getMonth()<d.getMonth()||(now.getMonth()===d.getMonth()&&now.getDate()<d.getDate()))age--}
+ var required=age!==null&&age<18;
+ ['GuardName','GuardRelation','GuardEmail','GuardMobile'].forEach(function(k){var el=document.getElementById('f_'+k);el.required=required;el.closest('.field').querySelector('label').innerHTML=esc(({GuardName:'Parent / Legal Guardian Full Name',GuardRelation:'Relationship to Applicant',GuardEmail:'Parent / Guardian Email Address',GuardMobile:'Parent / Guardian Mobile Number'})[k])+(required?' *':'')});
+}
+function collect(){
+ var out={};document.querySelectorAll('#applicationForm [data-key]').forEach(function(el){out[el.dataset.key]=el.type==='checkbox'?el.checked:el.value.trim()});return out;
+}
+function renderReview(){
+ var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Parent / guardian',d.GuardName||'Not provided'],['Emergency contact',d.EmName||'Not provided']];
+ document.getElementById('reviewSummary').innerHTML=items.map(function(x){return '<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'—')+'</strong></div>'}).join('');
+}
+function setStep(n){
+ currentStep=Math.max(0,Math.min(3,n));
+ document.querySelectorAll('.section').forEach(function(s,i){s.classList.toggle('active',i===currentStep)});
+ document.querySelectorAll('.step').forEach(function(s,i){s.classList.toggle('active',i===currentStep);s.classList.toggle('done',i<currentStep)});
+ document.getElementById('previous').disabled=currentStep===0;
+ document.getElementById('next').textContent=currentStep===3?'Submit Application':'Continue';
+ if(currentStep===3)renderReview();
+ window.scrollTo(0,0);
+}
+function validateStep(){
+ var section=document.querySelector('.section[data-step="'+currentStep+'"]');
+ var fields=section.querySelectorAll('input,select,textarea');
+ for(var i=0;i<fields.length;i++){if(fields[i].type==='checkbox'&&!fields[i].required)continue;if(!fields[i].checkValidity()){fields[i].reportValidity();return false}}
+ if(currentStep===2){
+  var d=collect(),age=null;if(d.Birthdate){var b=new Date(d.Birthdate+'T00:00:00'),n=new Date();age=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()===b.getMonth()&&n.getDate()<b.getDate()))age--}
+  if(age!==null&&age<18&&d.GuardEmail.toLowerCase()===String(account.email||'').toLowerCase()){showError('The parent / guardian email must be different from the applicant account email.');return false}
+ }
+ showError('');return true;
+}
+function submitApplication(){
+ var form=document.getElementById('applicationForm');
+ if(!form.checkValidity()){var bad=form.querySelector(':invalid');if(bad){var section=bad.closest('.section');if(section)setStep(Number(section.dataset.step));bad.reportValidity()}return}
+ var d=collect();d.PrivacyConsent=!!d.PrivacyConsent;
+ var btn=document.getElementById('next');btn.disabled=true;btn.textContent='Submitting…';showError('');
+ run('admissionCreateApplication',[token(),d],function(r){
+  if(!r||r.success!==true){btn.disabled=false;btn.textContent='Submit Application';showError((r&&r.message)||'We could not submit your application. Please review the information and try again.');return}
+  document.getElementById('formPanel').style.display='none';
+  document.getElementById('submittedResult').classList.add('show');
+  document.getElementById('generatedId').textContent=r.data&&r.data.studentId?'Student ID: '+r.data.studentId:'Application submitted';
+ },function(e){btn.disabled=false;btn.textContent='Submit Application';showError(e)});
+}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
+function showExisting(record){
+ document.getElementById('applicationView').hidden=true;var box=document.getElementById('existingApplication');box.hidden=false;
+ box.innerHTML='<div style="text-align:center;padding:28px 10px"><div style="font-size:32px;color:#16834a">✓</div><h2 style="font:700 21px Poppins;color:#062e70">You have already submitted an application</h2><p style="color:#64748b">Your first application is saved and linked to your account. This module does not allow a second submission.</p><div style="font:700 22px Poppins;color:#0648ad;margin:14px">Student ID: '+esc(record.OfficialStudentID||'Not yet assigned')+'</div><a class="btn" style="display:inline-block;text-decoration:none" href="'+esc(APP_BASE)+'?page=applicant-portal" target="_top">Return to Dashboard</a></div>';
+}
+document.getElementById('logout').addEventListener('click',signOut);
+document.getElementById('year').textContent=new Date().getFullYear();
+document.getElementById('previous').onclick=function(){setStep(currentStep-1);showError('')};
+document.getElementById('next').onclick=function(){if(!validateStep())return;if(currentStep<3)setStep(currentStep+1);else submitApplication()};
+document.addEventListener('change',function(e){if(e.target.id==='f_GradeLevel')updateGradeRules();if(e.target.id==='f_Birthdate')updateGuardianRules();if(e.target.id==='f_EmSameAddr')updateEmergencyRules();if(e.target.id==='f_FatherStatus')updateParentRules('Father');if(e.target.id==='f_MotherStatus')updateParentRules('Mother');if(e.target.id==='f_PrevGrade')updatePreviousClusterRules()});
+document.addEventListener('input',function(e){if(e.target.id==='f_LRN')e.target.value=e.target.value.replace(/\D/g,'').slice(0,12)});
+buildFields();updateGradeRules();updateGuardianRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+(function boot(){
+ var t=token();if(!t){goHome();return}
+ run('authWhoAmI',[t],function(r){
+  if(!r||r.success!==true){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome();return}
+  account=r.data||{};if(['Applicant','Student'].indexOf(account.role)<0){goHome();return}
+  document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';document.getElementById('userEmail').textContent=account.email||'';document.getElementById('avatar').textContent=initials(account.fullName);
+  run('admissionGetMyApplication',[t],function(a){
+   document.getElementById('loading').style.display='none';
+   if(!a||a.success!==true){document.getElementById('applicationView').hidden=false;showError((a&&a.message)||'Unable to load your application.');return}
+   if(a.data){showExisting(a.data);return}
+   if(account.role!=='Applicant'){document.getElementById('applicationView').hidden=false;document.getElementById('formPanel').innerHTML='<p>Your account does not have an application linked yet. Please contact the Admissions Office for assistance.</p>';return}
+   document.getElementById('applicationView').hidden=false;
+  },function(e){document.getElementById('loading').textContent=e});
+ },function(){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome()});
+})();
+</script>
+</body></html>
