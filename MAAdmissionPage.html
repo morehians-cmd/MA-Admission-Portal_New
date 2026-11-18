@@ -82,7 +82,16 @@ function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
     var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
-    var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>'}).join('')+'</div>'+
+    var categoryOptions=['Regular','PUB-QVR','QVA PASSER','TLC','ESC','PEAC Grantee','TLC-OVAP'];
+    var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
+      if(k==='Category'){
+        var current=String(x[k]||'');
+        var options=categoryOptions.slice();
+        if(current && options.indexOf(current)<0)options.unshift(current);
+        return '<div><label>Category</label><select data-edit="Category">'+options.map(function(v){return '<option value="'+esc(v)+'" '+(v===current?'selected':'')+'>'+esc(v==='QVA PASSER'?'QVA Passer':v)+'</option>'}).join('')+'</select></div>';
+      }
+      return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>';
+    }).join('')+'</div>'+
       '<div class="actions"><button class="btn blue" onclick="saveStudent(\''+encodeURIComponent(x.StudentID)+'\')">Save Changes</button></div>'+
       '<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Documentary Requirements</h3><p>Only Admission Personnel can update these document statuses. Each change is recorded in the audit log.</p>'+
       '<div class="form-grid">'+(function(){var groups={};(x.RequirementItems||[]).forEach(function(item){var stage=item.stage||'For Completion';(groups[stage]||(groups[stage]=[])).push(item)});return Object.keys(groups).map(function(stage){return '<div class="section wide">'+esc(stage)+'</div>'+groups[stage].map(function(item){return '<div><label>'+esc(item.label)+'</label><select data-req-status="'+esc(item.statusKey)+'">'+['Pending Submission','Received','Verified','Incomplete'].map(function(v){return '<option value="'+esc(v)+'" '+(v===item.status?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}).join('')}).join('')})()+'</div>'+
