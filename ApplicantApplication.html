@@ -108,7 +108,9 @@ function restoreDraft(){
     updatePreviousSchoolRules();
     var savedPrevSchool=d.data.PrevSchool||'';
     updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateRequirementRules();
-    var prevSchoolEl=document.getElementById('f_PrevSchool');if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
+    var prevSchoolEl=document.getElementById('f_PrevSchool'),prevSchoolOther=document.getElementById('f_PrevSchoolOther');
+    if(prevSchoolEl&&d.data.PrevSchoolType==='Others, Please Specify'){prevSchoolEl.value='__OTHER__';if(prevSchoolOther)prevSchoolOther.value=savedPrevSchool||d.data.PrevSchoolOther||'';}
+    else if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
     setDraftStatus('Draft restored ✓');
   }catch(e){}
@@ -234,7 +236,7 @@ function buildRequirementFields(){
   field('ReqJHS','JHS Completion Certificate','select',ro)+field('ReqPhoto','2x2 ID Photo','select',photo)+
   field('ReqTransferee','Transferee Certification','select',tf)+field('ReqConsent','Parental Consent & Data Privacy Undertaking Form','select',consent)+
   field('ReqEnvelope','Long Brown Expandable Envelope','select',opts(['None','Submitted']))+
-remove requirement submitted dates  field('ReqRemarks','Requirement Remarks','textarea',null,false,'Add any relevant requirement note or clarification.',true);
+  field('ReqRemarks','Requirement Remarks','textarea',null,false,'Add any relevant requirement note or clarification.',true);
 }
 function updateRequirementRules(){
  var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),isPre=idx>=0&&idx<3,isElem=idx>=3&&idx<9,isJhs=idx>=9&&idx<13,isShs=idx>=13;
