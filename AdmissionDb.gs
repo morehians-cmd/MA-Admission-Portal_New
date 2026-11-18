@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 5,
+  VERSION: 6,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -28,7 +28,7 @@ var ADM_DB = {
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile', 'ConsentAt',
     'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee', 'ReqConsent', 'ReqRemarks',
-    'EnrollStatus', 'CancelDate', 'CancelReason', 'CertNo',
+    'EnrollStatus', 'ApplicationStatus', 'CancelDate', 'CancelReason', 'CertNo',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
     'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'EmSource',
@@ -310,6 +310,7 @@ function admissionDbNormalizeApplicant_(input, account) {
   out.Classification = 'New';
   out.Age = admissionDbAge_(out.Birthdate);
   out.EnrollStatus = 'Not Enrolled';
+  out.ApplicationStatus = 'Submitted';
   ADM_DB.REQUIREMENTS.forEach(function (item) { out[item.statusKey] = 'Not Applicable'; });
   admissionDbRequirementItems_(out).forEach(function (item) { out[item.statusKey] = 'Pending Submission'; });
   return out;
