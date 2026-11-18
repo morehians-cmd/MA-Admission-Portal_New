@@ -284,7 +284,8 @@ All five user decisions are consistent with the architecture in this plan. The a
 - Provides internal-only schema validation, header mapping, paginated reads, exact-ID lookup, filtered reads, controlled insert/update helpers, UUID generation, uniqueness checks, ScriptLock coordination, and append-only workflow audit writing.
 - Uses per-sheet primary-key, required-field, uniqueness, and mutable-field policies for all 12 approved workflow sheets.
 - Generic reads redact `GenderIdentity` by default. Any future Owner-only retrieval must first be authorized by its feature endpoint before the internal helper is called with sensitive-field inclusion.
-- Insert/update/audit helpers are lock-protected. Update rejects immutable and server-managed fields from the ordinary changes object; trusted server values are supplied separately by internal feature code.
+- Insert/update/audit helpers are lock-protected. Update rejects immutable and server-managed fields from the ordinary changes object; trusted server values (including actor identity, ownership keys, and server timestamps) are supplied separately by internal feature code. Audit actor/role and optional StudentID are accepted only through this trusted server-values argument.
+- Formula-leading user strings are stored as literal text rather than being written as spreadsheet formulas.
 - The data layer does not create/repair sheets, expose browser CRUD, perform Drive operations, change Script Properties, or modify legacy modules.
 - Audit append is a separate write. Feature endpoints must handle a post-mutation audit failure as an uncertain outcome and must not blindly retry.
 
