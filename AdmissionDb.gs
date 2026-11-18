@@ -195,9 +195,23 @@ function admissionDbEnsureSchemaSheet_(ss, name, headers) {
 function admissionDbSheet_() {
   var ss = authSpreadsheet_(), sh = ss.getSheetByName(ADM_DB.STUDENTS);
   if (!sh) throw new Error('Admission database is not initialized. Ask the system owner to run admissionDbSetup_().');
-  var actual = sh.getRange(1, 1, 1, ADM_DB.HEADERS.length).getDisplayValues()[0];
-  for (var i = 0; i < ADM_DB.HEADERS.length; i++) {
-    if (String(actual[i] || '') !== ADM_DB.HEADERS[i]) throw new Error('Admission database schema is invalid. Contact the system owner.');
+
+  var actualCount = sh.getLastColumn();
+  var expectedCount = ADM_DB.HEADERS.length;
+  if (actualCount < expectedCount) {
+    throw new Error('Admission database schema is invalid: expected ' + expectedCount +
+      ' columns but the database has ' + actualCount + '. Run admissionDbSetup_() from the Apps Script editor.');
+  }
+
+  var actual = sh.getRange(1, 1, 1, expectedCount).getDisplayValues()[0];
+  for (var i = 0; i < expectedCount; i++) {
+    var expected = ADM_DB.HEADERS[i];
+    var got = String(actual[i] || '').trim();
+    if (got !== expected) {
+      throw new Error('Admission database schema mismatch at column ' + (i + 1) +
+        ': expected "' + expected + '" but found "' + got +
+        '". Database: ' + ss.getName() + '. Run admissionDbSetup_() to repair the schema.');
+    }
   }
   return sh;
 }
