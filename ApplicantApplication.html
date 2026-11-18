@@ -272,16 +272,16 @@ function updateAdmissionCategoryRules(){
  if(idx>=0&&idx<=8){
    options=['REGULAR'];
  }else if(idx===9){
-   options=publicSchool?['TLC','ESC','REGULAR']:privateSchool?['ESC','REGULAR']:['TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['TLC','ESC','REGULAR']:privateSchool?['ESC','REGULAR']:['TLC','ESC','REGULAR'];
  }else if(idx>=10&&idx<=12){
-   options=publicSchool?['REGULAR']:privateSchool?['TLC','ESC','REGULAR']:['TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['REGULAR']:privateSchool?['TLC','ESC','REGULAR']:['TLC','ESC','REGULAR'];
  }else if(idx===13){
-   options=publicSchool?['PUB-QVR']:privateSchool?['QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['PUB-QVR']:privateSchool?['QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
  }else if(idx===14){
-   options=publicSchool?['REGULAR']:privateSchool?['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['REGULAR']:privateSchool?['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
  }
  var previous=category.value;
- category.innerHTML='<option value="">Select admission category</option>'+options.map(function(v){
+ category.innerHTML='<option value="">'+(idx>=9&&!schoolType?'Select previous school type first':'Select admission category')+'</option>'+options.map(function(v){
    var label=v==='REGULAR'?'Regular':v==='QVA PASSER'?'QVA Passer':v;
    return '<option value="'+esc(v)+'">'+esc(label)+'</option>';
  }).join('');
@@ -457,7 +457,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='f_FatherStatus')updateParentRules('Father');
  if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
  if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
- if(e.target.id==='f_PrevSchoolType'||e.target.id==='f_PrevSchoolType'){updatePreviousSchoolRules();updateAdmissionCategoryRules();}
+ if(e.target.id==='f_PrevSchoolType'){updatePreviousSchoolRules();updateAdmissionCategoryRules();}
  if(['f_Religion','f_FatherReligion','f_MotherReligion','f_RelReligion'].indexOf(e.target.id)>=0){updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');}
  if(e.target.id==='f_GradeLevel'){updateGradeRules();updateAdmissionCategoryRules();updateRequirementRules();}
  if(e.target.id==='f_Category')updateRequirementRules();
