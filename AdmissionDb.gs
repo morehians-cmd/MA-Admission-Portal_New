@@ -44,19 +44,20 @@ var ADM_DB = {
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
   REQUIREMENTS: [
-    { key: 'ReqSF9', label: 'SF9 / Report Card', statusKey: 'ReqSF9Status' },
-    { key: 'ReqF137', label: 'Form 137 / SF10', statusKey: 'ReqF137Status' },
-    { key: 'ReqBirth', label: 'PSA Birth Certificate', statusKey: 'ReqBirthStatus' },
-    { key: 'ReqMoral', label: 'Good Moral Certificate', statusKey: 'ReqMoralStatus' },
-    { key: 'ReqJHS', label: 'JHS Completion Certificate', statusKey: 'ReqJHSStatus' },
+    { key: 'ReqSF9Initial', label: 'Report Card — Photocopy', statusKey: 'ReqSF9InitialStatus' },
+    { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy', statusKey: 'ReqBirthInitialStatus' },
     { key: 'ReqPhoto', label: 'Three (3) 2x2 ID photos, white background, with nametag', statusKey: 'ReqPhotoStatus' },
+    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' },
+    { key: 'ReqSF9Completion', label: 'Report Card — Original', statusKey: 'ReqSF9CompletionStatus' },
+    { key: 'ReqF137', label: 'Form 137 / SF10', statusKey: 'ReqF137Status' },
+    { key: 'ReqMoral', label: 'Good Moral Certificate', statusKey: 'ReqMoralStatus' },
+    { key: 'ReqBirthCompletion', label: 'PSA Birth Certificate — Original', statusKey: 'ReqBirthCompletionStatus' },
+    { key: 'ReqJHS', label: 'JHS Completion Certificate', statusKey: 'ReqJHSStatus' },
     { key: 'ReqTransferee', label: 'Transferee / Scholarship Certification', statusKey: 'ReqTransfereeStatus' },
     { key: 'ReqConsent', label: 'Parental Consent & Data Privacy Undertaking Form', statusKey: 'ReqConsentStatus' },
-    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' },
-    { key: 'ReqSF9Initial', label: 'Report Card — Photocopy (Initial)', statusKey: 'ReqSF9InitialStatus' },
-    { key: 'ReqSF9Completion', label: 'Report Card — Original (Completion)', statusKey: 'ReqSF9CompletionStatus' },
-    { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy (Initial)', statusKey: 'ReqBirthInitialStatus' },
-    { key: 'ReqBirthCompletion', label: 'PSA Birth Certificate — Original (Completion)', statusKey: 'ReqBirthCompletionStatus' }
+    // Legacy status columns are retained for compatibility with existing records.
+    { key: 'ReqSF9', label: 'Legacy Report Card Status', statusKey: 'ReqSF9Status' },
+    { key: 'ReqBirth', label: 'Legacy Birth Certificate Status', statusKey: 'ReqBirthStatus' }
   ],
   APPLICANT_FIELDS: [
     'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'Category', 'GradeLevel',
@@ -213,8 +214,9 @@ function admissionDbRequirementItems_(record) {
       key: item.key,
       statusKey: item.statusKey,
       label: item.label,
+      stage: (item.key.indexOf('Initial') >= 0 || item.key === 'ReqPhoto' || item.key === 'ReqEnvelope') ? 'Initial Requirements' : 'For Completion',
       required: true,
-      status: String(record[item.statusKey] || 'Pending Submission')
+      status: String(record[item.statusKey] || ((item.key === 'ReqSF9Initial' || item.key === 'ReqSF9Completion') ? record.ReqSF9Status : item.key === 'ReqBirthInitial' ? record.ReqBirthStatus : '') || 'Pending Submission')
     });
   });
   return items;
