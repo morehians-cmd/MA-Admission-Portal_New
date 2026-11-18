@@ -137,11 +137,9 @@ function buildFields(){
   field('ReferredBy','Referred By','text',null,false,'If someone referred the applicant, enter the name or organization.');
  document.getElementById('personalFields').innerHTML=
   field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
-  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Others, specify']))+
-  field('GenderOther','Gender Identity (Other)','text',null,false,'Specify only when applicable.')+
+  field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine']))+
   field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church',\"Jehovah's Witnesses\",'The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
-  field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+
-  field('BirthPlace','Place of Birth','text')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
+  field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true)+
   '<div class="subhead">Previous school information (if applicable)</div>'+
@@ -166,9 +164,6 @@ function buildFields(){
   field('MotherOccupation','Mother’s Occupation','text')+field('MotherEducation','Highest Educational Attainment','select',edu)+
   field('MotherMobile','Mother’s Mobile Number','tel')+field('MotherEmail','Mother’s Email Address','email')+
   field('MotherReligion','Mother’s Religion','select',relOpts)+field('MotherReligionOther','Mother’s Religion (Other)','text',null,false,'Specify only when applicable.')+
-  '<div class="subhead">Parent / legal guardian contact (required for applicants below 18)</div>'+
-  field('GuardName','Parent / Legal Guardian Full Name','text',null,false)+field('GuardRelation','Relationship to Applicant','text',null,false)+
-  field('GuardEmail','Parent / Guardian Email Address','email',null,false)+field('GuardMobile','Parent / Guardian Mobile Number','tel',null,false)+
   '<div class="subhead">Living arrangement</div>'+
   field('LivingWith','Who does the student currently live with?','select',opts(['Both Father and Mother','Father only','Mother only','Relatives / Legal Guardian','Independent / Boarding / Living alone']),true,'This determines which parent/guardian information can be used for the emergency-contact helper.',true)+
   '<div id="relativeFields" class="field-grid full relative-fields" style="display:none">'+
@@ -195,7 +190,7 @@ function buildFields(){
   '<label><input type="checkbox" data-src="Relative" id="src_Relative"> Relatives / Legal Guardian</label>'+
   '</div><small>Select a source to automatically fill the emergency contact from the available family information.</small></div>'+
   '<div class="field full"><label class="checkline"><input type="checkbox" data-key="EmSameAddr" id="f_EmSameAddr"><span>Primary Contact has the same address as the applicant.</span></label></div>'+
-  field('EmAddress','Emergency Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true)+
+  field('EmAddress','Primary Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true)+
   '<input type="hidden" data-key="EmSource" id="f_EmSource" value="">';
 }
 function buildRequirementFields(){
