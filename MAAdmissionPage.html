@@ -3,7 +3,7 @@
 <title>Admissions | Moreh Academy</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <?!= include('MAAdmissionStyles') ?>
-</head><body>
+<style>.btn-loading{display:inline-flex;align-items:center;gap:8px}.loading-spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:maSpin .7s linear infinite}@keyframes maSpin{to{transform:rotate(360deg)}}</style></head><body>
 <header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY · ADMISSIONS</div><nav><a href="<?= baseUrl ?>">Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
 <main><div class="wrap">
 <div class="head"><div><h1>Admissions Portal</h1><p id="welcome">Loading your admission portal…</p></div></div>
@@ -66,7 +66,7 @@ var APP_BASE='<?= baseUrl ?>',TOKEN='';
 function $(id){return document.getElementById(id)}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
 function msg(t,bad){var e=$('message');e.textContent=t;e.className='status '+(bad?'error':'success');e.classList.remove('hidden')}
-function call(fn,args,ok){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
+function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){if(fail)fail(r&&r.message||'Request failed.');else msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){if(fail)fail(e&&e.message||'Request failed.');else msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){msg('Please sign in from the Moreh Academy Homepage first.',true);return}call('authWhoAmI',[TOKEN],load)}
@@ -107,13 +107,41 @@ function localStatus(id,text,bad){
   e.textContent=text;e.className='status '+(bad?'error':'success');
   e.style.display='inline-flex';
 }
+function setButtonLoading(button,loading,label){
+  if(!button)return;
+  if(loading){
+    button.disabled=true;
+    button.innerHTML='<span class="loading-spinner" aria-hidden="true"></span> Processing...';
+  }else{
+    button.disabled=false;
+    button.textContent=label;
+  }
+}
 function saveStudent(id){
+  var button=document.querySelector('#studentDetail [data-action="save-student"]');
+  setButtonLoading(button,true,'Save Changes');
   var o={};document.querySelectorAll('#studentDetail [data-edit]').forEach(function(e){o[e.getAttribute('data-edit')]=e.value});
-  call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){localStatus('studentSaveStatus',r.message,false);search()});
+  call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){
+    setButtonLoading(button,false,'Save Changes');
+    localStatus('studentSaveStatus',r.message,false);
+    search();
+  },function(error){
+    setButtonLoading(button,false,'Save Changes');
+    localStatus('studentSaveStatus',error,true);
+  });
 }
 function saveRequirementStatuses(id){
+  var button=document.querySelector('#studentDetail [data-action="save-requirements"]');
+  setButtonLoading(button,true,'Update Document Statuses');
   var o={};document.querySelectorAll('#studentDetail [data-req-status]').forEach(function(e){o[e.getAttribute('data-req-status')]=e.value});
-  call('admissionPortalUpdateRequirementStatuses',[TOKEN,decodeURIComponent(id),o],function(r){localStatus('reqSaveStatus',r.message,false);openStudent(id)});
+  call('admissionPortalUpdateRequirementStatuses',[TOKEN,decodeURIComponent(id),o],function(r){
+    setButtonLoading(button,false,'Update Document Statuses');
+    localStatus('reqSaveStatus',r.message,false);
+    openStudent(id);
+  },function(error){
+    setButtonLoading(button,false,'Update Document Statuses');
+    localStatus('reqSaveStatus',error,true);
+  });
 }
 $('signout').onclick=function(e){e.preventDefault();call('authSignOut',[TOKEN],function(){try{sessionStorage.removeItem('ma_token')}catch(x){}location.href=APP_BASE})};
 boot();
