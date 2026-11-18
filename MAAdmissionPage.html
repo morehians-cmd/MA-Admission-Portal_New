@@ -78,8 +78,26 @@ $('refreshApplicant').onclick=load;
 function drawStats(s){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+Object.keys(s.byStatus).map(function(k){return '<div class="stat"><span>'+esc(k)+'</span><strong>'+s.byStatus[k]+'</strong></div>'}).join('')}
 function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="7">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
-function openStudent(id){call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){var x=r.data;var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','Province','PrevSchool','ReqSF9','ReqF137','ReqBirth','ReqMoral','ReqJHS','ReqPhoto','ReqTransferee','ReqConsent','ReqRemarks'];var h='<div class="card"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>'}).join('')+'</div><div class="actions"><button class="btn blue" onclick="saveStudent(\''+encodeURIComponent(x.StudentID)+'\')">Save Changes</button></div></div>';$('staff').insertAdjacentHTML('afterend',h)})}
-function saveStudent(id){var o={};document.querySelectorAll('[data-edit]').forEach(function(e){o[e.getAttribute('data-edit')]=e.value});call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){msg(r.message);search()})}
+function openStudent(id){
+  call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
+    var x=r.data,old=$('studentDetail');if(old)old.remove();
+    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
+    var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>'}).join('')+'</div>'+
+      '<div class="actions"><button class="btn blue" onclick="saveStudent(\''+encodeURIComponent(x.StudentID)+'\')">Save Changes</button></div>'+
+      '<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Documentary Requirements</h3><p>Only Admission Personnel can update these document statuses. Each change is recorded in the audit log.</p>'+
+      '<div class="form-grid">'+(x.RequirementItems||[]).map(function(item){return '<div><label>'+esc(item.label)+'</label><select data-req-status="'+esc(item.statusKey)+'">'+['Pending Submission','Received','Verified','Incomplete'].map(function(v){return '<option value="'+esc(v)+'" '+(v===item.status?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}).join('')+'</div>'+
+      '<div class="actions"><button class="btn blue" onclick="saveRequirementStatuses(\''+encodeURIComponent(x.StudentID)+'\')">Update Document Statuses</button></div></div>';
+    $('staff').insertAdjacentHTML('afterend',h);
+  });
+}
+function saveStudent(id){
+  var o={};document.querySelectorAll('#studentDetail [data-edit]').forEach(function(e){o[e.getAttribute('data-edit')]=e.value});
+  call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){msg(r.message);search()});
+}
+function saveRequirementStatuses(id){
+  var o={};document.querySelectorAll('#studentDetail [data-req-status]').forEach(function(e){o[e.getAttribute('data-req-status')]=e.value});
+  call('admissionPortalUpdateRequirementStatuses',[TOKEN,decodeURIComponent(id),o],function(r){msg(r.message);openStudent(id)});
+}
 $('signout').onclick=function(e){e.preventDefault();call('authSignOut',[TOKEN],function(){try{sessionStorage.removeItem('ma_token')}catch(x){}location.href=APP_BASE})};
 boot();
 </script></body></html>
