@@ -197,7 +197,7 @@ function admissionDbRequirementItems_(record) {
   if (index < 0) return [];
   var level = index < 2 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
   var applicable = [];
-  if (level !== 'PRE') applicable.push('ReqSF9Initial', 'ReqSF9Completion');
+  if (index >= 3) applicable.push('ReqSF9Initial', 'ReqSF9Completion');
   applicable.push('ReqBirthInitial', 'ReqPhoto', 'ReqEnvelope');
   if (level !== 'PRE') applicable.push('ReqF137', 'ReqMoral');
   if (level === 'SHS') applicable.push('ReqBirthCompletion');
