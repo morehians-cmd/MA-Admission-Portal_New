@@ -123,6 +123,9 @@ function admissionDbRows_() {
 }
 
 function admissionDbFindById_(studentId) {
+  var fast = maAdmissionSpeedFindStudent_(studentId);
+  if (fast) return fast;
+
   var found = admissionDbRows_().filter(function (r) { return r.StudentID === String(studentId || ''); });
   if (found.length > 1) throw new Error('Admission database integrity error: duplicate StudentID.');
   return found.length ? found[0] : null;
@@ -203,6 +206,7 @@ function admissionCreateApplication(token, input) {
       insertedRow = sh.getLastRow() + 1;
       sh.getRange(insertedRow, 1, 1, ADM_DB.HEADERS.length).setNumberFormat('@').setValues(values);
       authLinkStudentLocked_(account.email, studentId);
+      maAdmissionSpeedBump_();
       admissionDbAudit_(account.email, 'application-created', studentId, 'Initial application record created');
     } catch (err) {
       if (insertedRow && sh) sh.deleteRow(insertedRow);
