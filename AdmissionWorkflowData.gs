@@ -368,14 +368,20 @@ function admissionWorkflowDataAssertUnique_(sheetName, candidate, ignoreId) {
   }
 }
 
+/** Convert untrusted formula-leading strings into literal text before setValues(). */
+function admissionWorkflowDataSafeCellValue_(value) {
+  if (typeof value === 'string' && /^[=+@\\-]/.test(value)) return "'" + value;
+  return value;
+}
+
 /** Build a row in canonical schema order; all unspecified fields remain blank. */
 function admissionWorkflowDataBuildRow_(sheetName, record) {
   var headers = ADMISSION_WORKFLOW_SCHEMA.HEADERS[sheetName];
   return headers.map(function(field) {
     var value = record[field];
     if (value === null || value === undefined) return '';
-    if (value instanceof Date) return value.toISOString();
-    return value;
+    if (value instanceof Date) value = value.toISOString();
+    return admissionWorkflowDataSafeCellValue_(value);
   });
 }
 
@@ -470,8 +476,8 @@ function admissionWorkflowDataUpdateById_(sheetName, id, changes, options) {
     var updated = headers.map(function(field) {
       var value = candidate[field];
       if (value === null || value === undefined) return '';
-      if (value instanceof Date) return value.toISOString();
-      return value;
+      if (value instanceof Date) value = value.toISOString();
+      return admissionWorkflowDataSafeCellValue_(value);
     });
     sheet.getRange(foundRow, 1, 1, headers.length).setNumberFormat('@');
     sheet.getRange(foundRow, 1, 1, headers.length).setValues([updated]);
