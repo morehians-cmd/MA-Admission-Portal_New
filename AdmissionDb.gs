@@ -410,6 +410,14 @@ function admissionDbAudit_(actorEmail, action, studentId, detail) {
   } catch (e) { console.error('Admission audit failed: ' + e.message); }
 }
 
+/**
+ * Public Apps Script menu/dropdown wrapper for database setup.
+ * Do not use the trailing-underscore function directly from the Run dropdown.
+ */
+function setupAdmissionDatabase() {
+  admissionDbSetup_();
+}
+
 function runAdmissionDbSetup() {
   admissionDbSetup_();
 }
