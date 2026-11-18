@@ -497,8 +497,40 @@ function validateStep(){
  return true;
 }
 function submitApplication(){
- var form=document.getElementById('applicationForm');
- if(!form.checkValidity()){var bad=form.querySelector(':invalid');if(bad){var section=bad.closest('.section');if(section)setStep(Number(section.dataset.step));bad.reportValidity()}return}
+ // Validate only fields that are actually applicable and visible.
+ // Hidden/disabled conditional fields must not block final submission.
+ for(var step=0;step<3;step++){
+   var section=document.querySelector('.section[data-step="'+step+'"]');
+   if(!section)continue;
+   var fields=section.querySelectorAll('input,select,textarea');
+   for(var i=0;i<fields.length;i++){
+     var el=fields[i];
+     if(el.disabled||el.closest('[style*="display:none"]'))continue;
+     if(el.type==='checkbox'&&!el.required)continue;
+     if(!el.checkValidity()){
+       setStep(step);
+       showError(el.validationMessage||'Please complete the required fields before submitting.');
+       try{el.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+       try{el.reportValidity()}catch(e){}
+       return;
+     }
+   }
+ }
+ var review=document.querySelector('.section[data-step="3"]');
+ if(review){
+   var reviewFields=review.querySelectorAll('input,select,textarea');
+   for(var j=0;j<reviewFields.length;j++){
+     var reviewEl=reviewFields[j];
+     if(reviewEl.disabled||reviewEl.closest('[style*="display:none"]'))continue;
+     if(reviewEl.type==='checkbox'&&!reviewEl.required)continue;
+     if(!reviewEl.checkValidity()){
+       showError(reviewEl.validationMessage||'Please complete the required confirmation before submitting.');
+       try{reviewEl.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+       try{reviewEl.reportValidity()}catch(e){}
+       return;
+     }
+   }
+ }
  var d=collect();d.PrivacyConsent=!!d.PrivacyConsent;
  var btn=document.getElementById('next');btn.disabled=true;btn.textContent='Submitting…';showError('');
  run('admissionCreateApplication',[token(),d],function(r){
