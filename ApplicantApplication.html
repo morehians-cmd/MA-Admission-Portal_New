@@ -173,7 +173,7 @@ function buildFields(){
   field('RelSex','Sex Assigned at Birth / Biological Sex','select',opts(['Male','Female']))+field('RelGender','Gender Orientation / Identity','select',opts(['Masculine','Feminine','Others, specify']))+
   field('RelGenderOther','Specify Gender Identity','text')+
   field('RelCivil','Civil Status','select',opts(['Single','Married','Widowed','Separated','Divorced','Annulled','Live-in']))+
-  field('RelSameAddr','Same address as the applicant','select',opts(['Yes','No']))+
+  '<div class="field full"><label class="checkline"><input type="checkbox" data-key="RelSameAddr" id="f_RelSameAddr"><span>Relative / Guardian has the same address as the applicant.</span></label></div>'+
   field('RelAddress','Relative / Guardian Address','text',null,false,'Required when the relative/guardian has a different address.',true)+
   field('RelSide','Parental Relationship with Student','select',opts(["Father's Side","Mother's Side",'None']))+
   '</div>'+
@@ -224,7 +224,7 @@ function updateLivingRules(){
    var el=document.getElementById('f_'+k);if(el)el.required=rel&&(k==='RelName'||k==='RelRelation'||k==='RelMobile');
  });
  var ra=document.getElementById('f_RelAddress');
- if(ra)ra.required=rel&&value('RelSameAddr')!=='Yes';
+ if(ra)ra.required=rel&&value('RelSameAddr')!==true;
  if(!rel){
    ['RelName','RelRelation','RelBirthdate','RelAge','RelSex','RelGender','RelGenderOther','RelMobile','RelCivil','RelSameAddr','RelAddress','RelSide','RelOccupation','RelEducation','RelEmail','RelReligion','RelReligionOther'].forEach(function(k){setValue(k,'')});
  }
@@ -233,7 +233,7 @@ function updateRelativeRules(){
  var b=value('RelBirthdate'),age='';
  if(b){var d=new Date(b+'T00:00:00'),n=new Date();age=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;}
  setValue('RelAge',age);
- var same=value('RelSameAddr')==='Yes',a=document.getElementById('f_RelAddress');
+ var same=value('RelSameAddr')===true,a=document.getElementById('f_RelAddress');
  if(a){
    a.disabled=same;
    a.required=!same;
