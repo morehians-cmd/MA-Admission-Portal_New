@@ -279,7 +279,7 @@ function requirementMarkup(record,submitted){
   return '<div class="doc-item"><div><strong>'+esc(item.label)+'</strong>'+(item.hint?'<small>'+esc(item.hint)+'</small>':'')+'</div><span class="doc-state '+cls+'">'+esc(status)+'</span></div>';
  }).join('');
  var notes=cfg.notes.length?'<div class="doc-reminder"><strong>Important reminders</strong><ul>'+cfg.notes.map(function(n){return '<li>'+esc(n)+'</li>'}).join('')+'</ul></div>':'';
- var downloads='<div class="doc-downloads"><button type="button" class="btn secondary" onclick="downloadConsentForm()">Download Parental Consent &amp; Data Privacy Undertaking Form</button><button type="button" class="btn secondary" onclick="downloadApplicationForm()">Download Student Application Form</button></div>';
+ var downloads='<div class="doc-downloads"><button type="button" class="btn secondary" onclick="downloadConsentForm()">Print / Save PDF — Parental Consent &amp; Data Privacy Undertaking Form</button><button type="button" class="btn secondary" onclick="downloadApplicationForm()">Print / Save PDF — Student Application Form</button></div>';
  var reminder='<div class="doc-reminder"><strong>Reminder:</strong> Please submit the required physical documents to the Moreh Academy Admission Office. Only authorized Admission Personnel can receive, verify, and update the status of submitted documents. Please check your Applicant Dashboard for status updates.</div>';
  return '<div class="subhead">Documentary Requirements to Submit</div><p class="hint">The following requirements are based on the selected grade level and applicable admission category.</p><div class="doc-list">'+list+'</div>'+notes+reminder+downloads;
 }
@@ -461,7 +461,7 @@ function submitApplication(){
 }
 function printWindow(title,body){
  var w=window.open('','_blank');
- if(!w){showError('Please allow pop-ups for this site to open the printable form.');return}
+ if(!w){window.alert('Please allow pop-ups for this site to open the printable form.');return}
  var html='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>body{font:12px Arial,sans-serif;color:#111;margin:28px}h1{text-align:center;font-size:19px;margin:0 0 18px}h2{font-size:14px;border-bottom:1px solid #999;padding-bottom:5px;margin:20px 0 8px}.meta{font-size:11px;margin-bottom:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}.item{border-bottom:1px solid #ddd;padding:5px 0;min-height:28px}.item b{display:block;font-size:10px;color:#555}.sign{display:grid;grid-template-columns:2fr 1fr;gap:36px 24px;margin-top:55px}.line{border-top:1px solid #111;padding-top:5px;min-height:25px}ol{padding-left:20px;line-height:1.6}@media print{body{margin:15mm}}</style></head><body><h1>'+esc(title)+'</h1>'+body+'</body></html>';
  w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},400);
 }
