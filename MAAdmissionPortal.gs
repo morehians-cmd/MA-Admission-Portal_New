@@ -27,16 +27,18 @@ function admissionPortalGetBootstrap(token) {
   }
 }
 
-function admissionPortalSearch(token, q, status, limit, grade, sy) {
+function admissionPortalSearch(token, q, status, applicationStatus, limit, grade, sy) {
   try {
     authRequireRole_(token, ['Encoder', 'Owner']);
     q = String(q == null ? '' : q).trim().toLowerCase();
     status = String(status == null ? '' : status).trim();
+    applicationStatus = String(applicationStatus == null ? '' : applicationStatus).trim();
     grade = String(grade == null ? '' : grade).trim();
     sy = String(sy == null ? '' : sy).trim();
     limit = Math.max(1, Math.min(100, Number(limit || 25)));
     var rows = maAdmissionSpeedRecords_().filter(function (r) {
       if (status && r.EnrollStatus !== status) return false;
+      if (applicationStatus && String(r.ApplicationStatus || 'Submitted') !== applicationStatus) return false;
       if (grade && r.GradeLevel !== grade) return false;
       if (sy && r.SchoolYear !== sy) return false;
       if (!q) return true;
@@ -183,6 +185,7 @@ function admissionPortalPublicRecord_(r) {
     LRN: r.LRN, SchoolYear: r.SchoolYear, Category: r.Category,
     GradeLevel: r.GradeLevel, Department: r.Department, Cluster: r.Cluster,
     Section: r.Section, Email: r.Email, EnrollStatus: r.EnrollStatus,
+    ApplicationStatus: r.ApplicationStatus || 'Submitted',
     ProcessedBy: r.ProcessedBy, ProcessedDate: r.ProcessedDate,
     Requirements: {
       SF9: r.ReqSF9, F137: r.ReqF137, Birth: r.ReqBirth, Moral: r.ReqMoral,
