@@ -27,7 +27,7 @@ var ADM_DB = {
     'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherReligion', 'MotherReligionOther',
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile', 'ConsentAt',
- 'ReqConsent', 'ReqRemarks',
+    'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee', 'ReqConsent', 'ReqRemarks',
     'EnrollStatus', 'CancelDate', 'CancelReason', 'CertNo',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
@@ -63,9 +63,6 @@ var ADM_DB = {
     'Birthdate', 'Mobile', 'SexualOrient', 'GenderOrient', 'Religion', 'ReligionOther',
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile',
-    'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee',
-
-
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
     'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace',
