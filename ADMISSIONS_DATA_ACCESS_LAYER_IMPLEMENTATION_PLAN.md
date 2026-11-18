@@ -286,6 +286,9 @@ All five user decisions are consistent with the architecture in this plan. The a
 - Generic reads redact `GenderIdentity` by default. Any future Owner-only retrieval must first be authorized by its feature endpoint before the internal helper is called with sensitive-field inclusion.
 - Insert/update/audit helpers are lock-protected. Update rejects immutable and server-managed fields from the ordinary changes object; trusted server values (including actor identity, ownership keys, and server timestamps) are supplied separately by internal feature code. Audit actor/role and optional StudentID are accepted only through this trusted server-values argument.
 - Formula-leading user strings are stored as literal text rather than being written as spreadsheet formulas.
+- Update operations re-check all policy-required fields after applying proposed changes, preventing an update from clearing a required value.
+- Implementation commit for `AdmissionWorkflowData.gs`: `70496a9ce45207e56a3afe4389208a6c8ff09673`.
+- Post-fix syntax validation: `AdmissionWorkflowData.gs` and `AdmissionWorkflowSchema.gs` both parsed successfully; the required-field update guard was confirmed in the committed source.
 - The data layer does not create/repair sheets, expose browser CRUD, perform Drive operations, change Script Properties, or modify legacy modules.
 - Audit append is a separate write. Feature endpoints must handle a post-mutation audit failure as an uncertain outcome and must not blindly retry.
 
