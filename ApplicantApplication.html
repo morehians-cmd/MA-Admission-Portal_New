@@ -178,14 +178,14 @@ function buildFields(){
   field('RelSide','Parental Relationship with Student','select',opts(["Father's Side","Mother's Side",'None']))+
   '</div>'+
   '<div class="subhead">Primary Contact Person</div>'+
-  field('EmName','Emergency Contact Full Name','text',null,true)+field('EmRelation','Relationship to Applicant','text',null,true)+
-  field('EmMobile','Emergency Contact Mobile Number','tel',null,true)+
+  field('EmName','Primary Contact Full Name','text',null,true)+field('EmRelation','Relationship to Applicant','text',null,true)+
+  field('EmMobile','Primary Contact Mobile Number','tel',null,true)+
   '<div class="field full"><label style="display:block;font:600 11px var(--head);color:#53627d;margin-bottom:6px">Quick selection: autofill from</label><div class="checkline" style="gap:18px;flex-wrap:wrap">'+
   '<label><input type="checkbox" data-src="Father" id="src_Father"> Father</label>'+
   '<label><input type="checkbox" data-src="Mother" id="src_Mother"> Mother</label>'+
   '<label><input type="checkbox" data-src="Relative" id="src_Relative"> Relatives / Legal Guardian</label>'+
   '</div><small>Select a source to automatically fill the emergency contact from the available family information.</small></div>'+
-  '<div class="field full"><label class="checkline"><input type="checkbox" data-key="EmSameAddr" id="f_EmSameAddr"><span>Emergency contact has the same address as the applicant.</span></label></div>'+
+  '<div class="field full"><label class="checkline"><input type="checkbox" data-key="EmSameAddr" id="f_EmSameAddr"><span>Primary Contact has the same address as the applicant.</span></label></div>'+
   field('EmAddress','Emergency Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true)+
   '<input type="hidden" data-key="EmSource" id="f_EmSource" value="">';
 }
@@ -208,7 +208,7 @@ function updatePreviousClusterRules(){var applicable=value('PrevGrade')==='Grade
 function updateEmergencyRules(){
  var same=value('EmSameAddr')===true;
  var address=document.getElementById('f_EmAddress');
- if(address)address.required=!same;
+ if(address){address.required=!same;if(same){address.value=addrOfApplicant();address.disabled=true;address.closest('.field').classList.add('is-disabled')}else{address.disabled=false;address.closest('.field').classList.remove('is-disabled')}}
  var src=String(value('EmSource')||'');
  ['Father','Mother','Relative'].forEach(function(k){
    var el=document.getElementById('src_'+k);
