@@ -197,8 +197,7 @@ This phase is planned separately from the initial application submission flow. I
 - After initial submission, applicants cannot directly edit or overwrite their submitted application.
 - Applicants may submit a correction request for eligible information. The original submitted record remains unchanged while the request is pending.
 - Ordinary contact and address corrections may be requested online and are subject to Admissions review.
-- Sensitive identity-related corrections — including legal name, date of birth, place of birth, and legal sex — require verification before approval. The applicant must either:
-  1. submit valid supporting documents through an approved, private document-handling process; or
+- Sensitive identity-related corrections — including legal name, date of birth, place of birth, and legal sex — require verification before approval. The applicant must either:  1. submit valid supporting documents through an approved, private document-handling process; or
   2. personally visit the Moreh Academy Admissions Office and present a valid government-issued ID or other identification accepted by the school.
 - A sensitive correction must not be applied merely because the applicant typed a new value or uploaded an unverified file.
 - Applicants cannot change their StudentID, account email identity link, system-generated fields, enrollment status, or Admissions-controlled requirement statuses through a correction request.
@@ -369,4 +368,15 @@ The user clarified the Sheet 9 grade fields: `GradeLevelApplied` is replaced by 
 
 Static validation passed for JavaScript parsing, all 12 header arrays, read-only preflight source, absence of legacy setup/migration calls, and absence of duplicate function-name collisions across the branch. The existing legacy setup, authentication, router, and spreadsheet files were not changed.
 
-**Pending user-controlled steps:** configure the three staging properties manually after reviewing the instructions; sync only `AdmissionWorkflowSchema.gs` to the separate staging Apps Script project; separately authorize and run the read-only preflight; review its output; and provide a separate explicit approval before running sheet creation. No production configuration, production spreadsheet, migration, or deployment is included.
+**Staging schema setup completed (user-reported, November 18, 2026):** the user configured the staging-only properties, synced `AdmissionWorkflowSchema.gs`, ran the read-only preflight, and then executed `admissionWorkflowSchemaSetup()` in the copied staging Apps Script project. The preflight reported `success: true`, `dryRun: true`, 12 planned creations, 0 blocked sheets, and 0 errors. The setup reported `success: true`, `dryRun: false`, 12 created sheets, 12 validated sheets, 0 remaining planned creations, 0 blocked sheets, and 0 errors; its message confirms all 12 workflow sheets have exact approved headers. Schema version `2.4.1`; requirement-rule version `ADMISSION_REQUIREMENTS_BASELINE_2026`. This is user-reported staging execution evidence only. No production configuration, production spreadsheet, migration, or deployment was included.
+
+## Stage 2.7 — Staging workflow schema creation confirmed (November 18, 2026)
+
+The user reported successful read-only preflight and subsequent execution of `admissionWorkflowSchemaSetup()` in the copied staging workbook.
+
+- Preflight: `success: true`; `dryRun: true`; 12 sheets listed for planned creation; no validated existing workflow sheets; 0 blocked; 0 errors.
+- Setup: `success: true`; `dryRun: false`; all 12 approved workflow sheets created; all 12 validated; no planned creations remaining; 0 blocked; 0 errors.
+- Setup message: “All 12 workflow sheets have exact approved headers.”
+- Schema version: `2.4.1`; requirement-rule version: `ADMISSION_REQUIREMENTS_BASELINE_2026`.
+
+The staging schema-creation milestone is complete based on the user-provided execution logs. Header validation does not constitute runtime testing of admissions endpoints or business workflows. Production remains untouched.
