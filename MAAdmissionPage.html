@@ -3,7 +3,7 @@
 <title>Admissions | Moreh Academy</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <?!= include('MAAdmissionStyles') ?>
-<style>.btn-loading{display:inline-flex;align-items:center;gap:8px}.loading-spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:maSpin .7s linear infinite}@keyframes maSpin{to{transform:rotate(360deg)}}.dashboard-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.breakdown{border:1px solid #d8e3f8;border-radius:12px;padding:15px;background:#fff}.breakdown h3{margin:0 0 10px;color:var(--navy);font:700 15px var(--head)}.breakdown-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #edf1f8;font-size:13px}.breakdown-row:last-child{border-bottom:0}.breakdown-row strong{color:var(--blue)}.muted{color:#71809b;font-size:13px}.needs-action{margin-top:14px;border:1px solid #d8e3f8;border-radius:12px;padding:15px;background:#fff}.needs-action h3{margin:0 0 5px;color:var(--navy);font:700 15px var(--head)}.action-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(130px,1fr) minmax(180px,1.4fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #edf1f8;font-size:13px}.action-row:last-child{border-bottom:0}.action-name{font-weight:600;color:var(--navy)}.action-reason{color:#71809b}.action-tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#f2f5fa;font-size:11px;font-weight:600}.action-tag.review{background:#fff5dc}.action-tag.approved{background:#eaf8ef}.action-tag.submitted{background:#edf4ff}@media(max-width:700px){.dashboard-breakdown{grid-template-columns:1fr}.action-row{grid-template-columns:1fr;gap:6px}}</style></head><body>
+<style>.btn-loading{display:inline-flex;align-items:center;gap:8px}.loading-spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:maSpin .7s linear infinite}@keyframes maSpin{to{transform:rotate(360deg)}}.dashboard-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.breakdown{border:1px solid #d8e3f8;border-radius:12px;padding:15px;background:#fff}.breakdown h3{margin:0 0 10px;color:var(--navy);font:700 15px var(--head)}.breakdown-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #edf1f8;font-size:13px}.breakdown-row:last-child{border-bottom:0}.breakdown-row strong{color:var(--blue)}.muted{color:#71809b;font-size:13px}.needs-action{margin-top:14px;border:1px solid #d8e3f8;border-radius:12px;padding:15px;background:#fff}.needs-action h3{margin:0 0 5px;color:var(--navy);font:700 15px var(--head)}.dashboard-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.dash-panel{border:1px solid #d8e3f8;border-radius:12px;padding:15px;background:#fff;min-width:0}.dash-panel h3{margin:0 0 10px;color:var(--navy);font:700 15px var(--head)}.mini-bars{display:flex;align-items:flex-end;gap:6px;height:130px;padding:10px 2px 0}.mini-bar-wrap{flex:1;min-width:12px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.mini-bar{width:100%;max-width:28px;min-height:3px;background:var(--blue);border-radius:5px 5px 0 0}.mini-bar-label{font-size:9px;color:#71809b;white-space:nowrap}.mini-bar-value{font-size:9px;color:var(--navy);font-weight:700}.pipeline-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.pipeline-item{padding:10px 6px;border:1px solid #edf1f8;border-radius:9px;text-align:center}.pipeline-item strong{display:block;font-size:18px;color:var(--blue)}.pipeline-item span{font-size:10px;color:#71809b}.recent-row{display:grid;grid-template-columns:minmax(150px,1.5fr) 90px 110px 90px;gap:8px;padding:8px 0;border-bottom:1px solid #edf1f8;font-size:12px;align-items:center}.recent-row:last-child{border-bottom:0}.recent-name{font-weight:600;color:var(--navy)}.analytics-list{max-height:210px;overflow:auto}.analytics-list .breakdown-row{font-size:12px}@media(max-width:700px){.dashboard-extra{grid-template-columns:1fr}.pipeline-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.recent-row{grid-template-columns:1fr 80px;}.recent-row>*:nth-child(3),.recent-row>*:nth-child(4){display:none}}.action-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(130px,1fr) minmax(180px,1.4fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #edf1f8;font-size:13px}.action-row:last-child{border-bottom:0}.action-name{font-weight:600;color:var(--navy)}.action-reason{color:#71809b}.action-tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#f2f5fa;font-size:11px;font-weight:600}.action-tag.review{background:#fff5dc}.action-tag.approved{background:#eaf8ef}.action-tag.submitted{background:#edf4ff}@media(max-width:700px){.dashboard-breakdown{grid-template-columns:1fr}.action-row{grid-template-columns:1fr;gap:6px}}</style></head><body>
 <header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY · ADMISSIONS</div><nav><a href="<?= baseUrl ?>">Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
 <main><div class="wrap">
 <div class="head"><div><h1>Admissions Portal</h1><p id="welcome">Loading your admission portal…</p></div></div>
@@ -76,8 +76,7 @@ function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k)
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
 $('refreshApplicant').onclick=load;
 function drawStats(s){
-  var app=s.byApplicationStatus||{};
-  var enroll=s.byStatus||{};
+  var app=s.byApplicationStatus||{}, enroll=s.byStatus||{};
   $('stats').innerHTML=
     '<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+
     '<div class="stat"><span>Submitted</span><strong>'+Number(app.Submitted||0)+'</strong></div>'+
@@ -95,28 +94,51 @@ function drawStats(s){
 
   $('dashboardBreakdown').innerHTML=list('Applications by Grade Level',s.byGrade)+list('Applications by Admission Category',s.byCategory);
 
+  var trend=s.trend||[], maxTrend=Math.max.apply(null,trend.map(function(x){return Number(x.count||0)}).concat([1]));
+  var trendHtml='<div class="dash-panel"><h3>Applications — Last 14 Days</h3><div class="mini-bars">'+
+    trend.map(function(x){var h=Math.max(3,Math.round((Number(x.count||0)/maxTrend)*90));return '<div class="mini-bar-wrap"><span class="mini-bar-value">'+Number(x.count||0)+'</span><div class="mini-bar" style="height:'+h+'px"></div><span class="mini-bar-label">'+esc(x.label)+'</span></div>';}).join('')+
+    '</div></div>';
+
+  var pipe=s.pipeline||{};
+  var pipeHtml='<div class="dash-panel"><h3>Enrollment Pipeline</h3><div class="pipeline-grid">'+
+    ['Not Enrolled','Enrolled','Temporary','Transferred','Cancelled'].map(function(k){return '<div class="pipeline-item"><strong>'+Number(pipe[k]||0)+'</strong><span>'+esc(k)+'</span></div>';}).join('')+
+    '</div></div>';
+
+  var gc=s.byGradeCluster||{}, gcRows=[];
+  Object.keys(gc).sort().forEach(function(g){Object.keys(gc[g]).sort().forEach(function(k){gcRows.push('<div class="breakdown-row"><span>'+esc(g+' · '+k)+'</span><strong>'+Number(gc[g][k]||0)+'</strong></div>')})});
+  var gradeClusterHtml='<div class="dash-panel"><h3>Applications by Grade & Cluster</h3><div class="analytics-list">'+(gcRows.join('')||'<div class="muted">No cluster data yet.</div>')+'</div></div>';
+
+  var sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){return Number(s.byPreviousSchool[b])-Number(s.byPreviousSchool[a]}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+
+  var recent=s.recent||[];
+  var recentHtml='<div class="dash-panel"><h3>Recent Applications</h3>'+
+    (recent.length?recent.map(function(x){return '<div class="recent-row"><div><div class="recent-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+'</div></div><div>'+esc(x.GradeLevel||'')+'</div><div>'+esc(x.Category||'')+'</div><div>'+esc(x.ApplicationStatus||'Submitted')+'</div></div>'}).join(''):'<div class="muted">No applications yet.</div>')+
+    '</div>';
+
+  var scholarshipHtml='<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){return Number(s.byScholarship[b])-Number(s.byScholarship[a])}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+
+  $('dashboardBreakdown').insertAdjacentHTML('beforeend','<div class="dashboard-extra">'+trendHtml+pipeHtml+gradeClusterHtml+sexHtml+schoolHtml+recentHtml+scholarshipHtml+'</div>');
+
   var actions=s.needsAction||[];
   $('needsAction').innerHTML=
     '<h3>Needs Action'+(actions.length?' ('+Number(s.needsActionTotal||actions.length)+')':'')+'</h3>'+
-    '<div class="muted" style="margin-bottom:8px">Applications that need review, follow-up, or enrollment processing.</div>'+
-    (actions.length
-      ? actions.map(function(x){
-          var cls=x.ApplicationStatus==='Submitted'?'submitted':x.ApplicationStatus==='Approved'?'approved':'review';
-          return '<div class="action-row">'+
-            '<div><div class="action-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+' · '+esc(x.GradeLevel||'')+'</div></div>'+
-            '<div><span class="action-tag '+cls+'">'+esc(x.ApplicationStatus)+'</span></div>'+
-            '<div class="action-reason">'+esc(x.Reason)+'</div>'+
-            '<div><button type="button" class="btn blue" style="padding:6px 10px" data-view-student="'+esc(encodeURIComponent(x.StudentID))+'">View</button></div>'+
-          '</div>';
-        }).join('')
-      : '<div class="muted">No applications currently need action.</div>');
+    '<div class="muted" style="margin-bottom:8px">Applications that need review, follow-up, document verification, or enrollment processing.</div>'+
+    (actions.length?actions.map(function(x){
+      var cls=x.ApplicationStatus==='Submitted'?'submitted':x.ApplicationStatus==='Approved'?'approved':'review';
+      return '<div class="action-row">'+
+        '<div><div class="action-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+' · '+esc(x.GradeLevel||'')+'</div></div>'+
+        '<div><span class="action-tag '+cls+'">'+esc(x.ApplicationStatus)+'</span></div>'+
+        '<div class="action-reason">'+esc(x.Reason)+'</div>'+
+        '<div><button type="button" class="btn blue" style="padding:6px 10px" data-view-student="'+esc(encodeURIComponent(x.StudentID))+'">View</button></div>'+
+      '</div>';
+    }).join(''):'<div class="muted">No applications currently need action.</div>');
 
   $('needsAction').querySelectorAll('[data-view-student]').forEach(function(button){
-    button.onclick=function(){
-      openStudent(decodeURIComponent(button.getAttribute('data-view-student')));
-    };
+    button.onclick=function(){openStudent(decodeURIComponent(button.getAttribute('data-view-student')));};
   });
 }
+
 function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
 function openStudent(id){
