@@ -167,16 +167,18 @@ function admissionPortalDashboard(token) {
 
 function admissionPortalDashboard_(role) {
   var rows = maAdmissionSpeedRecords_();
-  var byStatus = {}, byGrade = {}, byCategory = {};
+  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {};
   rows.forEach(function (r) {
     var s = r.EnrollStatus || 'Unspecified';
+    var a = r.ApplicationStatus || 'Submitted';
     var g = r.GradeLevel || 'Unspecified';
     var c = r.Category || 'Unspecified';
     byStatus[s] = (byStatus[s] || 0) + 1;
+    byApplicationStatus[a] = (byApplicationStatus[a] || 0) + 1;
     byGrade[g] = (byGrade[g] || 0) + 1;
     byCategory[c] = (byCategory[c] || 0) + 1;
   });
-  return { total: rows.length, byStatus: byStatus, byGrade: byGrade, byCategory: byCategory, role: role };
+  return { total: rows.length, byStatus: byStatus, byApplicationStatus: byApplicationStatus, byGrade: byGrade, byCategory: byCategory, role: role };
 }
 
 function admissionPortalPublicRecord_(r) {
