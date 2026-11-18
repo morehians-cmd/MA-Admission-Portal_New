@@ -1,6 +1,6 @@
 # Stage 2.6 — Admissions Workflow Schema Setup Implementation Plan
 
-**Status:** Implemented on the approved branch; static validation complete; staging preflight not yet run  
+**Status:** Implemented, static validation complete, and staging schema setup successfully executed and verified by user-reported log  
 **Date:** November 18, 2026  
 **Repository:** `morehians-cmd/MA-Admission-Portal_New`  
 **Work branch:** `integration/auth-db-foundation`  
@@ -9,9 +9,9 @@
 
 ## 1. Purpose
 
-Translate the approved Stage 2.5 safety contract into a small, isolated Apps Script implementation for the 12 admissions workflow sheets. The first deliverable is a read-only preflight/dry-run. Sheet creation is a separate function and will not be run until the user explicitly authorizes it.
+Translate the approved Stage 2.5 safety contract into a small, isolated Apps Script implementation for the 12 admissions workflow sheets. The implementation includes a read-only preflight/dry-run and a separate sheet-creation function, each invoked manually in staging with explicit approval gates.
 
-The implementation is recorded in `AdmissionWorkflowSchema.gs`. No setup function has been run, no Script Properties have been changed, no spreadsheet has been edited, and no migration or deployment has occurred.
+The implementation is recorded in `AdmissionWorkflowSchema.gs`. The user configured staging-only Script Properties, ran the read-only preflight, reviewed its clean result, and then ran sheet creation in the copied staging workbook. No migration or deployment occurred.
 
 ## 2. Repository inspection and compatibility findings
 
@@ -197,7 +197,6 @@ The implementation is ready for the staging preflight only when:
 The sheet-creation operation is ready for a staging run only after the user reviews a clean preflight report and separately authorizes the run.
 
 ## 12. Out of scope
-
 - Applicant or returning-student workflow endpoints.
 - Shared data-access layer beyond what schema setup strictly needs.
 - New student identity or official ID issuance logic.
@@ -242,4 +241,8 @@ Static checks completed against the integration branch:
 - Existing setup and authentication source files were not modified.
 - No setup call was added to routing, page load, sign-in, or deployment.
 
-**Not yet tested:** Apps Script runtime behavior, staging property configuration, read-only preflight against the copied workbook, and sheet creation. These remain separate user-authorized staging steps.
+**Staging execution result (November 18, 2026):** User-reported logs confirm the read-only preflight passed with all 12 workflow sheets planned for creation, zero blocked sheets, and zero errors. The separately executed setup function then created all 12 sheets and validated all 12 exact approved headers, with zero planned creations remaining, zero blocked sheets, and zero errors. `success: true`; `dryRun: false`; schema version `2.4.1`; requirement-rule version `ADMISSION_REQUIREMENTS_BASELINE_2026`. This verifies sheet creation and header validation in the copied staging workbook only. It does not validate admissions endpoints, applicant/returning registration behavior, permissions for future workflow endpoints, or production readiness. No production resource was changed.
+
+## 15. User-reported staging setup confirmation
+
+On November 18, 2026, the user reported successful execution of both staging functions. The preflight report was clean (`success: true`, `dryRun: true`, 12 planned creations, 0 blocked, 0 errors). The setup report confirmed (`success: true`, `dryRun: false`) all 12 workflow sheets created and all 12 validated, with no remaining planned creations, blockers, or errors. The setup message states all 12 workflow sheets have exact approved headers. This is user-reported Apps Script staging evidence, not an independently executed runtime test by the assistant. Production remains untouched.
