@@ -4,8 +4,8 @@
  * HomepageAdmin.html and PagesAdmin.html need: APP_BASE = '<?= baseUrl ?>'
  * Admin screens: ?page=admin-homepage, ?page=admin-pages
  */
-var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin' };
-var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management' };
+var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'AdmissionPortal' };
+var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', AdmissionPortal: 'Admissions Portal' };
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
@@ -29,3 +29,4 @@ function doGet(e) {
 function sanitizePage_(p) {
   return /^[a-z0-9-]+(\/[a-z0-9-]+)?$/.test(p) ? p : 'home';
 }
+function include(f) { return HtmlService.createHtmlOutputFromFile(f).getContent(); }
