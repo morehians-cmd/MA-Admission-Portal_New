@@ -380,3 +380,39 @@ The user reported successful read-only preflight and subsequent execution of `ad
 - Schema version: `2.4.1`; requirement-rule version: `ADMISSION_REQUIREMENTS_BASELINE_2026`.
 
 The staging schema-creation milestone is complete based on the user-provided execution logs. Header validation does not constitute runtime testing of admissions endpoints or business workflows. Production remains untouched.
+
+
+## Stage 2.8 — Shared admissions data access layer implemented (November 18, 2026)
+
+**Source:** `AdmissionWorkflowData.gs`  
+**Plan:** `ADMISSIONS_DATA_ACCESS_LAYER_IMPLEMENTATION_PLAN.md`  
+**Branch:** `integration/auth-db-foundation`
+
+The user approved implementation after confirming UUID primary keys, fail-on-audit-failure policy, internal-only helpers, paginated reads, and scope limited to the 12 workflow sheets.
+
+### Implementation contents
+
+- Exact schema validation and header mapping using `ADMISSION_WORKFLOW_SCHEMA.HEADERS`.
+- Internal-only read helpers: bounded pagination, exact-match criteria, ID lookup, and multi-record lookup.
+- Controlled insert and update helpers with UUID keys, required-field checks, per-sheet field allowlists, immutable-field protection, and approved logical uniqueness checks.
+- Shared ScriptLock around every insert, update, and audit append.
+- Append-only `AdmissionWorkflowAudit` writer.
+- `GenderIdentity` is excluded from generic read results by default; Owner-only access must be authorized by a feature endpoint before requesting sensitive-field inclusion.
+- Safe error-code translation; no generic browser-callable CRUD entry points.
+
+### Static validation
+
+- JavaScript syntax parse passed.
+- Confirmed 12 schema target sheets and 12 matching data-layer policies.
+- Confirmed every configured primary key, required field, mutable field, and uniqueness field exists in the authoritative schema headers.
+- Confirmed the new file does not create, delete, clear, or repair sheets; does not call Drive APIs or mutate Script Properties; and does not reference legacy student, identity, user, or correction sheets.
+- Confirmed insert, update, and audit append use the shared ScriptLock helper.
+- Code-search collision checks returned no results for the selected helper names; the GitHub code-search index covers the default branch, so this is not a definitive full feature-branch collision scan.
+
+### Audit and transaction limitation
+
+Google Sheets does not provide atomic multi-sheet transactions. If a business mutation succeeds but the corresponding audit append fails, a future feature endpoint must not report success and must not blindly retry. It must return a distinct uncertain-outcome result with a correlation/reference ID and reconcile the record before retrying. No outbox sheet or schema change was added.
+
+### Current boundary
+
+This is a source implementation and static-review milestone only. The user has not yet synced `AdmissionWorkflowData.gs` into Apps Script or run staging tests for this stage. The 12 staging workflow sheets remain as previously created and validated. No staging execution, staging write test, production configuration, production data, trigger, or deployment was performed for Stage 2.8.
