@@ -12,14 +12,14 @@
  */
 
 var ADM_DB = {
-  VERSION: 3,
+  VERSION: 4,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
     'StudentID', 'CreatedAt',
     'Classification', 'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'FullName',
     'Category', 'GradeLevel', 'Department', 'Cluster', 'Section', 'ReferredBy',
-    'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection', 'PrevAdviser', 'PrevScholarship',
+    'PrevSchoolType', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection', 'PrevAdviser', 'PrevScholarship',
     'EscCertNo', 'VoucherCertNo', 'EscSchoolNo',
     'AddressLine1', 'AddressLine2', 'Barangay', 'City', 'Province',
     'Birthdate', 'Age', 'Mobile', 'SexualOrient', 'GenderOrient', 'Religion', 'ReligionOther', 'Email',
@@ -63,6 +63,7 @@ var ADM_DB = {
     'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'Category', 'GradeLevel',
     'Department', 'Cluster', 'ReferredBy', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection',
     'PrevAdviser', 'PrevScholarship', 'PrevSchoolID', 'PrevAddress',
+    'PrevSchoolType',
     'FatherName', 'FatherStatus', 'FatherOccupation', 'FatherEducation', 'FatherMobile', 'FatherReligion', 'FatherReligionOther',
     'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherReligion', 'MotherReligionOther',
     'AddressLine1', 'AddressLine2', 'Barangay', 'City', 'Province',
@@ -70,7 +71,7 @@ var ADM_DB = {
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
-    'RelName', 'RelRelation', 'RelBirthdate', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
+    'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
     'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'EmSource', 'BirthPlace',
     'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther'
   ]
