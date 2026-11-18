@@ -70,7 +70,7 @@ function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){msg('Please sign in from the Moreh Academy Homepage first.',true);return}call('authWhoAmI',[TOKEN],load)}
-function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){var a=r.data.account;$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');drawStats(r.data.stats);search()}})}
+function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){var a=r.data.account;$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}})}
 function fill(r){document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
 function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k){o[k]=v});return o}
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
@@ -109,14 +109,14 @@ function drawStats(s){
   var gradeClusterHtml='<div class="dash-panel"><h3>Applications by Grade & Cluster</h3><div class="analytics-list">'+(gcRows.join('')||'<div class="muted">No cluster data yet.</div>')+'</div></div>';
 
   var sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('')+'</div></div>';
-  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){return Number(s.byPreviousSchool[b])-Number(s.byPreviousSchool[a])).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){var av=Number(s.byPreviousSchool[a]||0),bv=Number(s.byPreviousSchool[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
 
   var recent=s.recent||[];
   var recentHtml='<div class="dash-panel"><h3>Recent Applications</h3>'+
     (recent.length?recent.map(function(x){return '<div class="recent-row"><div><div class="recent-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+'</div></div><div>'+esc(x.GradeLevel||'')+'</div><div>'+esc(x.Category||'')+'</div><div>'+esc(x.ApplicationStatus||'Submitted')+'</div></div>'}).join(''):'<div class="muted">No applications yet.</div>')+
     '</div>';
 
-  var scholarshipHtml='<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){return Number(s.byScholarship[b])-Number(s.byScholarship[a])}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var scholarshipHtml='<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){var av=Number(s.byScholarship[a]||0),bv=Number(s.byScholarship[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>';
 
   $('dashboardBreakdown').insertAdjacentHTML('beforeend','<div class="dashboard-extra">'+trendHtml+pipeHtml+gradeClusterHtml+sexHtml+schoolHtml+recentHtml+scholarshipHtml+'</div>');
 
