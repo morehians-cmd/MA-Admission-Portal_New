@@ -238,19 +238,28 @@ function admissionWorkflowDataReadAll_(sheetName, options) {
 }
 
 /** Exact ID lookup; returns null when no matching row exists. */
-function admissionWorkflowDataFindById_(sheetName, id) {
+function admissionWorkflowDataFindById_(sheetName, id, options) {
+  options = options || {};
   var policy = admissionWorkflowDataPolicy_(sheetName);
   if (id === null || id === undefined || String(id).trim() === '') {
     throw new Error('WORKFLOW_INVALID_FIELD');
   }
-  var result = admissionWorkflowDataReadAll_(sheetName, {
-    pageSize: ADMISSION_WORKFLOW_DATA.MAX_PAGE_SIZE,
-    offset: 0,
-    criteria: (function() { var x = {}; x[policy.key] = String(id); return x; })(),
-    includeSensitiveFields: false
-  });
-  if (result.hasMore) throw new Error('WORKFLOW_DUPLICATE_RECORD');
-  return result.records.length ? result.records[0] : null;
+  var sheet = admissionWorkflowDataSheet_(sheetName);
+  var headers = ADMISSION_WORKFLOW_SCHEMA.HEADERS[sheetName];
+  var keyCol = headers.indexOf(policy.key) + 1;
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return null;
+  var values = sheet.getRange(2, keyCol, lastRow - 1, 1).getDisplayValues();
+  var found = -1;
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][0]) === String(id)) {
+      if (found >= 0) throw new Error('WORKFLOW_DUPLICATE_RECORD');
+      found = i + 2;
+    }
+  }
+  if (found < 0) return null;
+  var row = sheet.getRange(found, 1, 1, headers.length).getValues()[0];
+  return admissionWorkflowDataNormalizeRow_(headers, row, options);
 }
 
 /** Exact-match multi-field lookup with bounded pagination. */
@@ -334,6 +343,7 @@ function admissionWorkflowDataAssertUnique_(sheetName, candidate, ignoreId) {
     var rule = policy.unique[u];
     var fields = Array.isArray(rule) ? rule : rule.fields;
     var where = Array.isArray(rule) ? null : rule.where;
+    if (where && where.notIn.indexOf(String(candidate[where.field] || '')) >= 0) continue;
     var valuesPresent = fields.every(function(field) {
       return candidate[field] !== undefined && candidate[field] !== null &&
         String(candidate[field]).trim() !== '';
@@ -397,7 +407,7 @@ function admissionWorkflowDataInsert_(sheetName, record, options) {
     var targetRow = Math.max(2, sheet.getLastRow() + 1);
     sheet.getRange(targetRow, 1, 1, headers.length).setNumberFormat('@');
     sheet.getRange(targetRow, 1, 1, headers.length).setValues([row]);
-    return { id: input[policy.key], createdAt: input.CreatedAt || now };
+    return { id: input[policy.key], createdAt: input.CreatedAt || null };
   });
 }
 
@@ -420,6 +430,9 @@ function admissionWorkflowDataUpdateById_(sheetName, id, changes, options) {
   if (id === null || id === undefined || String(id).trim() === '') throw new Error('WORKFLOW_INVALID_FIELD');
   admissionWorkflowDataValidateRecord_(sheetName, changes, 'update');
   var keys = Object.keys(changes || {});
+  for (var s = 0; s < keys.length; s++) {
+    if (ADMISSION_WORKFLOW_DATA_SERVER_FIELDS_.indexOf(keys[s]) >= 0) throw new Error('WORKFLOW_SERVER_FIELD_REQUIRED');
+  }
   if (!keys.length) throw new Error('WORKFLOW_INVALID_RECORD');
   for (var i = 0; i < keys.length; i++) {
     if (policy.mutable.indexOf(keys[i]) < 0) throw new Error('WORKFLOW_IMMUTABLE_FIELD');
