@@ -336,7 +336,7 @@ document.addEventListener('input',function(e){
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-buildFields();updateGradeRules();updateGuardianRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+buildFields();updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
 (function boot(){
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
