@@ -24,14 +24,14 @@ var ADMISSION_WORKFLOW_DATA = {
   SHEETS: {
     AdmissionApplications: {
       key: 'ApplicationID',
-      required: ['UserID', 'SchoolYear', 'IntakeMethod', 'GradeLevelApplied', 'Department', 'ApplicationStatus'],
-      mutable: ['StudentID', 'ApplicationStatus', 'SubmittedAt', 'LastStatusChangedAt', 'UpdatedAt', 'UpdatedBy'],
-      unique: []
+      required: ['UserID', 'ApplicationStatus', 'CreationRequestID'],
+      mutable: ['SchoolYear', 'IntakeMethod', 'GradeLevelApplied', 'Department', 'Category', 'SHSCluster', 'ApplicationStatus', 'SubmittedAt', 'LastStatusChangedAt', 'UpdatedAt', 'UpdatedBy'],
+      unique: [['CreationRequestID']]
     },
     ApplicationProfiles: {
       key: 'ProfileSnapshotID',
-      required: ['ApplicationID', 'SchemaVersion', 'Surname', 'FirstName', 'Birthdate', 'LRN', 'LegalSex', 'SchoolYear', 'GradeLevelApplied', 'Department', 'Email', 'Mobile', 'AddressLine1', 'Barangay', 'City', 'LivingWith', 'PrimaryContactName', 'PrimaryContactAddress', 'PrimaryContactRelationship', 'PrimaryContactNumber', 'PrivacyConsent', 'PrivacyConsentAt', 'SubmittedAt', 'SubmittedBy'],
-      mutable: [],
+      required: ['ApplicationID', 'SchemaVersion'],
+      mutable: ['Surname', 'FirstName', 'MiddleName', 'Suffix', 'Birthdate', 'BirthPlace', 'LRN', 'LegalSex', 'GenderIdentity', 'SchoolYear', 'GradeLevelApplied', 'Category', 'Department', 'SHSCluster', 'Email', 'Mobile', 'AddressLine1', 'AddressLine2', 'Barangay', 'City', 'LivingWith', 'LivingWithOtherDetails', 'FatherName', 'FatherStatus', 'FatherOccupation', 'FatherEducation', 'FatherMobile', 'FatherEmail', 'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherEmail', 'GuardianName', 'GuardianStatus', 'GuardianOccupation', 'GuardianEducation', 'GuardianMobile', 'GuardianEmail', 'PrimaryContactName', 'PrimaryContactAddress', 'PrimaryContactRelationship', 'PrimaryContactNumber', 'PreviousSchool', 'PreviousSchoolYear', 'PreviousGrade', 'PreviousCluster', 'PreviousSection', 'PreviousAdviser', 'PreviousSchoolID', 'PreviousSchoolAddress', 'FacebookProfileLink', 'PrivacyConsent', 'PrivacyConsentAt', 'SubmittedAt', 'SubmittedBy'],
       unique: [['ApplicationID']]
     },
     ApplicationAssignments: {
