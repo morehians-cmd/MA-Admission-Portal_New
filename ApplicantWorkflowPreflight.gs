@@ -32,9 +32,17 @@ function applicantWorkflowPreflight() {
       'applicantWorkflowGetOwned_',
       'applicantWorkflowAudit_'
     ];
+    var available = {
+      applicationCreateDraft: typeof applicationCreateDraft === 'function',
+      applicationSaveDraft: typeof applicationSaveDraft === 'function',
+      applicationGetMine: typeof applicationGetMine === 'function',
+      applicationSubmit: typeof applicationSubmit === 'function',
+      applicantWorkflowGetOwned_: typeof applicantWorkflowGetOwned_ === 'function',
+      applicantWorkflowAudit_: typeof applicantWorkflowAudit_ === 'function'
+    };
     requiredFunctions.forEach(function(name) {
-      check('function_' + name, typeof this[name] === 'function', 'Required endpoint/helper availability.');
-    }, this);
+      check('function_' + name, available[name] === true, 'Required endpoint/helper availability.');
+    });
 
     var appHeaders = ADMISSION_WORKFLOW_SCHEMA.HEADERS.AdmissionApplications || [];
     var profileHeaders = ADMISSION_WORKFLOW_SCHEMA.HEADERS.ApplicationProfiles || [];
@@ -57,10 +65,9 @@ function applicantWorkflowPreflight() {
     });
     check('all_workflow_sheets', true, 'All 12 allow-listed workflow sheets have exact headers.');
 
-    check('legacy_submission_not_called',
-      ApplicantWorkflow.gs !== 'admissionCreateApplication' &&
+    check('new_workflow_version',
       APPLICANT_WORKFLOW.VERSION === '2.9.1',
-      'The new applicant workflow is versioned separately; this preflight does not invoke the legacy StudentID-issuing endpoint.');
+      'The applicant workflow source reports the expected implementation version; this preflight does not invoke any submission endpoint.');
   } catch (error) {
     report.errors.push(admissionWorkflowDataErrorCode_(error));
   }
