@@ -418,3 +418,19 @@ Google Sheets does not provide atomic multi-sheet transactions. If a business mu
 ### Current boundary
 
 This is a source implementation and static-review milestone only. The user has not yet synced `AdmissionWorkflowData.gs` into Apps Script or run staging tests for this stage. The 12 staging workflow sheets remain as previously created and validated. No staging execution, staging write test, production configuration, production data, trigger, or deployment was performed for Stage 2.8.
+
+## Stage 2.8 — Shared admissions data access layer source implementation (November 18, 2026)
+
+**Branch:** `integration/auth-db-foundation`  
+**Source:** [`AdmissionWorkflowData.gs`](https://github.com/morehians-cmd/MA-Admission-Portal_New/blob/integration/auth-db-foundation/AdmissionWorkflowData.gs)  
+**Implementation commit:** `70496a9ce45207e56a3afe4389208a6c8ff09673`  
+**Plan:** [`ADMISSIONS_DATA_ACCESS_LAYER_IMPLEMENTATION_PLAN.md`](https://github.com/morehians-cmd/MA-Admission-Portal_New/blob/integration/auth-db-foundation/ADMISSIONS_DATA_ACCESS_LAYER_IMPLEMENTATION_PLAN.md)
+
+Implemented the internal shared data-access layer for the 12 approved workflow sheets. It reuses `ADMISSION_WORKFLOW_SCHEMA.HEADERS`, provides exact schema checks, bounded paginated reads, ID and filtered lookups, UUID-based inserts, allow-listed updates, uniqueness checks, ScriptLock coordination, and append-only workflow audit writing. Generic helpers are internal-only; future feature endpoints remain responsible for session authorization, ownership, business rules, and orchestration of business writes with required audit events.
+
+The implementation includes a required-field revalidation on updates so a permitted field change cannot clear another policy-required value. Generic reads redact `GenderIdentity` by default. Formula-leading text is protected from spreadsheet formula interpretation. The implementation does not create or repair sheets, change legacy modules, access Drive, change Script Properties, or expose generic browser CRUD.
+
+**Static validation:** `AdmissionWorkflowData.gs` and `AdmissionWorkflowSchema.gs` both passed JavaScript syntax parsing after the required-field update guard was added. The source was checked for the presence of that guard. This is static source validation only.
+
+**Not yet performed:** The user has not synced this file into the staging Apps Script project or run Stage 2.8 staging checks. No staging read/write test, production operation, deployment, migration, or live-data operation is authorized by this implementation approval. The next step is a separately approved, read-only staging validation after the user syncs only `AdmissionWorkflowData.gs`.
+
