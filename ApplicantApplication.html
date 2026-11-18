@@ -138,7 +138,7 @@ function buildFields(){
  document.getElementById('personalFields').innerHTML=
   field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
   field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine']))+
-  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church',\"Jehovah's Witnesses\",'The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
   field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true)+
@@ -152,7 +152,7 @@ function buildFields(){
   field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'');
  var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
  var status=opts(['Alive','Deceased']);
- var relOpts=opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church',\"Jehovah's Witnesses\",'The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']);
+ var relOpts=opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']);
  document.getElementById('familyFields').innerHTML=
   '<div class="subhead">Father’s information</div>'+
   field('FatherName','Father’s Full Name','text')+field('FatherStatus','Father’s Status','select',status)+
