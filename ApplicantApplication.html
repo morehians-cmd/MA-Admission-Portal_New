@@ -102,7 +102,7 @@ function restoreDraft(){
       var el=document.querySelector('[data-key="'+k+'"]');if(!el)return;
       if(el.type==='checkbox')el.checked=!!d.data[k];else el.value=d.data[k]==null?'':String(d.data[k]);
     });
-    updateGradeRules();updateGuardianRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+    updateGradeRules();updateGuardianRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
     setDraftStatus('Draft restored ✓');
   }catch(e){}
@@ -160,11 +160,29 @@ function buildFields(){
   '<div class="subhead">Parent / legal guardian contact (required for applicants below 18)</div>'+
   field('GuardName','Parent / Legal Guardian Full Name','text',null,false)+field('GuardRelation','Relationship to Applicant','text',null,false)+
   field('GuardEmail','Parent / Guardian Email Address','email',null,false)+field('GuardMobile','Parent / Guardian Mobile Number','tel',null,false)+
+  '<div class="subhead">Living arrangement</div>'+
+  field('LivingWith','Who does the student currently live with?','select',opts(['Both Father and Mother','Father only','Mother only','Relatives / Legal Guardian','Independent / Boarding / Living alone']),true,'This determines which parent/guardian information can be used for the emergency-contact helper.',true)+
+  '<div id="relativeFields" class="field-grid full" style="display:none">'+
+  field('RelName','Relative / Legal Guardian Full Name','text',null,false)+field('RelRelation','Relationship to Applicant','text',null,false)+
+  field('RelBirthdate','Relative / Guardian Birth Date','date')+field('RelAge','Age','text',null,false,'Automatically determined from birth date.')+
+  field('RelSex','Sex Assigned at Birth / Biological Sex','select',opts(['Male','Female']))+field('RelGender','Gender Orientation / Identity','select',opts(['Masculine','Feminine','Others, specify']))+
+  field('RelGenderOther','Specify Gender Identity','text')+field('RelMobile','Relative / Guardian Mobile Number','tel')+
+  field('RelCivil','Civil Status','select',opts(['Single','Married','Widowed','Separated','Divorced','Annulled','Live-in']))+
+  field('RelSameAddr','Same address as the applicant','select',opts(['Yes','No']))+
+  field('RelAddress','Relative / Guardian Address','text',null,false,'Required when the relative/guardian has a different address.',true)+
+  field('RelSide','Parental Relationship with Student','select',opts(["Father's Side","Mother's Side",'None']))+
+  '</div>'+
   '<div class="subhead">Emergency contact</div>'+
   field('EmName','Emergency Contact Full Name','text',null,true)+field('EmRelation','Relationship to Applicant','text',null,true)+
   field('EmMobile','Emergency Contact Mobile Number','tel',null,true)+
+  '<div class="field full"><label style="display:block;font:600 11px var(--head);color:#53627d;margin-bottom:6px">Quick selection: autofill from</label><div class="checkline" style="gap:18px;flex-wrap:wrap">'+
+  '<label><input type="checkbox" data-src="Father" id="src_Father"> Father</label>'+
+  '<label><input type="checkbox" data-src="Mother" id="src_Mother"> Mother</label>'+
+  '<label><input type="checkbox" data-src="Relative" id="src_Relative"> Relatives / Legal Guardian</label>'+
+  '</div><small>Select a source to automatically fill the emergency contact from the available family information.</small></div>'+
   '<div class="field full"><label class="checkline"><input type="checkbox" data-key="EmSameAddr" id="f_EmSameAddr"><span>Emergency contact has the same address as the applicant.</span></label></div>'+
-  field('EmAddress','Emergency Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true);
+  field('EmAddress','Emergency Contact Address','text',null,false,'Required only if the emergency contact has a different address.',true)+
+  '<input type="hidden" data-key="EmSource" id="f_EmSource" value="">';
 }
 function value(key){var el=document.querySelector('[data-key="'+key+'"]');if(!el)return '';return el.type==='checkbox'?el.checked:el.value.trim()}
 function setValue(key,v){var el=document.querySelector('[data-key="'+key+'"]');if(el)el.value=v||''}
@@ -182,7 +200,70 @@ function updateParentRules(parent){
  setFieldsDisabled([parent+'Occupation',parent+'Education',parent+'Mobile',parent+'Email',parent+'Religion',parent+'ReligionOther'],deceased);
 }
 function updatePreviousClusterRules(){var applicable=value('PrevGrade')==='Grade 11'||value('PrevGrade')==='Grade 12';var el=document.getElementById('f_PrevCluster');if(!el)return;el.disabled=!applicable;el.closest('.field').classList.toggle('is-disabled',!applicable);if(!applicable)el.value=''}
-function updateEmergencyRules(){var same=value('EmSameAddr')===true;var address=document.getElementById('f_EmAddress');if(address)address.required=!same;}
+function updateEmergencyRules(){
+ var same=value('EmSameAddr')===true;
+ var address=document.getElementById('f_EmAddress');
+ if(address)address.required=!same;
+ var src=String(value('EmSource')||'');
+ ['Father','Mother','Relative'].forEach(function(k){
+   var el=document.getElementById('src_'+k);
+   if(el)el.checked=src===k;
+ });
+}
+function updateLivingRules(){
+ var living=value('LivingWith');
+ var rel=String(living)==='Relatives / Legal Guardian';
+ var box=document.getElementById('relativeFields');
+ if(box)box.style.display=rel?'grid':'none';
+ ['RelName','RelRelation','RelBirthdate','RelSex','RelGender','RelMobile','RelCivil','RelSameAddr','RelSide'].forEach(function(k){
+   var el=document.getElementById('f_'+k);if(el)el.required=rel&&(k==='RelName'||k==='RelRelation'||k==='RelMobile');
+ });
+ var ra=document.getElementById('f_RelAddress');
+ if(ra)ra.required=rel&&value('RelSameAddr')!=='Yes';
+ if(!rel){
+   ['RelName','RelRelation','RelBirthdate','RelAge','RelSex','RelGender','RelGenderOther','RelMobile','RelCivil','RelSameAddr','RelAddress','RelSide'].forEach(function(k){setValue(k,'')});
+ }
+}
+function updateRelativeRules(){
+ var b=value('RelBirthdate'),age='';
+ if(b){var d=new Date(b+'T00:00:00'),n=new Date();age=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;}
+ setValue('RelAge',age);
+ var same=value('RelSameAddr')==='Yes',a=document.getElementById('f_RelAddress');
+ if(a){a.disabled=same;a.required=!same;a.closest('.field').classList.toggle('is-disabled',same);if(same)a.value='';}
+}
+function addrOfApplicant(){
+ return [value('AddressLine1'),value('AddressLine2'),value('Barangay'),value('City')].filter(Boolean).join(', ');
+}
+function clearEmergencySource(){
+ ['EmName','EmRelation','EmMobile','EmAddress','EmSameAddr'].forEach(function(k){
+   var el=document.getElementById('f_'+k);if(!el)return;if(el.type==='checkbox')el.checked=false;else el.value='';
+ });
+ setValue('EmSource','');
+ updateEmergencyRules();
+}
+function applyEmergencySource(src){
+ clearEmergencySource();
+ if(!src)return;
+ setValue('EmSource',src);
+ if(src==='Father'||src==='Mother'){
+   var live=value('LivingWith')==='Both Father and Mother'||value('LivingWith')===src+' only';
+   setValue('EmName',value(src+'Name'));
+   setValue('EmRelation',src.toUpperCase());
+   setValue('EmMobile',value(src+'Mobile'));
+   if(live){
+     var same=document.getElementById('f_EmSameAddr');if(same)same.checked=true;
+     setValue('EmAddress',addrOfApplicant());
+   }
+ }else{
+   setValue('EmName',value('RelName'));
+   setValue('EmRelation',value('RelRelation'));
+   setValue('EmMobile',value('RelMobile'));
+   var rs=value('RelSameAddr')==='Yes';
+   var same=document.getElementById('f_EmSameAddr');if(same)same.checked=rs;
+   setValue('EmAddress',rs?addrOfApplicant():value('RelAddress'));
+ }
+ updateEmergencyRules();
+}
 function updateGuardianRules(){
  var birth=value('Birthdate'),age=null;
  if(birth){var d=new Date(birth+'T00:00:00'),now=new Date();age=now.getFullYear()-d.getFullYear();if(now.getMonth()<d.getMonth()||(now.getMonth()===d.getMonth()&&now.getDate()<d.getDate()))age--}
@@ -237,13 +318,24 @@ document.getElementById('logout').addEventListener('click',signOut);
 document.getElementById('year').textContent=new Date().getFullYear();
 document.getElementById('previous').onclick=function(){setStep(currentStep-1);showError('')};
 document.getElementById('next').onclick=function(){if(!validateStep())return;if(currentStep<3)setStep(currentStep+1);else submitApplication()};
-document.addEventListener('change',function(e){if(e.target.id==='f_GradeLevel')updateGradeRules();if(e.target.id==='f_Birthdate')updateGuardianRules();if(e.target.id==='f_EmSameAddr')updateEmergencyRules();if(e.target.id==='f_FatherStatus')updateParentRules('Father');if(e.target.id==='f_MotherStatus')updateParentRules('Mother');if(e.target.id==='f_PrevGrade')updatePreviousClusterRules()});
+document.addEventListener('change',function(e){
+ if(e.target.id==='f_GradeLevel')updateGradeRules();
+ if(e.target.id==='f_Birthdate'){updateGuardianRules();updateLivingRules();updateRelativeRules()}
+ if(e.target.id==='f_LivingWith'){updateLivingRules();updateEmergencyRules()}
+ if(e.target.id==='f_RelBirthdate'||e.target.id==='f_RelSameAddr')updateRelativeRules();
+ if(e.target.id==='f_EmSameAddr')updateEmergencyRules();
+ if(e.target.id==='f_FatherStatus')updateParentRules('Father');
+ if(e.target.id==='f_MotherStatus')updateParentRules('Mother');
+ if(e.target.id==='f_PrevGrade')updatePreviousClusterRules();
+ if(e.target.dataset.src)applyEmergencySource(e.target.checked?e.target.dataset.src:'');
+});
+
 document.addEventListener('input',function(e){
  if(e.target.id==='f_LRN')e.target.value=e.target.value.replace(/\D/g,'').slice(0,12);
  queueDraftSave();
 });
 document.addEventListener('change',function(e){queueDraftSave()});
-buildFields();updateGradeRules();updateGuardianRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
+buildFields();updateGradeRules();updateGuardianRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();
 (function boot(){
  var t=token();if(!t){goHome();return}
  run('authWhoAmI',[t],function(r){
