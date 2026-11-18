@@ -191,8 +191,8 @@ function admissionWorkflowDataReadAll_(sheetName, options) {
   options = options || {};
   var sheet = admissionWorkflowDataSheet_(sheetName);
   var headers = ADMISSION_WORKFLOW_SCHEMA.HEADERS[sheetName];
-  var pageSize = Number(options.pageSize || ADMISSION_WORKFLOW_DATA.DEFAULT_PAGE_SIZE);
-  var offset = Number(options.offset || 0);
+  var pageSize = Number(options.pageSize === undefined ? ADMISSION_WORKFLOW_DATA.DEFAULT_PAGE_SIZE : options.pageSize);
+  var offset = Number(options.offset === undefined ? 0 : options.offset);
   if (!isFinite(pageSize) || Math.floor(pageSize) !== pageSize ||
       pageSize < 1 || pageSize > ADMISSION_WORKFLOW_DATA.MAX_PAGE_SIZE ||
       !isFinite(offset) || Math.floor(offset) !== offset || offset < 0) {
