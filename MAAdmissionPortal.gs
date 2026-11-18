@@ -19,7 +19,27 @@ function admissionPortalGetBootstrap(token) {
       if (!mine.success) return mine;
       data.application = mine.data;
     } else {
-      data.stats = admissionPortalDashboard_(account.role);
+      try {
+        data.stats = admissionPortalDashboard_(account.role);
+      } catch (dashboardErr) {
+        // Keep the Admissions page usable even if an analytics-only calculation fails.
+        // The compact speed dashboard is the safe fallback; the detailed dashboard can
+        // be diagnosed without blocking the whole Admissions Personnel screen.
+        console.error('Admission dashboard analytics failed: ' + (dashboardErr.message || dashboardErr));
+        data.stats = maAdmissionSpeedDashboard_();
+        data.stats.byApplicationStatus = {};
+        data.stats.pipeline = {};
+        data.stats.trend = [];
+        data.stats.recent = [];
+        data.stats.needsAction = [];
+        data.stats.needsActionTotal = 0;
+        data.stats.byGradeCluster = {};
+        data.stats.bySex = {};
+        data.stats.byPreviousSchool = {};
+        data.stats.byScholarship = {};
+        data.stats.role = account.role;
+        data.stats.dashboardWarning = 'Detailed dashboard analytics are temporarily unavailable.';
+      }
     }
     return { success: true, message: 'Admission portal loaded.', data: data };
   } catch (err) {
