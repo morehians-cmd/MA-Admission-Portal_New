@@ -130,7 +130,7 @@ function applicationSaveDraft(token, applicationId, draft) {
     var profile = owned.profile;
     var profileChanges = {};
     Object.keys(normalized).forEach(function(key) {
-      if (APPLICANT_WORKFLOW.PROFILE_FIELDS.indexOf(key) >= 0) profileChanges[key] = normalized[key];
+      if (APPLICANT_WORKFLOW.PROFILE_FIELDS.indexOf(key) >= 0 || key === 'PrivacyConsent') profileChanges[key] = normalized[key];
     });
     if (!profile) {
       admissionWorkflowDataInsert_('ApplicationProfiles', applicantWorkflowProfileForDraft_(applicationId, normalized, account), {
