@@ -75,22 +75,14 @@ function admissionWorkflowDataRunStagingTests() {
     // Validation checks are deliberately run before the first write.
     expectError('reject_missing_required_field', 'WORKFLOW_REQUIRED_FIELD_MISSING', function() {
       admissionWorkflowDataInsert_('AdmissionApplications', {
-        // UserID is supplied by the trusted server; SchoolYear is deliberately omitted.
-        IntakeMethod: 'STAGE2_8_TEST',
-        GradeLevelApplied: 'Grade 7',
-        Department: 'Junior High School',
-        ApplicationStatus: 'STAGE2_8_TEST'
+        ApplicationStatus: 'DRAFT'
       }, { serverValues: { UserID: syntheticUserId } });
     });
 
     expectError('reject_unknown_field', 'WORKFLOW_INVALID_FIELD', function() {
       admissionWorkflowDataInsert_('AdmissionApplications', {
         CreationRequestID: 'STAGE29_REQ_UNKNOWN_' + token,
-        SchoolYear: schoolYear,
-        IntakeMethod: 'STAGE2_8_TEST',
-        GradeLevelApplied: 'Grade 7',
-        Department: 'Junior High School',
-        ApplicationStatus: 'STAGE2_8_TEST',
+        ApplicationStatus: 'DRAFT',
         UnknownTestField: 'must be rejected'
       }, { serverValues: { UserID: syntheticUserId } });
     });
@@ -99,11 +91,7 @@ function admissionWorkflowDataRunStagingTests() {
       admissionWorkflowDataInsert_('AdmissionApplications', {
         UserID: syntheticUserId,
         CreationRequestID: 'STAGE29_REQ_SERVER_' + token,
-        SchoolYear: schoolYear,
-        IntakeMethod: 'STAGE2_8_TEST',
-        GradeLevelApplied: 'Grade 7',
-        Department: 'Junior High School',
-        ApplicationStatus: 'STAGE2_8_TEST'
+        ApplicationStatus: 'DRAFT'
       });
     });
 
@@ -111,27 +99,17 @@ function admissionWorkflowDataRunStagingTests() {
       admissionWorkflowDataReadAll_('AdmissionApplications', { pageSize: 0, offset: 0 });
     });
 
-    // Two synthetic applications enable deterministic page-size-one pagination.
+    // Two synthetic drafts enable deterministic page-size-one pagination.
     var first = admissionWorkflowDataInsert_('AdmissionApplications', {
-      CreationRequestID: 'STAGE29_REQ_MISSING_' + token,
       CreationRequestID: 'STAGE29_REQ_A_' + token,
-      CreationRequestID: 'STAGE29_REQ_B_' + token,
-      SchoolYear: schoolYear,
-      IntakeMethod: 'STAGE2_8_TEST',
-      GradeLevelApplied: 'Grade 7',
-      Department: 'Junior High School',
-      ApplicationStatus: 'STAGE2_8_INSERTED',
-      Category: '=STAGE28_LITERAL_' + token
+      ApplicationStatus: 'DRAFT'
     }, { serverValues: { UserID: syntheticUserId } });
     appIds.push(first.id);
     report.createdRecords.applications.push(first.id);
 
     var second = admissionWorkflowDataInsert_('AdmissionApplications', {
-      SchoolYear: schoolYear,
-      IntakeMethod: 'STAGE2_8_TEST',
-      GradeLevelApplied: 'Grade 8',
-      Department: 'Junior High School',
-      ApplicationStatus: 'STAGE2_8_INSERTED'
+      CreationRequestID: 'STAGE29_REQ_B_' + token,
+      ApplicationStatus: 'DRAFT'
     }, { serverValues: { UserID: syntheticUserId } });
     appIds.push(second.id);
     report.createdRecords.applications.push(second.id);
