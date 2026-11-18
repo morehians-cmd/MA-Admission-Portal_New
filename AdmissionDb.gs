@@ -89,29 +89,105 @@ function admissionDbSetup_() {
   Logger.log('Admission database schema v' + ADM_DB.VERSION + ' is ready in ' + ss.getName() + '. No source data was imported.');
 }
 
-/** Creates an empty schema sheet or verifies an existing one without rewriting its headers. */
+/**
+ * Creates a schema sheet or migrates an existing one by header name.
+ *
+ * Existing columns are never matched by position during migration. This is important
+ * because newer schema fields may have been added in the middle of an older sheet.
+ * The migration:
+ *   1. validates that existing header names are unique;
+ *   2. builds the desired schema in ADM_DB.HEADERS order;
+ *   3. keeps any legacy headers that are not in the desired schema after the new schema;
+ *   4. moves each existing value with its header, so records are not misaligned;
+ *   5. appends genuinely new fields as blank columns.
+ *
+ * No source records are imported or deleted.
+ */
 function admissionDbEnsureSchemaSheet_(ss, name, headers) {
   var sh = ss.getSheetByName(name);
+
   if (!sh) {
     sh = ss.insertSheet(name);
-    if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    if (sh.getMaxColumns() < headers.length) {
+      sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
     return sh;
   }
+
   if (sh.getLastRow() === 0) {
-    if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    if (sh.getMaxColumns() < headers.length) {
+      sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
     return sh;
   }
-  if (sh.getMaxColumns() < headers.length) sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
-  var actual = sh.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
-  for (var i = 0; i < headers.length; i++) {
-    if (String(actual[i] || '') !== headers[i]) {
-      throw new Error('Schema mismatch in ' + name + ' at column ' + (i + 1) + '. No headers or records were changed.');
+
+  var lastCol = Math.max(sh.getLastColumn(), 1);
+  var existingHeaders = sh.getRange(1, 1, 1, lastCol).getDisplayValues()[0].map(function (h) {
+    return String(h || '').trim();
+  });
+
+  var indexByHeader = {};
+  for (var i = 0; i < existingHeaders.length; i++) {
+    var existing = existingHeaders[i];
+    if (!existing) continue;
+    if (Object.prototype.hasOwnProperty.call(indexByHeader, existing)) {
+      throw new Error('Duplicate header "' + existing + '" found in ' + name + '. No headers or records were changed.');
+    }
+    indexByHeader[existing] = i;
+  }
+
+  // Desired headers always occupy the positions expected by the application code.
+  // Any legacy headers are retained after them so no existing field is discarded.
+  var targetHeaders = headers.slice();
+  existingHeaders.forEach(function (h) {
+    if (h && targetHeaders.indexOf(h) < 0) targetHeaders.push(h);
+  });
+
+  var schemaAlreadyAligned = targetHeaders.length === existingHeaders.length;
+  if (schemaAlreadyAligned) {
+    for (var s = 0; s < targetHeaders.length; s++) {
+      if (targetHeaders[s] !== existingHeaders[s]) {
+        schemaAlreadyAligned = false;
+        break;
+      }
     }
   }
+
+  if (schemaAlreadyAligned) {
+    sh.setFrozenRows(1);
+    return sh;
+  }
+
+  var lastRow = sh.getLastRow();
+  var sourceValues = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  var migratedValues = new Array(lastRow);
+
+  for (var r = 0; r < lastRow; r++) {
+    migratedValues[r] = new Array(targetHeaders.length);
+    for (var c = 0; c < targetHeaders.length; c++) {
+      var sourceIndex = indexByHeader[targetHeaders[c]];
+      migratedValues[r][c] = sourceIndex == null ? '' : sourceValues[r][sourceIndex];
+    }
+  }
+
+  if (sh.getMaxColumns() < targetHeaders.length) {
+    sh.insertColumnsAfter(sh.getMaxColumns(), targetHeaders.length - sh.getMaxColumns());
+  }
+
+  // Write the complete migrated matrix in one operation. Every value is sourced
+  // by its header name, so inserting RelStatus/other fields cannot shift data
+  // underneath a different field.
+  sh.getRange(1, 1, lastRow, targetHeaders.length).setValues(migratedValues);
+  sh.getRange(1, 1, 1, targetHeaders.length).setFontWeight('bold');
+  sh.setFrozenRows(1);
+
+  Logger.log('Migrated ' + name + ' schema by header name: ' +
+             existingHeaders.length + ' existing columns -> ' + targetHeaders.length + ' columns.');
+
   return sh;
 }
 
