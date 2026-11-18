@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 1,
+  VERSION: 2,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -27,7 +27,7 @@ var ADM_DB = {
     'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherReligion', 'MotherReligionOther',
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile', 'ConsentAt',
-    'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee', 'ReqConsent', 'ReqRemarks',
+ 'ReqConsent', 'ReqRemarks',
     'EnrollStatus', 'CancelDate', 'CancelReason', 'CertNo',
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
@@ -38,9 +38,21 @@ var ADM_DB = {
     'PrevSchoolID', 'PrevAddress',
     'ReqSF9Date', 'ReqF137Date', 'ReqBirthDate', 'ReqMoralDate', 'ReqJHSDate', 'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate',
     'ReqEnvelope', 'ReqEnvelopeDate',
-    'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID'
+    'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID',
+    'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus'
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
+  REQUIREMENTS: [
+    { key: 'ReqSF9', label: 'SF9 / Report Card', statusKey: 'ReqSF9Status' },
+    { key: 'ReqF137', label: 'Form 137 / SF10', statusKey: 'ReqF137Status' },
+    { key: 'ReqBirth', label: 'PSA Birth Certificate', statusKey: 'ReqBirthStatus' },
+    { key: 'ReqMoral', label: 'Good Moral Certificate', statusKey: 'ReqMoralStatus' },
+    { key: 'ReqJHS', label: 'JHS Completion Certificate', statusKey: 'ReqJHSStatus' },
+    { key: 'ReqPhoto', label: 'Three (3) 2x2 ID photos, white background, with nametag', statusKey: 'ReqPhotoStatus' },
+    { key: 'ReqTransferee', label: 'Transferee / Scholarship Certification', statusKey: 'ReqTransfereeStatus' },
+    { key: 'ReqConsent', label: 'Parental Consent & Data Privacy Undertaking Form', statusKey: 'ReqConsentStatus' },
+    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' }
+  ],
   APPLICANT_FIELDS: [
     'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'Category', 'GradeLevel',
     'Department', 'Cluster', 'ReferredBy', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection',
@@ -52,8 +64,8 @@ var ADM_DB = {
     'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
     'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile',
     'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee',
-    'ReqConsent', 'ReqRemarks', 'ReqSF9Date', 'ReqF137Date', 'ReqBirthDate', 'ReqMoralDate', 'ReqJHSDate',
-    'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate', 'ReqEnvelope', 'ReqEnvelopeDate', 'EmSource',
+
+
     'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
     'RelName', 'RelRelation', 'RelBirthdate', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
     'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'BirthPlace',
@@ -172,7 +184,33 @@ function admissionDbNormalizeApplicant_(input, account) {
   out.Classification = 'New';
   out.Age = admissionDbAge_(out.Birthdate);
   out.EnrollStatus = 'Not Enrolled';
+  ADM_DB.REQUIREMENTS.forEach(function (item) { out[item.statusKey] = 'Not Applicable'; });
+  admissionDbRequirementItems_(out).forEach(function (item) { out[item.statusKey] = 'Pending Submission'; });
   return out;
+}
+
+function admissionDbRequirementItems_(record) {
+  var grades = ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+  var index = grades.indexOf(String(record.GradeLevel || ''));
+  if (index < 0) return [];
+  var level = index < 2 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
+  var required = level === 'PRE'
+    ? ['ReqBirth','ReqPhoto','ReqEnvelope','ReqConsent']
+    : ['ReqSF9','ReqF137','ReqMoral','ReqBirth','ReqPhoto','ReqEnvelope','ReqConsent'];
+  var showTransferee = (level === 'JHS' || level === 'SHS') &&
+    ['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category || '').toUpperCase()) >= 0;
+  if (showTransferee) required.push('ReqTransferee');
+  return ADM_DB.REQUIREMENTS.filter(function (item) {
+    return required.indexOf(item.key) >= 0;
+  }).map(function (item) {
+    return {
+      key: item.key,
+      statusKey: item.statusKey,
+      label: item.label,
+      required: true,
+      status: String(record[item.statusKey] || 'Pending Submission')
+    };
+  });
 }
 
 function admissionDbNewStudentId_() {
@@ -232,6 +270,7 @@ function admissionGetMyApplication(token) {
     if (!account.studentId) return { success: true, message: 'No application has been submitted yet.', data: null };
     var record = admissionDbFindById_(account.studentId);
     if (!record) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
+    record.RequirementItems = admissionDbRequirementItems_(record);
     delete record._row;
     return { success: true, message: 'Application loaded.', data: record };
   } catch (err) {
