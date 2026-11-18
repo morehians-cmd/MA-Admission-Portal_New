@@ -460,7 +460,7 @@ function showSignedIn(u,quiet){
   if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
  }else{
   b.textContent='Admissions Portal';b.onclick=null;
-  b.href=APP_BASE?APP_BASE+'?page=admission':'#/admission';
+  b.href=APP_BASE?APP_BASE+'?page='+(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission'):'#/'+(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission');
   if(APP_BASE)b.target='_top';
  }
  $('outBtn').style.display='';
@@ -506,7 +506,7 @@ $('vGo').onclick=function(){var c=$('vCode').value.replace(/\D/g,'');if(c.length
  var b=this;busyBtn(b,true,'Verifying…');
  call(API.verify,[PEND.email,c],function(r){busyBtn(b,false);
   if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Verification failed.';return}
-  saveToken(r.data.token);closeM();showSignedIn(r.data,true);if(r.data&&r.data.role==='Applicant'&&APP_BASE){location.href=APP_BASE+'?page=admission';return}toast('Email verified. Welcome to Moreh Academy!')},
+  saveToken(r.data.token);closeM();showSignedIn(r.data,true);if(r.data&&(r.data.role==='Applicant'||r.data.role==='Student')&&APP_BASE){location.href=APP_BASE+'?page=applicant-portal';return}toast('Email verified. Welcome to Moreh Academy!')},
   function(e){busyBtn(b,false);$('vErr').textContent=e})};
 $('vResend').onclick=function(){call(API.resend,[PEND.email],function(r){
   if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Could not send the code.';return}
