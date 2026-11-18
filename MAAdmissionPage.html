@@ -92,9 +92,30 @@ function drawStats(s){
       (keys.length?keys.sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(data[k]||0)+'</strong></div>'}).join(''):'<div class="muted">No records yet.</div>')+
       '</div>';
   }
+
   $('dashboardBreakdown').innerHTML=list('Applications by Grade Level',s.byGrade)+list('Applications by Admission Category',s.byCategory);
+
   var actions=s.needsAction||[];
-  $('needsAction').innerHTML='<h3>Needs Action'+(actions.length?' ('+Number(s.needsActionTotal||actions.length)+')':'')+'</h3><div class="muted" style="margin-bottom:8px">Applications that need review, follow-up, or enrollment processing.</div>'+(actions.length?actions.map(function(x){var cls=x.ApplicationStatus==='Submitted'?'submitted':x.ApplicationStatus==='Approved'?'approved':'review';return '<div class="action-row"><div><div class="action-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+' · '+esc(x.GradeLevel||'')+'</div></div><div><span class="action-tag '+cls+'">'+esc(x.ApplicationStatus)+'</span></div><div class="action-reason">'+esc(x.Reason)+'</div><div><button type="button" class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\\')">View</button></div></div>';}).join(''):'<div class="muted">No applications currently need action.</div>');
+  $('needsAction').innerHTML=
+    '<h3>Needs Action'+(actions.length?' ('+Number(s.needsActionTotal||actions.length)+')':'')+'</h3>'+
+    '<div class="muted" style="margin-bottom:8px">Applications that need review, follow-up, or enrollment processing.</div>'+
+    (actions.length
+      ? actions.map(function(x){
+          var cls=x.ApplicationStatus==='Submitted'?'submitted':x.ApplicationStatus==='Approved'?'approved':'review';
+          return '<div class="action-row">'+
+            '<div><div class="action-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+' · '+esc(x.GradeLevel||'')+'</div></div>'+
+            '<div><span class="action-tag '+cls+'">'+esc(x.ApplicationStatus)+'</span></div>'+
+            '<div class="action-reason">'+esc(x.Reason)+'</div>'+
+            '<div><button type="button" class="btn blue" style="padding:6px 10px" data-view-student="'+esc(encodeURIComponent(x.StudentID))+'">View</button></div>'+
+          '</div>';
+        }).join('')
+      : '<div class="muted">No applications currently need action.</div>');
+
+  $('needsAction').querySelectorAll('[data-view-student]').forEach(function(button){
+    button.onclick=function(){
+      openStudent(decodeURIComponent(button.getAttribute('data-view-student')));
+    };
+  });
 }
 function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
