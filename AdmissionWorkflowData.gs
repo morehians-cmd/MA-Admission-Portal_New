@@ -480,18 +480,19 @@ function admissionWorkflowDataUpdateById_(sheetName, id, changes, options) {
 }
 
 /**
- * Append an immutable workflow audit event.
+ * Append an immutable workflow audit event. ActorEmail, ActorRole, and optional
+ * StudentID must be passed in trustedServerValues derived by the authenticated
+ * feature endpoint; event contains only non-actor event details.
  * This is a separate spreadsheet write, not a transaction with a business write.
  * Caller must treat failure after a successful business mutation as an uncertain
  * outcome, return WORKFLOW_AUDIT_OUTCOME_UNCERTAIN, and reconcile before retrying.
  */
-function admissionWorkflowDataAppendAudit_(event) {
+function admissionWorkflowDataAppendAudit_(event, trustedServerValues) {
   var sheetName = 'AdmissionWorkflowAudit';
   var policy = admissionWorkflowDataPolicy_(sheetName);
   admissionWorkflowDataValidateRecord_(sheetName, event, 'insert');
-  var serverValues = admissionWorkflowDataServerValues_(sheetName, {
-    OccurredAt: new Date().toISOString()
-  });
+  var serverValues = admissionWorkflowDataServerValues_(sheetName, trustedServerValues || {});
+  if (!serverValues.OccurredAt) serverValues.OccurredAt = new Date().toISOString();
   var input = {};
   Object.keys(event || {}).forEach(function(key) { input[key] = event[key]; });
   Object.keys(serverValues).forEach(function(key) { input[key] = serverValues[key]; });
