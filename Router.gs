@@ -20,9 +20,14 @@ function doGet(e) {
   var out = t.evaluate()
     .setTitle(ADMIN_TITLES_[file] || 'Moreh Academy')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
-  out.setXFrameOptionsMode(ADMIN_PAGES_.hasOwnProperty(page)
-    ? HtmlService.XFrameOptionsMode.DEFAULT
-    : HtmlService.XFrameOptionsMode.ALLOWALL);
+  // These two Owner-authenticated management screens are intentionally embedded
+  // inside the admissions dashboard. Other admin/applicant pages remain protected.
+  var dashboardEmbeddedPage = page === 'admin-homepage' || page === 'admin-pages';
+  out.setXFrameOptionsMode(dashboardEmbeddedPage
+    ? HtmlService.XFrameOptionsMode.ALLOWALL
+    : (ADMIN_PAGES_.hasOwnProperty(page)
+      ? HtmlService.XFrameOptionsMode.DEFAULT
+      : HtmlService.XFrameOptionsMode.ALLOWALL));
   return out;
 }
 
