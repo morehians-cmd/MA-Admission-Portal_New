@@ -176,6 +176,66 @@ function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
   }
 }
 
+function admissionPortalAdviserReport(token, adviser) {
+  try {
+    authRequireRole_(token, ['Encoder', 'Owner']);
+    adviser = String(adviser == null ? '' : adviser).trim();
+    var rows = maAdmissionSpeedRecords_();
+    if (adviser) {
+      rows = rows.filter(function (r) {
+        return String(r.Adviser || '').trim().toLowerCase() === adviser.toLowerCase();
+      });
+    }
+    var groups = {};
+    rows.forEach(function (r) {
+      var key = String(r.Adviser || '').trim() || 'Unassigned';
+      if (!groups[key]) groups[key] = {
+        Adviser: key, Total: 0, Enrolled: 0, NotEnrolled: 0, Temporary: 0,
+        Transferred: 0, Cancelled: 0, Submitted: 0, UnderReview: 0, Approved: 0, Declined: 0,
+        students: []
+      };
+      var g = groups[key];
+      g.Total++;
+      var es = String(r.EnrollStatus || 'Not Enrolled');
+      if (es === 'Enrolled') g.Enrolled++;
+      else if (es === 'Temporary') g.Temporary++;
+      else if (es === 'Transferred') g.Transferred++;
+      else if (es === 'Cancelled') g.Cancelled++;
+      else g.NotEnrolled++;
+      var as = String(r.ApplicationStatus || 'Submitted');
+      if (as === 'Under Review') g.UnderReview++;
+      else if (as === 'Approved') g.Approved++;
+      else if (as === 'Declined') g.Declined++;
+      else g.Submitted++;
+      g.students.push({
+        StudentID: r.StudentID, FullName: r.FullName, GradeLevel: r.GradeLevel,
+        Cluster: r.Cluster, Section: r.Section, Category: r.Category,
+        ApplicationStatus: as, EnrollStatus: es
+      });
+    });
+    var advisers = Object.keys(groups).sort(function (a, b) {
+      if (a === 'Unassigned') return 1;
+      if (b === 'Unassigned') return -1;
+      return a.localeCompare(b);
+    }).map(function (key) {
+      var g = groups[key];
+      g.students.sort(function (a, b) { return String(a.FullName).localeCompare(String(b.FullName)); });
+      return g;
+    });
+    return {
+      success: true,
+      message: 'Adviser report loaded.',
+      data: {
+        selectedAdviser: adviser,
+        advisers: advisers.map(function (g) { return g.Adviser; }),
+        reports: advisers
+      }
+    };
+  } catch (err) {
+    return authFail_(err.message || 'Could not load the adviser report.');
+  }
+}
+
 function admissionPortalDashboard(token) {
   try {
     var account = authRequireRole_(token, ['Encoder', 'Owner']);
