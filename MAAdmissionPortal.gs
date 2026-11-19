@@ -214,6 +214,70 @@ function admissionPortalReport(token, reportType, reportValue) {
 }
 
 
+
+function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
+  try {
+    authRequireRole_(token, ['Encoder', 'Owner']);
+    var allowed = {
+      'Grade Level': 'GradeLevel',
+      'Admission Category': 'Category',
+      'Enrollment Status': 'EnrollStatus',
+      'Application Status': 'ApplicationStatus',
+      'Previous School': 'PrevSchool',
+      'Classification': 'Classification',
+      'Cluster': 'Cluster',
+      'Section': 'Section',
+      'Sex': 'SexualOrient',
+      'Gender': 'GenderOrient',
+      'Previous Scholarship': 'PrevScholarship'
+    };
+    reportType = String(reportType || 'Grade Level').trim();
+    reportValue = String(reportValue || '').trim();
+    if (!allowed[reportType]) throw new Error('Invalid detailed report dimension.');
+
+    var rows = admissionDbRows_();
+    function valueFor(r) {
+      var value = r[allowed[reportType]];
+      if (reportType === 'Enrollment Status') value = value || 'Not Enrolled';
+      else if (reportType === 'Application Status') value = value || 'Submitted';
+      return String(value == null ? '' : value).trim() || 'Unspecified';
+    }
+    if (reportValue) {
+      rows = rows.filter(function(r) {
+        return valueFor(r).toLowerCase() === reportValue.toLowerCase();
+      });
+    }
+    rows.sort(function(a,b) {
+      return String(a.FullName || '').localeCompare(String(b.FullName || ''));
+    });
+
+    var students = rows.map(function(r) {
+      return {
+        StudentID: r.StudentID || '',
+        FullName: r.FullName || '',
+        GradeLevel: r.GradeLevel || '',
+        Cluster: r.Cluster || '',
+        Section: r.Section || '',
+        Category: r.Category || '',
+        Classification: r.Classification || '',
+        PreviousSchool: r.PrevSchool || '',
+        PreviousSection: r.PrevSection || '',
+        PreviousAdviser: r.PrevAdviser || '',
+        ApplicationStatus: r.ApplicationStatus || 'Submitted',
+        EnrollStatus: r.EnrollStatus || 'Not Enrolled'
+      };
+    });
+    return {
+      success: true,
+      message: 'Detailed student report loaded.',
+      data: { reportType: reportType, selectedValue: reportValue, students: students }
+    };
+  } catch (err) {
+    return authFail_(err.message || 'Could not load the detailed student report.');
+  }
+}
+
+
 function admissionPortalMatrixReport(token, rowDimension, columnDimension) {
   try {
     authRequireRole_(token, ['Encoder', 'Owner']);
