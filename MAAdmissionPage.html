@@ -56,6 +56,23 @@
 
 <section id="staff" class="card hidden">
 <h2>Admissions Records</h2><div id="stats" class="stats"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
+<section class="card" id="generalReportPanel" style="margin-top:16px">
+<h2>Reports & Export</h2>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="reportType">Report Type</label><select id="reportType" style="min-width:220px">
+    <option>Grade Level</option><option>Admission Category</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option>
+  </select></div>
+  <div><label for="reportValue">Filter</label><select id="reportValue" style="min-width:220px"><option value="">All</option></select></div>
+  <button type="button" class="btn blue" id="loadGeneralReport">Generate Report</button>
+  <button type="button" class="btn secondary" id="printGeneralReport">Print</button>
+  <button type="button" class="btn secondary" id="exportGeneralReport">Export CSV</button>
+  <span id="generalReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="generalReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="generalReportTable"><thead><tr>
+<th>Group</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
+</tr></thead><tbody></tbody></table></div>
+</section>
 <section class="card" id="adviserReportPanel" style="margin-top:16px">
 <h2>Per Former Adviser Report</h2>
 <div class="actions" style="align-items:flex-end">
@@ -153,6 +170,44 @@ function drawStats(s){
   });
 }
 
+var currentGeneralReport=null;
+function loadGeneralReport(){
+  var btn=$('loadGeneralReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalReport',[TOKEN,$('reportType').value,$('reportValue').value],function(r){
+    currentGeneralReport=r.data;renderGeneralReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');setGeneralReportStatus('Report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setGeneralReportStatus(e,true);});
+}
+function setGeneralReportStatus(t,bad){localStatus('generalReportStatus',t,bad);}
+function renderGeneralReport(data){
+  var sel=$('reportValue');sel.innerHTML='<option value="">All</option>'+data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
+  if(data.selectedValue)sel.value=data.selectedValue;
+  var reports=data.reports||[];
+  $('generalReportTable').querySelector('tbody').innerHTML=reports.length?reports.map(function(g){
+    return '<tr><td><strong>'+esc(g.Group)+'</strong></td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
+  }).join(''):'<tr><td colspan="11">No records found.</td></tr>';
+  var total=reports.reduce(function(n,g){return n+Number(g.Total||0)},0);
+  $('generalReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.reportType)+'</h3><div class="breakdown-row"><span>Groups</span><strong>'+reports.length+'</strong></div><div class="breakdown-row"><span>Total Students</span><strong>'+total+'</strong></div></div>';
+}
+function printGeneralReport(){
+  if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Moreh Academy Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentGeneralReport.reportType)+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('generalReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportGeneralReport(){
+  if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
+  var rows=[['Group','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
+  (currentGeneralReport.reports||[]).forEach(function(g){rows.push([g.Group,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_'+String(currentGeneralReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+function refreshReportValues(){var type=$('reportType').value;call('admissionPortalReport',[TOKEN,type,''],function(r){var sel=$('reportValue');sel.innerHTML='<option value="">All</option>'+r.data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');});}
+$('reportType').onchange=refreshReportValues;
+$('loadGeneralReport').onclick=loadGeneralReport;
+$('printGeneralReport').onclick=printGeneralReport;
+$('exportGeneralReport').onclick=exportGeneralReport;
 var currentAdviserReport=null;
 function setAdviserReportStatus(t,bad){localStatus('adviserReportStatus',t,bad);}
 function loadAdviserReport(){
