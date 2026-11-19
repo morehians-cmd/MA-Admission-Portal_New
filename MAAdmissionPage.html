@@ -612,7 +612,7 @@ function setAdmissionStaffView(view){
  if(view==='website-homepage'||view==='website-pages'){
   var frame=document.querySelector('#adm-view-'+view+' iframe[data-admin-page]');
   if(frame&&!frame.getAttribute('src')){
-   var appUrl=window.location.href.split('?')[0];
+   var appUrl=APP_BASE;
    frame.src=appUrl+'?page='+encodeURIComponent(frame.getAttribute('data-admin-page'));
   }
  }
