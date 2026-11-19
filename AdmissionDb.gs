@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 7,
+  VERSION: 6,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -40,7 +40,7 @@ var ADM_DB = {
     'ReqEnvelope', 'ReqEnvelopeDate',
     'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID',
     'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus',
-    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus', 'Adviser'
+    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus'
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
   REQUIREMENTS: [
