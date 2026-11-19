@@ -192,6 +192,9 @@ function admissionPortalReport(token, reportType, reportValue) {
       if (reportType === 'Sex') return String(r.SexualOrient || 'Unspecified').trim() || 'Unspecified';
       if (reportType === 'Gender') return String(r.GenderOrient || 'Unspecified').trim() || 'Unspecified';
       if (reportType === 'Previous Scholarship') return String(r.PrevScholarship || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Classification') return String(r.Classification || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Cluster') return String(r.Cluster || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Section') return String(r.Section || 'Unspecified').trim() || 'Unspecified';
       return 'Unspecified';
     }
     if (reportValue) rows = rows.filter(function(r){ return keyFor(r).toLowerCase() === reportValue.toLowerCase(); });
