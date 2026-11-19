@@ -12,7 +12,7 @@
 .adm-side-brand strong{display:block;font:700 13px var(--head);color:#062E70}.adm-side-brand small{display:block;color:#71809b;font-size:11px}
 .adm-nav-group{margin-bottom:14px}.adm-nav-heading{font:700 10px var(--head);letter-spacing:.09em;color:#8090ad;padding:5px 9px 7px}
 .adm-nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;color:#33415f;padding:10px 11px;border-radius:9px;font:600 13px var(--body);cursor:pointer;margin:2px 0}
-.adm-nav:hover{background:#f2f6ff;color:#0648AD}.adm-nav.active{background:#eaf1ff;color:#0648AD;font-weight:700;box-shadow:inset 3px 0 #0648AD}
+.adm-nav:hover{background:#f2f6ff;color:#0648AD}.adm-nav.active{background:#eaf1ff;color:#0648AD;font-weight:700;box-shadow:inset 3px 0 #0648AD}.adm-nav-link{text-decoration:none;color:inherit}
 .adm-ico{width:22px;text-align:center;font-size:16px;color:#64789b}.adm-nav.active .adm-ico{color:#0648AD}
 .adm-sidebar-footer{margin-top:auto;border-top:1px solid #e7edf8;padding:12px 8px 2px;color:#062E70;font:600 11px var(--head)}.adm-sidebar-footer small{display:block;color:#8090ad;font:400 10px var(--body);margin-top:2px}
 .adm-content{min-width:0}.adm-view-head{display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid #d8e3f8;border-radius:14px;padding:16px 20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
@@ -86,6 +86,7 @@
 <button class="adm-nav" data-adm-view="detailed"><span class="adm-ico">☷</span><span>Detailed Student Report</span></button>
 <button class="adm-nav" data-adm-view="matrix"><span class="adm-ico">▦</span><span>Matrix Reports</span></button>
 <button class="adm-nav" data-adm-view="adviser"><span class="adm-ico">♙</span><span>Former Adviser Report</span></button></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">WEBSITE</div><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=home" target="_top"><span class="adm-ico">⌂</span><span>Public Homepage</span></a><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=admin-homepage" target="_top"><span class="adm-ico">✎</span><span>Homepage Management</span></a><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=admin-pages" target="_top"><span class="adm-ico">▧</span><span>Website Pages</span></a></div>
 <div class="adm-sidebar-footer"><span>Moreh Academy</span><small>Admissions Management</small></div>
 </aside>
 <div class="adm-content">
