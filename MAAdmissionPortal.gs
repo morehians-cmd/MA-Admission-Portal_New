@@ -210,6 +210,73 @@ function admissionPortalReport(token, reportType, reportValue) {
   } catch(err) { return authFail_(err.message || 'Could not load the report.'); }
 }
 
+
+function admissionPortalMatrixReport(token, rowDimension, columnDimension) {
+  try {
+    authRequireRole_(token, ['Encoder', 'Owner']);
+    var allowed = {
+      'Grade Level': 'GradeLevel',
+      'Admission Category': 'Category',
+      'Enrollment Status': 'EnrollStatus',
+      'Application Status': 'ApplicationStatus',
+      'Previous School': 'PrevSchool',
+      'Sex': 'SexualOrient',
+      'Gender': 'GenderOrient',
+      'Previous Scholarship': 'PrevScholarship',
+      'Cluster': 'Cluster',
+      'Section': 'Section'
+    };
+    rowDimension = String(rowDimension || 'Grade Level').trim();
+    columnDimension = String(columnDimension || 'Admission Category').trim();
+    if (!allowed[rowDimension] || !allowed[columnDimension]) throw new Error('Invalid matrix report dimension.');
+
+    var rows = admissionDbRows_();
+    function valueFor(r, label) {
+      var key = allowed[label], value = r[key];
+      if (label === 'Enrollment Status') value = value || 'Not Enrolled';
+      else if (label === 'Application Status') value = value || 'Submitted';
+      return String(value == null ? '' : value).trim() || 'Unspecified';
+    }
+
+    var colSet = {}, matrix = {};
+    rows.forEach(function(r) {
+      var rowKey = valueFor(r, rowDimension), colKey = valueFor(r, columnDimension);
+      colSet[colKey] = true;
+      if (!matrix[rowKey]) matrix[rowKey] = {};
+      matrix[rowKey][colKey] = (matrix[rowKey][colKey] || 0) + 1;
+    });
+
+    var columns = Object.keys(colSet).sort(function(a,b){ return a.localeCompare(b); });
+    var reportRows = Object.keys(matrix).sort(function(a,b){ return a.localeCompare(b); }).map(function(rowKey) {
+      var cells = {};
+      columns.forEach(function(colKey){ cells[colKey] = Number(matrix[rowKey][colKey] || 0); });
+      var total = columns.reduce(function(n,colKey){ return n + cells[colKey]; }, 0);
+      cells.Total = total;
+      cells.Group = rowKey;
+      return cells;
+    });
+
+    var totals = { Group: 'Total', Total: rows.length };
+    columns.forEach(function(colKey) {
+      totals[colKey] = rows.reduce(function(n,r){ return n + (valueFor(r, columnDimension) === colKey ? 1 : 0); }, 0);
+    });
+
+    return {
+      success: true,
+      message: 'Matrix report loaded.',
+      data: {
+        rowDimension: rowDimension,
+        columnDimension: columnDimension,
+        columns: columns,
+        reports: reportRows,
+        totals: totals
+      }
+    };
+  } catch (err) {
+    return authFail_(err.message || 'Could not load the matrix report.');
+  }
+}
+
 function admissionPortalFormerAdviserReport(token, formerAdviser) {
   try {
     authRequireRole_(token, ['Encoder', 'Owner']);
