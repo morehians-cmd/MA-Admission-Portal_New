@@ -254,6 +254,56 @@ $('printDetailedReport').onclick=printDetailedReport;
 $('exportDetailedReport').onclick=exportDetailedReport;
 refreshDetailedReportValues('');
 
+
+var currentSpecializedReport=null;
+function setSpecializedReportStatus(t,bad){localStatus('specializedReportStatus',t,bad);}
+function refreshSpecializedSections(){
+  var g=$('specializedGrade').value, sel=$('specializedSection');
+  var sections=[];
+  document.querySelectorAll('#results tr').forEach(function(){});
+  call('admissionPortalSearch',[TOKEN,'','','',100,'',''],function(r){
+    sections=r.data.filter(function(x){return !g||x.GradeLevel===g;}).map(function(x){return x.Section||'';});
+    sections=sections.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+    sel.innerHTML='<option value="">All Sections</option>'+sections.map(function(v){return '<option value="'+esc(v)+'">'+esc(v||'Unassigned')+'</option>';}).join('');
+  });
+}
+function loadSpecializedReport(){
+  var btn=$('loadSpecializedReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalSpecializedReport',[TOKEN,$('specializedReportType').value,$('specializedGrade').value,$('specializedSection').value],function(r){
+    currentSpecializedReport=r.data;renderSpecializedReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');setSpecializedReportStatus('Report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setSpecializedReportStatus(e,true);});
+}
+function renderSpecializedReport(data){
+  var cols=data.columns||[], rows=data.rows||[];
+  $('specializedReportTable').querySelector('thead').innerHTML='<tr>'+cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'</tr>';
+  $('specializedReportTable').querySelector('tbody').innerHTML=rows.length?rows.map(function(r){return '<tr>'+r.map(function(v){return '<td>'+esc(v)+'</td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="'+Math.max(1,cols.length)+'">No records found.</td></tr>';
+  var summary=data.summary||{}, bits=Object.keys(summary).map(function(k){return '<div class="breakdown-row"><span>'+esc(k.replace(/([A-Z])/g,' $1'))+'</span><strong>'+esc(summary[k])+'</strong></div>';});
+  $('specializedReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.title||data.reportType)+'</h3>'+bits.join('')+'</div>';
+}
+function printSpecializedReport(){
+  if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>'+esc(currentSpecializedReport.title||'Specialized Report')+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentSpecializedReport.title||'Specialized Report')+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('specializedReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportSpecializedReport(){
+  if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
+  var rows=[currentSpecializedReport.columns||[]].concat(currentSpecializedReport.rows||[]);
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_'+String(currentSpecializedReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+function populateSpecializedGrades(){
+  var grades=['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+  $('specializedGrade').innerHTML='<option value="">All Grade Levels</option>'+grades.map(function(g){return '<option>'+esc(g)+'</option>';}).join('');
+}
+$('specializedGrade').onchange=refreshSpecializedSections;
+$('loadSpecializedReport').onclick=loadSpecializedReport;
+$('printSpecializedReport').onclick=printSpecializedReport;
+$('exportSpecializedReport').onclick=exportSpecializedReport;
+populateSpecializedGrades();
+
 var currentMatrixReport=null;
 function setMatrixReportStatus(t,bad){localStatus('matrixReportStatus',t,bad);}
 function loadMatrixReport(){
