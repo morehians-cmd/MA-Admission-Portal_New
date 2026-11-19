@@ -26,8 +26,7 @@
 <div><label>Gender</label><input name="GenderOrient"></div><div><label>Religion</label><input name="Religion"></div><div><label>Religion (Other)</label><input name="ReligionOther"></div>
 <div class="section">Address</div>
 <div><label>Address Line 1</label><input name="AddressLine1"></div><div><label>Address Line 2</label><input name="AddressLine2"></div>
-<div><label>Barangay</label><input name="Barangay"></div><div><label>City</label><input name="City"></div><div><label>Province</label><input name="Province"></div>
-<div class="section">Previous School</div>
+<div><label>Barangay</label><input name="Barangay"></div><div><label>City</label><input name="City"></div><div class="section">Previous School</div>
 <div><label>Previous School</label><input name="PrevSchool"></div><div><label>Previous School Year</label><input name="PrevSY"></div>
 <div><label>Previous Grade</label><input name="PrevGrade"></div><div><label>Previous Cluster</label><input name="PrevCluster"></div>
 <div><label>Previous Section</label><input name="PrevSection"></div><div><label>Previous Adviser</label><input name="PrevAdviser"></div>
@@ -209,14 +208,16 @@ function exportAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
   var rows=[['Former Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.FormerAdviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r
+');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url;a.download='Moreh_Former_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
 }
 $('loadAdviserReport').onclick=loadAdviserReport;
 $('printAdviserReport').onclick=printAdviserReport;
 $('exportAdviserReport').onclick=exportAdviserReport;
-\nfunction search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
+
+function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
