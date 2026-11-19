@@ -176,6 +176,37 @@ function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
   }
 }
 
+function admissionPortalReport(token, reportType, reportValue) {
+  try {
+    authRequireRole_(token, ['Encoder', 'Owner']);
+    reportType = String(reportType || 'Grade Level').trim();
+    reportValue = String(reportValue || '').trim();
+    var rows = admissionDbRows_();
+    var groups = {};
+    function keyFor(r) {
+      if (reportType === 'Grade Level') return String(r.GradeLevel || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Admission Category') return String(r.Category || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Enrollment Status') return String(r.EnrollStatus || 'Not Enrolled').trim() || 'Not Enrolled';
+      if (reportType === 'Application Status') return String(r.ApplicationStatus || 'Submitted').trim() || 'Submitted';
+      if (reportType === 'Previous School') return String(r.PrevSchool || 'Unspecified').trim() || 'Unspecified';
+      return 'Unspecified';
+    }
+    if (reportValue) rows = rows.filter(function(r){ return keyFor(r).toLowerCase() === reportValue.toLowerCase(); });
+    rows.forEach(function(r){
+      var key=keyFor(r);
+      if(!groups[key]) groups[key]={Group:key,Total:0,Enrolled:0,NotEnrolled:0,Temporary:0,Transferred:0,Cancelled:0,Submitted:0,UnderReview:0,Approved:0,Declined:0};
+      var g=groups[key]; g.Total++;
+      var es=String(r.EnrollStatus||'Not Enrolled');
+      if(es==='Enrolled')g.Enrolled++;else if(es==='Temporary')g.Temporary++;else if(es==='Transferred')g.Transferred++;else if(es==='Cancelled')g.Cancelled++;else g.NotEnrolled++;
+      var as=String(r.ApplicationStatus||'Submitted');
+      if(as==='Under Review')g.UnderReview++;else if(as==='Approved')g.Approved++;else if(as==='Declined')g.Declined++;else g.Submitted++;
+    });
+    var reports=Object.keys(groups).sort(function(a,b){return a.localeCompare(b);}).map(function(k){return groups[k];});
+    var values=Object.keys(groups).sort(function(a,b){return a.localeCompare(b);});
+    return {success:true,message:'Report loaded.',data:{reportType:reportType,selectedValue:reportValue,values:values,reports:reports}};
+  } catch(err) { return authFail_(err.message || 'Could not load the report.'); }
+}
+
 function admissionPortalFormerAdviserReport(token, formerAdviser) {
   try {
     authRequireRole_(token, ['Encoder', 'Owner']);
