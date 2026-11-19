@@ -189,6 +189,9 @@ function admissionPortalReport(token, reportType, reportValue) {
       if (reportType === 'Enrollment Status') return String(r.EnrollStatus || 'Not Enrolled').trim() || 'Not Enrolled';
       if (reportType === 'Application Status') return String(r.ApplicationStatus || 'Submitted').trim() || 'Submitted';
       if (reportType === 'Previous School') return String(r.PrevSchool || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Sex') return String(r.SexualOrient || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Gender') return String(r.GenderOrient || 'Unspecified').trim() || 'Unspecified';
+      if (reportType === 'Previous Scholarship') return String(r.PrevScholarship || 'Unspecified').trim() || 'Unspecified';
       return 'Unspecified';
     }
     if (reportValue) rows = rows.filter(function(r){ return keyFor(r).toLowerCase() === reportValue.toLowerCase(); });
