@@ -73,6 +73,25 @@
 <th>Group</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
 </tr></thead><tbody></tbody></table></div>
 </section>
+
+<section class="card" id="matrixReportPanel" style="margin-top:16px">
+<h2>Matrix Reports</h2>
+<div class="muted" style="margin-bottom:10px">Compare two admission dimensions in a cross-tab report.</div>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="matrixRowDimension">Rows</label><select id="matrixRowDimension" style="min-width:220px">
+    <option>Grade Level</option><option>Admission Category</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option><option>Cluster</option><option>Section</option>
+  </select></div>
+  <div><label for="matrixColumnDimension">Columns</label><select id="matrixColumnDimension" style="min-width:220px">
+    <option>Admission Category</option><option>Grade Level</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option><option>Cluster</option><option>Section</option>
+  </select></div>
+  <button type="button" class="btn blue" id="loadMatrixReport">Generate Matrix</button>
+  <button type="button" class="btn secondary" id="printMatrixReport">Print</button>
+  <button type="button" class="btn secondary" id="exportMatrixReport">Export CSV</button>
+  <span id="matrixReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="matrixReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="matrixReportTable"><thead></thead><tbody><tr><td>Generate a matrix report to view results.</td></tr></tbody></table></div>
+</section>
 <section class="card" id="adviserReportPanel" style="margin-top:16px">
 <h2>Per Former Adviser Report</h2>
 <div class="actions" style="align-items:flex-end">
@@ -169,6 +188,41 @@ function drawStats(s){
     button.onclick=function(){openStudent(decodeURIComponent(button.getAttribute('data-view-student')));};
   });
 }
+
+var currentMatrixReport=null;
+function setMatrixReportStatus(t,bad){localStatus('matrixReportStatus',t,bad);}
+function loadMatrixReport(){
+  var btn=$('loadMatrixReport');setButtonLoading(btn,true,'Generate Matrix');
+  call('admissionPortalMatrixReport',[TOKEN,$('matrixRowDimension').value,$('matrixColumnDimension').value],function(r){
+    currentMatrixReport=r.data;renderMatrixReport(r.data);setButtonLoading(btn,false,'Generate Matrix');setMatrixReportStatus('Matrix report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Matrix');setMatrixReportStatus(e,true);});
+}
+function renderMatrixReport(data){
+  var cols=data.columns||[],rows=data.reports||[];
+  $('matrixReportTable').querySelector('thead').innerHTML='<tr><th>'+esc(data.rowDimension)+'</th>'+cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'<th>Total</th></tr>';
+  var body=rows.map(function(r){return '<tr><td><strong>'+esc(r.Group)+'</strong></td>'+cols.map(function(c){return '<td>'+Number(r[c]||0)+'</td>';}).join('')+'<td><strong>'+Number(r.Total||0)+'</strong></td></tr>';});
+  if(data.totals)body.push('<tr><td><strong>Total</strong></td>'+cols.map(function(c){return '<td><strong>'+Number(data.totals[c]||0)+'</strong></td>';}).join('')+'<td><strong>'+Number(data.totals.Total||0)+'</strong></td></tr>');
+  $('matrixReportTable').querySelector('tbody').innerHTML=body.join('')||'<tr><td colspan="'+(cols.length+2)+'">No records found.</td></tr>';
+  $('matrixReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.rowDimension)+' × '+esc(data.columnDimension)+'</h3><div class="breakdown-row"><span>Row Groups</span><strong>'+rows.length+'</strong></div><div class="breakdown-row"><span>Total Students</span><strong>'+Number(data.totals&&data.totals.Total||0)+'</strong></div></div>';
+}
+function printMatrixReport(){
+  if(!currentMatrixReport){setMatrixReportStatus('Generate the matrix report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Moreh Academy Matrix Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #ccc;padding:5px;text-align:center}th:first-child,td:first-child{text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentMatrixReport.rowDimension)+' × '+esc(currentMatrixReport.columnDimension)+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('matrixReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportMatrixReport(){
+  if(!currentMatrixReport){setMatrixReportStatus('Generate the matrix report first.',true);return;}
+  var cols=currentMatrixReport.columns||[],rows=[[currentMatrixReport.rowDimension].concat(cols).concat(['Total'])];
+  (currentMatrixReport.reports||[]).forEach(function(r){rows.push([r.Group].concat(cols.map(function(c){return Number(r[c]||0)})).concat([Number(r.Total||0)]));});
+  var t=currentMatrixReport.totals;if(t)rows.push(['Total'].concat(cols.map(function(c){return Number(t[c]||0)})).concat([Number(t.Total||0)]));
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\\r\\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_Matrix_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+$('loadMatrixReport').onclick=loadMatrixReport;
+$('printMatrixReport').onclick=printMatrixReport;
+$('exportMatrixReport').onclick=exportMatrixReport;
 
 var currentGeneralReport=null;
 function loadGeneralReport(){
