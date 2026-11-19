@@ -57,7 +57,21 @@
 
 <section id="staff" class="card hidden">
 <h2>Admissions Records</h2><div id="stats" class="stats"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
-<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
+<section class="card" id="adviserReportPanel" style="margin-top:16px">
+<h2>Per Adviser Report</h2>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="adviserSelect">Adviser</label><select id="adviserSelect" style="min-width:260px"><option value="">All Advisers</option></select></div>
+  <button type="button" class="btn blue" id="loadAdviserReport">Generate Report</button>
+  <button type="button" class="btn secondary" id="printAdviserReport">Print</button>
+  <button type="button" class="btn secondary" id="exportAdviserReport">Export CSV</button>
+  <span id="adviserReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="adviserReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="adviserReportTable"><thead><tr>
+<th>Adviser</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
+</tr></thead><tbody></tbody></table></div>
+<div id="adviserStudentList" class="hidden" style="margin-top:14px"></div>
+</section>\n<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
 <div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
 </section>
 </div></main>
@@ -139,12 +153,52 @@ function drawStats(s){
   });
 }
 
-function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
+var currentAdviserReport=null;
+function setAdviserReportStatus(t,bad){localStatus('adviserReportStatus',t,bad);}
+function loadAdviserReport(){
+  var btn=$('loadAdviserReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalAdviserReport',[TOKEN,$('adviserSelect').value],function(r){
+    currentAdviserReport=r.data;
+    renderAdviserReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');
+    setAdviserReportStatus('Report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setAdviserReportStatus(e,true);});
+}
+function renderAdviserReport(data){
+  var reports=data.reports||[], sel=$('adviserSelect'), current=sel.value;
+  sel.innerHTML='<option value="">All Advisers</option>'+data.advisers.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>';}).join('');
+  if(current && data.advisers.indexOf(current)>=0) sel.value=current;
+  $('adviserReportTable').querySelector('tbody').innerHTML=reports.length?reports.map(function(g){
+    return '<tr><td>'+esc(g.Adviser)+'</td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
+  }).join(''):'<tr><td colspan="11">No adviser records found.</td></tr>';
+  var total=reports.reduce(function(n,g){return n+Number(g.Total||0)},0);
+  $('adviserReportSummary').innerHTML='<div class="breakdown">'+
+    '<h3>Adviser Summary</h3><div class="breakdown-row"><span>Adviser Groups</span><strong>'+reports.length+'</strong></div>'+
+    '<div class="breakdown-row"><span>Total Students</span><strong>'+total+'</strong></div></div>';
+}
+function printAdviserReport(){
+  if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Per Adviser Report</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left}h1{margin-bottom:4px}p{color:#555}</style></head><body><h1>Moreh Academy — Per Adviser Report</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('adviserReportPanel').innerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportAdviserReport(){
+  if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
+  var rows=[['Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
+  (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.Adviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url;a.download='Moreh_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+$('loadAdviserReport').onclick=loadAdviserReport;
+$('printAdviserReport').onclick=printAdviserReport;
+$('exportAdviserReport').onclick=exportAdviserReport;
+\nfunction search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
-    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
+    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','Adviser','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
     var categoryOptions=['Regular','PUB-QVR','QVA PASSER','TLC','ESC','PEAC Grantee','TLC-OVAP'];
     var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
       if(k==='ApplicationStatus'){
