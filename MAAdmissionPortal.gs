@@ -330,6 +330,27 @@ function admissionPortalSpecializedReport(token, reportType, gradeLevel, section
       columns = ['Scholarship / Category', 'Students', 'Share'];
       title = 'SCHOLARSHIP BENEFICIARIES REPORT';
       summary = { ActiveLearners: rows.filter(active).length, Beneficiaries: rows.filter(active).filter(function(r){return String(r.Category||'').toUpperCase() !== 'REGULAR';}).length };
+    } else if (reportType === 'Scholarship by Grade') {
+      var grades = ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+      var categories = ['PUB-QVR','TLC','REGULAR','ESC','TLC-OVAP','QVA PASSER','PEAC Grantee'];
+      var pop = rows.filter(active);
+      grades.forEach(function(g) {
+        var x = pop.filter(function(r){return r.GradeLevel===g;});
+        if (!x.length) return;
+        dataRows.push([g].concat(categories.map(function(cat){return count(x,function(r){return String(r.Category||'').toUpperCase()===cat.toUpperCase();});}),[x.length]));
+      });
+      dataRows.push(['TOTAL'].concat(categories.map(function(cat){return count(pop,function(r){return String(r.Category||'').toUpperCase()===cat.toUpperCase();});}),[pop.length]));
+      columns = ['Grade Level'].concat(categories,['Total Students']);
+      title = 'SCHOLARSHIP BENEFICIARIES BY GRADE LEVEL';
+      summary = { ActiveLearners: pop.length, ScholarshipCategories: categories.length };
+    } else if (reportType === 'No Parental Consent') {
+      var missingConsent = rows.filter(function(r) {
+        return active(r) && String(r.ReqConsent || '') !== 'Original' && String(r.ReqConsentStatus || '') !== 'Verified';
+      }).sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
+      dataRows = missingConsent.map(function(r){return [r.StudentID,r.FullName,r.GradeLevel,r.Section,r.EnrollStatus||'Not Enrolled',r.ApplicationStatus||'Submitted'];});
+      columns = ['Student ID','Learner','Grade Level','Section','Enrollment Status','Application Status'];
+      title = 'LEARNERS WITHOUT PARENTAL CONSENT';
+      summary = { MissingConsent: missingConsent.length, ActiveLearners: rows.filter(active).length };
     } else if (reportType === 'Advisory Class') {
       var ax = rows.filter(active).slice().sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
       dataRows = ax.map(function(r){ return [r.StudentID, r.FullName, r.GradeLevel, r.Section, r.Category, r.EnrollStatus || 'Not Enrolled']; });
