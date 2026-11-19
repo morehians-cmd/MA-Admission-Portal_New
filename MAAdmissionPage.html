@@ -208,8 +208,7 @@ function exportAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
   var rows=[['Former Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.FormerAdviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r
-');
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\\r\\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url;a.download='Moreh_Former_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
 }
