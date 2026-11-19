@@ -215,6 +215,149 @@ function admissionPortalReport(token, reportType, reportValue) {
 
 
 
+
+function admissionPortalSpecializedReport(token, reportType, gradeLevel, section) {
+  try {
+    authRequireRole_(token, ['Encoder', 'Owner']);
+    reportType = String(reportType || 'Admission Daily').trim();
+    gradeLevel = String(gradeLevel || '').trim();
+    section = String(section || '').trim();
+
+    var rows = admissionDbRows_().filter(function(r) {
+      if (gradeLevel && String(r.GradeLevel || '').trim() !== gradeLevel) return false;
+      if (section === '(none)' && String(r.Section || '').trim() !== '') return false;
+      if (section && section !== '(none)' && String(r.Section || '').trim() !== section) return false;
+      return true;
+    });
+
+    function active(r) {
+      return String(r.EnrollStatus || 'Not Enrolled') !== 'Cancelled' &&
+             String(r.EnrollStatus || 'Not Enrolled') !== 'Transferred Out';
+    }
+    function count(list, fn) {
+      return list.filter(fn).length;
+    }
+    function pct(a, b) {
+      return b ? (Math.round((a / b) * 1000) / 10).toFixed(1) + '%' : '0.0%';
+    }
+    function groupBy(list, keyFn) {
+      var map = {};
+      list.forEach(function(r) {
+        var key = String(keyFn(r) || 'Unspecified').trim() || 'Unspecified';
+        if (!map[key]) map[key] = [];
+        map[key].push(r);
+      });
+      return map;
+    }
+
+    var title = reportType;
+    var columns = [];
+    var dataRows = [];
+    var summary = {};
+
+    if (reportType === 'Admission Daily') {
+      var dayMap = groupBy(rows, function(r) {
+        return String(r.CreatedAt || '').slice(0, 10) || 'Unknown';
+      });
+      Object.keys(dayMap).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(day) {
+        var x = dayMap[day];
+        dataRows.push([day, x.length, count(x, function(r){return active(r);}), count(x, function(r){return r.EnrollStatus === 'Enrolled';})]);
+      });
+      columns = ['Date', 'Registrations', 'Active', 'Enrolled'];
+      title = 'ADMISSION DAILY REPORT';
+      summary = { Total: rows.length, Active: count(rows, active), Enrolled: count(rows, function(r){return r.EnrollStatus === 'Enrolled';}) };
+    } else if (reportType === 'School Overview') {
+      var groups = {};
+      rows.forEach(function(r) {
+        var g = String(r.GradeLevel || 'Unspecified');
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(r);
+      });
+      Object.keys(groups).sort(function(a,b){return a.localeCompare(b);}).forEach(function(g) {
+        var x = groups[g], enrolled = count(x, function(r){return r.EnrollStatus === 'Enrolled';});
+        dataRows.push([g, x.length, enrolled, count(x, function(r){return r.EnrollStatus === 'Not Enrolled';}), count(x, function(r){return r.EnrollStatus === 'Cancelled';}), count(x, function(r){return r.EnrollStatus === 'Transferred' || r.EnrollStatus === 'Transferred Out';}), pct(enrolled, x.length)]);
+      });
+      columns = ['Grade Level', 'Applicants', 'Enrolled', 'Not Enrolled', 'Cancelled', 'Transferred', 'Conversion Rate'];
+      title = 'SCHOOL OVERVIEW / ADMISSION CONVERSION';
+      summary = { Total: rows.length, Enrolled: count(rows, function(r){return r.EnrollStatus === 'Enrolled';}), ConversionRate: pct(count(rows, function(r){return r.EnrollStatus === 'Enrolled';}), rows.length) };
+    } else if (reportType === 'Previous School') {
+      var schoolMap = groupBy(rows, function(r){ return r.PrevSchool || '(NONE)'; });
+      Object.keys(schoolMap).sort(function(a,b){
+        return schoolMap[b].length - schoolMap[a].length || a.localeCompare(b);
+      }).forEach(function(k) {
+        var x = schoolMap[k], e = count(x, function(r){return r.EnrollStatus === 'Enrolled';});
+        dataRows.push([k, x.length, e, pct(e, x.length)]);
+      });
+      columns = ['Previous School', 'Applicants', 'Enrolled', 'Conversion Rate'];
+      title = 'PER PREVIOUS SCHOOL REPORT';
+      summary = { Schools: Object.keys(schoolMap).length, Total: rows.length };
+    } else if (reportType === 'Demographic') {
+      var sex = groupBy(rows.filter(active), function(r){ return r.SexualOrient || 'Not specified'; });
+      Object.keys(sex).sort(function(a,b){return sex[b].length-sex[a].length || a.localeCompare(b);}).forEach(function(k){ dataRows.push(['Sex', k, sex[k].length]); });
+      var gender = groupBy(rows.filter(active), function(r){ return r.GenderOrient || 'Not specified'; });
+      Object.keys(gender).sort(function(a,b){return gender[b].length-gender[a].length || a.localeCompare(b);}).forEach(function(k){ dataRows.push(['Gender', k, gender[k].length]); });
+      var religion = groupBy(rows.filter(active), function(r){ return r.Religion === 'Others, specify' ? ('OTHERS: ' + (r.ReligionOther || '')) : (r.Religion || 'Not specified'); });
+      Object.keys(religion).sort(function(a,b){return religion[b].length-religion[a].length || a.localeCompare(b);}).forEach(function(k){ dataRows.push(['Religion', k, religion[k].length]); });
+      columns = ['Dimension', 'Value', 'Students'];
+      title = 'DEMOGRAPHIC REPORT';
+      summary = { ActiveLearners: rows.filter(active).length };
+    } else if (reportType === 'Requirements Status') {
+      var reqMap = {};
+      rows.forEach(function(r) {
+        admissionDbRequirementItems_(r).forEach(function(item) {
+          var key = item.label || item.statusKey;
+          if (!reqMap[key]) reqMap[key] = { required: 0, pending: 0, received: 0, verified: 0, incomplete: 0 };
+          reqMap[key].required++;
+          var st = String(item.status || 'Pending Submission');
+          if (st === 'Received') reqMap[key].received++;
+          else if (st === 'Verified') reqMap[key].verified++;
+          else if (st === 'Incomplete') reqMap[key].incomplete++;
+          else reqMap[key].pending++;
+        });
+      });
+      Object.keys(reqMap).sort().forEach(function(k) {
+        var q = reqMap[k];
+        dataRows.push([k, q.required, q.pending, q.received, q.verified, q.incomplete]);
+      });
+      columns = ['Requirement', 'Applicable Learners', 'Pending Submission', 'Received', 'Verified', 'Incomplete'];
+      title = 'REQUIREMENTS STATUS REPORT';
+      summary = { Requirements: Object.keys(reqMap).length, ApplicableLearners: rows.length };
+    } else if (reportType === 'Scholarship Beneficiaries') {
+      var cat = groupBy(rows.filter(active), function(r){ return r.Category || 'Not set'; });
+      Object.keys(cat).sort(function(a,b){return cat[b].length-cat[a].length || a.localeCompare(b);}).forEach(function(k) {
+        dataRows.push([k, cat[k].length, pct(cat[k].length, rows.filter(active).length)]);
+      });
+      columns = ['Scholarship / Category', 'Students', 'Share'];
+      title = 'SCHOLARSHIP BENEFICIARIES REPORT';
+      summary = { ActiveLearners: rows.filter(active).length, Beneficiaries: rows.filter(active).filter(function(r){return String(r.Category||'').toUpperCase() !== 'REGULAR';}).length };
+    } else if (reportType === 'Advisory Class') {
+      var ax = rows.filter(active).slice().sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
+      dataRows = ax.map(function(r){ return [r.StudentID, r.FullName, r.GradeLevel, r.Section, r.Category, r.EnrollStatus || 'Not Enrolled']; });
+      columns = ['Student ID', 'Learner', 'Grade Level', 'Section', 'Category', 'Enrollment Status'];
+      title = 'ADVISORY CLASS REPORT';
+      summary = { Students: ax.length };
+    } else if (reportType === 'Personal Data') {
+      var px = rows.slice().sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
+      dataRows = px.map(function(r){
+        return [r.StudentID, r.FullName, r.LRN, r.GradeLevel, r.Section, r.Birthdate, r.SexualOrient, r.Religion === 'Others, specify' ? (r.ReligionOther || 'Others') : (r.Religion || ''), r.Mobile];
+      });
+      columns = ['Student ID', 'Full Name', 'LRN', 'Grade Level', 'Section', 'Birth Date', 'Sex', 'Religion', 'Mobile'];
+      title = "LEARNER'S PERSONAL DATA REPORT";
+      summary = { Students: px.length };
+    } else {
+      throw new Error('Invalid specialized report type.');
+    }
+
+    return {
+      success: true,
+      message: 'Specialized report loaded.',
+      data: { reportType: reportType, title: title, columns: columns, rows: dataRows, summary: summary }
+    };
+  } catch (err) {
+    return authFail_(err.message || 'Could not load the specialized report.');
+  }
+}
+
 function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
   try {
     authRequireRole_(token, ['Encoder', 'Owner']);
