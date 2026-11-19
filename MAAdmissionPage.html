@@ -281,7 +281,7 @@ function exportMatrixReport(){
   var cols=currentMatrixReport.columns||[],rows=[[currentMatrixReport.rowDimension].concat(cols).concat(['Total'])];
   (currentMatrixReport.reports||[]).forEach(function(r){rows.push([r.Group].concat(cols.map(function(c){return Number(r[c]||0)})).concat([Number(r.Total||0)]));});
   var t=currentMatrixReport.totals;if(t)rows.push(['Total'].concat(cols.map(function(c){return Number(t[c]||0)})).concat([Number(t.Total||0)]));
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\\r\\n');
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='Moreh_Matrix_Report.csv';a.click();URL.revokeObjectURL(url);
 }
@@ -390,7 +390,7 @@ function exportAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
   var rows=[['Former Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.FormerAdviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\\r\\n');
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url;a.download='Moreh_Former_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
 }
