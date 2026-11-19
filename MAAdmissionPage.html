@@ -199,8 +199,8 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 </tr></thead><tbody></tbody></table></div>
 <div id="adviserStudentList" class="hidden" style="margin-top:14px"></div>
 </section></div>
-<div class="adm-view" id="adm-view-website-homepage"><div class="adm-panel" style="padding:0;overflow:hidden"><iframe title="Homepage Management" src="<?= baseUrl ?>?page=admin-homepage&embed=1" class="adm-website-frame"></iframe></div></div>
-<div class="adm-view" id="adm-view-website-pages"><div class="adm-panel" style="padding:0;overflow:hidden"><iframe title="Website Pages Management" src="<?= baseUrl ?>?page=admin-pages&embed=1" class="adm-website-frame"></iframe></div></div>
+<div class="adm-view" id="adm-view-website-homepage"><div class="adm-panel" style="padding:0;overflow:hidden"><iframe title="Homepage Management" data-admin-page="admin-homepage" class="adm-website-frame" loading="lazy"></iframe></div></div>
+<div class="adm-view" id="adm-view-website-pages"><div class="adm-panel" style="padding:0;overflow:hidden"><iframe title="Website Pages Management" data-admin-page="admin-pages" class="adm-website-frame" loading="lazy"></iframe></div></div>
 </div></div></section>
 </div></main>
 <script>
@@ -609,6 +609,13 @@ var ADM_VIEW_META={
 };
 function setAdmissionStaffView(view){
  if(!ADM_VIEW_META[view])view='dashboard';
+ if(view==='website-homepage'||view==='website-pages'){
+  var frame=document.querySelector('#adm-view-'+view+' iframe[data-admin-page]');
+  if(frame&&!frame.getAttribute('src')){
+   var appUrl=window.location.href.split('?')[0];
+   frame.src=appUrl+'?page='+encodeURIComponent(frame.getAttribute('data-admin-page'));
+  }
+ }
  document.querySelectorAll('[data-adm-view]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-adm-view')===view)});
  document.querySelectorAll('.adm-view').forEach(function(v){v.classList.toggle('active',v.id==='adm-view-'+view)});
  $('admViewTitle').textContent=ADM_VIEW_META[view][0];$('admViewDescription').textContent=ADM_VIEW_META[view][1];
