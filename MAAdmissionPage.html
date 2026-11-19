@@ -3,7 +3,27 @@
 <title>Admissions | Moreh Academy</title>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <?!= include('MAAdmissionStyles') ?>
-<style>.stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.stat{padding:9px;border-radius:8px}.stat span{font-size:10px}.stat strong{font-size:21px}.btn-loading{display:inline-flex;align-items:center;gap:8px}.loading-spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:maSpin .7s linear infinite}@keyframes maSpin{to{transform:rotate(360deg)}}.dashboard-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.breakdown{border:1px solid #d8e3f8;border-radius:8px;padding:9px;background:#fff}.breakdown h3{margin:0 0 6px;color:var(--navy);font:700 12px var(--head)}.breakdown-row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid #edf1f8;font-size:11px}.breakdown-row:last-child{border-bottom:0}.breakdown-row strong{color:var(--blue)}.muted{color:#71809b;font-size:12px}.needs-action{margin-top:12px;border:1px solid #d8e3f8;border-radius:10px;padding:12px;background:#fff}.needs-action h3{margin:0 0 5px;color:var(--navy);font:700 14px var(--head)}.dashboard-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.dash-panel{border:1px solid #d8e3f8;border-radius:8px;padding:9px;background:#fff;min-width:0}.dash-panel h3{margin:0 0 6px;color:var(--navy);font:700 12px var(--head)}.mini-bars{display:flex;align-items:flex-end;gap:4px;height:82px;padding:5px 2px 0}.mini-bar-wrap{flex:1;min-width:10px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}.mini-bar{width:100%;max-width:22px;min-height:2px;background:var(--blue);border-radius:4px 4px 0 0}.mini-bar-label{font-size:8px;color:#71809b;white-space:nowrap}.mini-bar-value{font-size:8px;color:var(--navy);font-weight:700}.pipeline-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.pipeline-item{padding:6px 3px;border:1px solid #edf1f8;border-radius:7px;text-align:center}.pipeline-item strong{display:block;font-size:14px;color:var(--blue)}.pipeline-item span{font-size:9px;color:#71809b}.recent-row{display:grid;grid-template-columns:minmax(100px,1.5fr) 60px 75px 70px;gap:5px;padding:5px 0;border-bottom:1px solid #edf1f8;font-size:10px;align-items:center}.recent-row:last-child{border-bottom:0}.recent-name{font-weight:600;color:var(--navy)}.analytics-list{max-height:150px;overflow:auto}.analytics-list .breakdown-row{font-size:11px}@media(max-width:900px){.dashboard-breakdown,.dashboard-extra{grid-template-columns:1fr}}@media(max-width:700px){.dashboard-extra{grid-template-columns:1fr}.pipeline-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.recent-row{grid-template-columns:1fr 80px}.recent-row>*:nth-child(3),.recent-row>*:nth-child(4){display:none}}.action-row{display:grid;grid-template-columns:minmax(160px,1.4fr) minmax(120px,1fr) minmax(160px,1.4fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #edf1f8;font-size:12px}.action-row:last-child{border-bottom:0}.action-name{font-weight:600;color:var(--navy)}.action-reason{color:#71809b}.action-tag{display:inline-block;padding:3px 7px;border-radius:999px;background:#f2f5fa;font-size:10px;font-weight:600}.action-tag.review{background:#fff5dc}.action-tag.approved{background:#eaf8ef}.action-tag.submitted{background:#edf4ff}@media(max-width:700px){.dashboard-breakdown{grid-template-columns:1fr}.action-row{grid-template-columns:1fr;gap:6px}}</style></head><body>
+<style>.stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.stat{padding:9px;border-radius:8px}.stat span{font-size:10px}.stat strong{font-size:21px}.btn-loading{display:inline-flex;align-items:center;gap:8px}.loading-spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:maSpin .7s linear infinite}@keyframes maSpin{to{transform:rotate(360deg)}}.dashboard-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.breakdown{border:1px solid #d8e3f8;border-radius:8px;padding:9px;background:#fff}.breakdown h3{margin:0 0 6px;color:var(--navy);font:700 12px var(--head)}.breakdown-row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid #edf1f8;font-size:11px}.breakdown-row:last-child{border-bottom:0}.breakdown-row strong{color:var(--blue)}.muted{color:#71809b;font-size:12px}.needs-action{margin-top:12px;border:1px solid #d8e3f8;border-radius:10px;padding:12px;background:#fff}.needs-action h3{margin:0 0 5px;color:var(--navy);font:700 14px var(--head)}.dashboard-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.dash-panel{border:1px solid #d8e3f8;border-radius:8px;padding:9px;background:#fff;min-width:0}.dash-panel h3{margin:0 0 6px;color:var(--navy);font:700 12px var(--head)}.mini-bars{display:flex;align-items:flex-end;gap:4px;height:82px;padding:5px 2px 0}.mini-bar-wrap{flex:1;min-width:10px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}.mini-bar{width:100%;max-width:22px;min-height:2px;background:var(--blue);border-radius:4px 4px 0 0}.mini-bar-label{font-size:8px;color:#71809b;white-space:nowrap}.mini-bar-value{font-size:8px;color:var(--navy);font-weight:700}.pipeline-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.pipeline-item{padding:6px 3px;border:1px solid #edf1f8;border-radius:7px;text-align:center}.pipeline-item strong{display:block;font-size:14px;color:var(--blue)}.pipeline-item span{font-size:9px;color:#71809b}.recent-row{display:grid;grid-template-columns:minmax(100px,1.5fr) 60px 75px 70px;gap:5px;padding:5px 0;border-bottom:1px solid #edf1f8;font-size:10px;align-items:center}.recent-row:last-child{border-bottom:0}.recent-name{font-weight:600;color:var(--navy)}.analytics-list{max-height:150px;overflow:auto}.analytics-list .breakdown-row{font-size:11px}@media(max-width:900px){.dashboard-breakdown,.dashboard-extra{grid-template-columns:1fr}}@media(max-width:700px){.dashboard-extra{grid-template-columns:1fr}.pipeline-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.recent-row{grid-template-columns:1fr 80px}.recent-row>*:nth-child(3),.recent-row>*:nth-child(4){display:none}}.action-row{display:grid;grid-template-columns:minmax(160px,1.4fr) minmax(120px,1fr) minmax(160px,1.4fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #edf1f8;font-size:12px}.action-row:last-child{border-bottom:0}.action-name{font-weight:600;color:var(--navy)}.action-reason{color:#71809b}.action-tag{display:inline-block;padding:3px 7px;border-radius:999px;background:#f2f5fa;font-size:10px;font-weight:600}.action-tag.review{background:#fff5dc}.action-tag.approved{background:#eaf8ef}.action-tag.submitted{background:#edf4ff}@media(max-width:700px){.dashboard-breakdown{grid-template-columns:1fr}.action-row{grid-template-columns:1fr;gap:6px}}</style><style>
+#staff.card{padding:0;border:0;background:transparent;box-shadow:none;margin-top:22px}
+.adm-shell{display:grid;grid-template-columns:248px minmax(0,1fr);gap:18px;align-items:start}
+.adm-sidebar{background:#fff;border:1px solid #d8e3f8;border-radius:14px;box-shadow:0 4px 16px rgba(6,46,112,.06);padding:14px 12px;position:sticky;top:16px;min-height:calc(100vh - 100px);display:flex;flex-direction:column}
+.adm-side-brand{display:flex;align-items:center;gap:10px;padding:7px 8px 16px;border-bottom:1px solid #e7edf8;margin-bottom:12px}
+.adm-brand-mark{display:grid;place-items:center;width:38px;height:38px;background:#0648AD;color:white;border-radius:10px;font:800 14px var(--head)}
+.adm-side-brand strong{display:block;font:700 13px var(--head);color:#062E70}.adm-side-brand small{display:block;color:#71809b;font-size:11px}
+.adm-nav-group{margin-bottom:14px}.adm-nav-heading{font:700 10px var(--head);letter-spacing:.09em;color:#8090ad;padding:5px 9px 7px}
+.adm-nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;color:#33415f;padding:10px 11px;border-radius:9px;font:600 13px var(--body);cursor:pointer;margin:2px 0}
+.adm-nav:hover{background:#f2f6ff;color:#0648AD}.adm-nav.active{background:#eaf1ff;color:#0648AD;font-weight:700;box-shadow:inset 3px 0 #0648AD}
+.adm-ico{width:22px;text-align:center;font-size:16px;color:#64789b}.adm-nav.active .adm-ico{color:#0648AD}
+.adm-sidebar-footer{margin-top:auto;border-top:1px solid #e7edf8;padding:12px 8px 2px;color:#062E70;font:600 11px var(--head)}.adm-sidebar-footer small{display:block;color:#8090ad;font:400 10px var(--body);margin-top:2px}
+.adm-content{min-width:0}.adm-view-head{display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid #d8e3f8;border-radius:14px;padding:16px 20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
+.adm-eyebrow{font:700 10px var(--head);letter-spacing:.12em;color:#8191ad}.adm-view-head h2{margin:2px 0;color:#062E70;font:800 22px var(--head)}.adm-view-head p{margin:2px 0 0;color:#71809b;font-size:12px}
+.adm-menu-toggle{display:none;border:1px solid #d8e3f8;background:#fff;color:#0648AD;border-radius:8px;padding:8px 11px;font-size:18px}
+.adm-view{display:none}.adm-view.active{display:block}.adm-view>.card:first-child{margin-top:0}.adm-panel{background:white;border:1px solid #d8e3f8;border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
+.adm-view #generalReportPanel,.adm-view #specializedReportPanel,.adm-view #detailedReportPanel,.adm-view #matrixReportPanel,.adm-view #adviserReportPanel{margin-top:0}
+.adm-view .card{margin-top:0}
+@media(max-width:1000px){.adm-shell{grid-template-columns:210px minmax(0,1fr);gap:12px}.adm-sidebar{padding:10px 8px}.adm-nav{padding:9px 8px;font-size:12px}}
+@media(max-width:760px){.adm-shell{grid-template-columns:1fr}.adm-sidebar{position:static;min-height:0;display:none}.adm-sidebar.mobile-open{display:flex}.adm-menu-toggle{display:inline-flex}.adm-view-head{padding:13px 15px}.adm-panel,.adm-view .card{padding:15px}.adm-nav-group{margin-bottom:8px}}
+</style></head><body>
 <header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY · ADMISSIONS</div><nav><a href="<?= baseUrl ?>">Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
 <main><div class="wrap">
 <div class="head"><div><h1>Admissions Portal</h1><p id="welcome">Loading your admission portal…</p></div></div>
@@ -55,8 +75,26 @@
 </section>
 
 <section id="staff" class="card hidden">
-<h2>Admissions Records</h2><div id="stats" class="stats"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
-<section class="card" id="generalReportPanel" style="margin-top:16px">
+<div class="adm-shell">
+<aside class="adm-sidebar" aria-label="Admission dashboard navigation">
+<div class="adm-side-brand"><span class="adm-brand-mark">MA</span><div><strong>Admission Office</strong><small>Management Portal</small></div></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">OVERVIEW</div><button class="adm-nav active" data-adm-view="dashboard"><span class="adm-ico">▦</span><span>Dashboard</span></button></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">ADMISSIONS</div><button class="adm-nav" data-adm-view="records"><span class="adm-ico">▤</span><span>Admission Records</span></button></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">REPORTS & ANALYTICS</div>
+<button class="adm-nav" data-adm-view="general"><span class="adm-ico">▥</span><span>General Report</span></button>
+<button class="adm-nav" data-adm-view="specialized"><span class="adm-ico">▧</span><span>Specialized Reports</span></button>
+<button class="adm-nav" data-adm-view="detailed"><span class="adm-ico">☷</span><span>Detailed Student Report</span></button>
+<button class="adm-nav" data-adm-view="matrix"><span class="adm-ico">▦</span><span>Matrix Reports</span></button>
+<button class="adm-nav" data-adm-view="adviser"><span class="adm-ico">♙</span><span>Former Adviser Report</span></button></div>
+<div class="adm-sidebar-footer"><span>Moreh Academy</span><small>Admissions Management</small></div>
+</aside>
+<div class="adm-content">
+<div class="adm-view-head"><div><div class="adm-eyebrow">ADMISSIONS WORKSPACE</div><h2 id="admViewTitle">Admission Dashboard</h2><p id="admViewDescription">Admissions overview and activity.</p></div><button class="adm-menu-toggle" id="admMenuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button></div>
+<div class="adm-view active" id="adm-view-dashboard">Admission Dashboard</h2><div id="stats" class="stats"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
+</div>
+<div class="adm-view" id="adm-view-records"><div class="adm-panel"><h2>Admission Records</h2><p class="muted">Search, filter, and open admission records.</p><div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
+<div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div></div></div>
+<div class="adm-view" id="adm-view-general"><section class="card" id="generalReportPanel" style="margin-top:16px">
 <h2>Reports & Export</h2>
 <div class="actions" style="align-items:flex-end">
   <div><label for="reportType">Report Type</label><select id="reportType" style="min-width:220px">
@@ -72,10 +110,8 @@
 <div class="scroll" style="margin-top:12px"><table class="table" id="generalReportTable"><thead><tr>
 <th>Group</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
 </tr></thead><tbody></tbody></table></div>
-</section>
-
-
-<section class="card" id="specializedReportPanel" style="margin-top:16px">
+</section></div>
+<div class="adm-view" id="adm-view-specialized"><section class="card" id="specializedReportPanel" style="margin-top:16px">
   <div class="actions" style="justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
     <div>
       <h2 style="margin:0">Specialized Reports</h2>
@@ -100,9 +136,8 @@
   <div class="scroll" style="margin-top:14px">
     <table class="table" id="specializedReportTable"><thead></thead><tbody><tr><td>Generate a report to view results.</td></tr></tbody></table>
   </div>
-</section>
-
-<section class="card" id="detailedReportPanel" style="margin-top:16px">
+</section></div>
+<div class="adm-view" id="adm-view-detailed"><section class="card" id="detailedReportPanel" style="margin-top:16px">
 <h2>Detailed Student Report</h2>
 <div class="muted" style="margin-bottom:10px">View the students behind any report group, including previous-school and former-adviser details.</div>
 <div class="actions" style="align-items:flex-end">
@@ -119,9 +154,8 @@
 <div class="scroll" style="margin-top:12px"><table class="table" id="detailedReportTable"><thead><tr>
 <th>Student ID</th><th>Student</th><th>Grade</th><th>Cluster</th><th>Section</th><th>Category</th><th>Classification</th><th>Previous School</th><th>Previous Section</th><th>Former Adviser</th><th>Application Status</th><th>Enrollment Status</th>
 </tr></thead><tbody><tr><td colspan="12">Generate a detailed report to view students.</td></tr></tbody></table></div>
-</section>
-
-<section class="card" id="matrixReportPanel" style="margin-top:16px">
+</section></div>
+<div class="adm-view" id="adm-view-matrix"><section class="card" id="matrixReportPanel" style="margin-top:16px">
 <h2>Matrix Reports</h2>
 <div class="muted" style="margin-bottom:10px">Compare two admission dimensions in a cross-tab report.</div>
 <div class="actions" style="align-items:flex-end">
@@ -138,8 +172,8 @@
 </div>
 <div id="matrixReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
 <div class="scroll" style="margin-top:12px"><table class="table" id="matrixReportTable"><thead></thead><tbody><tr><td>Generate a matrix report to view results.</td></tr></tbody></table></div>
-</section>
-<section class="card" id="adviserReportPanel" style="margin-top:16px">
+</section></div>
+<div class="adm-view" id="adm-view-adviser"><section class="card" id="adviserReportPanel" style="margin-top:16px">
 <h2>Per Former Adviser Report</h2>
 <div class="actions" style="align-items:flex-end">
   <div><label for="adviserSelect">Former Adviser</label><select id="adviserSelect" style="min-width:260px"><option value="">All Advisers</option></select></div>
@@ -153,10 +187,8 @@
 <th>Former Adviser</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
 </tr></thead><tbody></tbody></table></div>
 <div id="adviserStudentList" class="hidden" style="margin-top:14px"></div>
-</section>
-<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
-<div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
-</section>
+</section></div>
+</div></div></section>>
 </div></main>
 <script>
 var APP_BASE='<?= baseUrl ?>',TOKEN='';
@@ -549,5 +581,28 @@ function saveRequirementStatuses(id){
   });
 }
 $('signout').onclick=function(e){e.preventDefault();call('authSignOut',[TOKEN],function(){try{sessionStorage.removeItem('ma_token')}catch(x){}location.href=APP_BASE})};
+
+// Centralized staff navigation. Existing admission/report actions remain bound to their original IDs.
+var ADM_VIEW_META={
+ dashboard:['Admission Dashboard','Admissions overview, pipeline statistics, and items requiring attention.'],
+ records:['Admission Records','Search, filter, and open admission records.'],
+ general:['General Report','Summarized admission and enrollment statistics by selected dimension.'],
+ specialized:['Specialized Reports','Operational, demographic, requirements, scholarship, and school reports.'],
+ detailed:['Detailed Student Report','Detailed student records grouped by selected dimension.'],
+ matrix:['Matrix Reports','Cross-tabulation of admission dimensions.'],
+ adviser:['Former Adviser Report','Reports grouped by former adviser and their students.']
+};
+function setAdmissionStaffView(view){
+ if(!ADM_VIEW_META[view])view='dashboard';
+ document.querySelectorAll('[data-adm-view]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-adm-view')===view)});
+ document.querySelectorAll('.adm-view').forEach(function(v){v.classList.toggle('active',v.id==='adm-view-'+view)});
+ $('admViewTitle').textContent=ADM_VIEW_META[view][0];$('admViewDescription').textContent=ADM_VIEW_META[view][1];
+ try{sessionStorage.setItem('ma_admission_staff_view',view)}catch(e){}
+ var side=document.querySelector('.adm-sidebar');if(side)side.classList.remove('mobile-open');
+ var toggle=$('admMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
+}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-adm-view]');if(b)setAdmissionStaffView(b.getAttribute('data-adm-view'))});
+$('admMenuToggle').onclick=function(){var side=document.querySelector('.adm-sidebar');side.classList.toggle('mobile-open');this.setAttribute('aria-expanded',side.classList.contains('mobile-open')?'true':'false')};
+
 boot();
 </script></body></html>
