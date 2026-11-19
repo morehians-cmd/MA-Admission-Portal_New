@@ -176,21 +176,21 @@ function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
   }
 }
 
-function admissionPortalAdviserReport(token, adviser) {
+function admissionPortalFormerAdviserReport(token, formerAdviser) {
   try {
     authRequireRole_(token, ['Encoder', 'Owner']);
-    adviser = String(adviser == null ? '' : adviser).trim();
-    var rows = maAdmissionSpeedRecords_();
-    if (adviser) {
+    formerAdviser = String(formerAdviser == null ? '' : formerAdviser).trim();
+    var rows = admissionDbRows_();
+    if (formerAdviser) {
       rows = rows.filter(function (r) {
-        return String(r.Adviser || '').trim().toLowerCase() === adviser.toLowerCase();
+        return String(r.PrevAdviser || '').trim().toLowerCase() === formerAdviser.toLowerCase();
       });
     }
     var groups = {};
     rows.forEach(function (r) {
-      var key = String(r.Adviser || '').trim() || 'Unassigned';
+      var key = String(r.PrevAdviser || '').trim() || 'Unassigned';
       if (!groups[key]) groups[key] = {
-        Adviser: key, Total: 0, Enrolled: 0, NotEnrolled: 0, Temporary: 0,
+        FormerAdviser: key, Total: 0, Enrolled: 0, NotEnrolled: 0, Temporary: 0,
         Transferred: 0, Cancelled: 0, Submitted: 0, UnderReview: 0, Approved: 0, Declined: 0,
         students: []
       };
@@ -209,8 +209,8 @@ function admissionPortalAdviserReport(token, adviser) {
       else g.Submitted++;
       g.students.push({
         StudentID: r.StudentID, FullName: r.FullName, GradeLevel: r.GradeLevel,
-        Cluster: r.Cluster, Section: r.Section, Category: r.Category,
-        ApplicationStatus: as, EnrollStatus: es
+        PreviousSchool: r.PrevSchool, PreviousSection: r.PrevSection,
+        Category: r.Category, ApplicationStatus: as, EnrollStatus: es
       });
     });
     var advisers = Object.keys(groups).sort(function (a, b) {
@@ -224,15 +224,15 @@ function admissionPortalAdviserReport(token, adviser) {
     });
     return {
       success: true,
-      message: 'Adviser report loaded.',
+      message: 'Former adviser report loaded.',
       data: {
-        selectedAdviser: adviser,
-        advisers: advisers.map(function (g) { return g.Adviser; }),
+        selectedFormerAdviser: formerAdviser,
+        advisers: advisers.map(function (g) { return g.FormerAdviser; }),
         reports: advisers
       }
     };
   } catch (err) {
-    return authFail_(err.message || 'Could not load the adviser report.');
+    return authFail_(err.message || 'Could not load the former adviser report.');
   }
 }
 
