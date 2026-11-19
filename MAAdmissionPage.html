@@ -68,7 +68,7 @@
 </div>
 <div id="adviserReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
 <div class="scroll" style="margin-top:12px"><table class="table" id="adviserReportTable"><thead><tr>
-<th>Adviser</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
+<th>Former Adviser</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
 </tr></thead><tbody></tbody></table></div>
 <div id="adviserStudentList" class="hidden" style="margin-top:14px"></div>
 </section>\n<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
@@ -169,12 +169,34 @@ function renderAdviserReport(data){
   sel.innerHTML='<option value="">All Advisers</option>'+data.advisers.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>';}).join('');
   if(current && data.advisers.indexOf(current)>=0) sel.value=current;
   $('adviserReportTable').querySelector('tbody').innerHTML=reports.length?reports.map(function(g){
-    return '<tr><td>'+esc(g.FormerAdviser)+'</td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
-  }).join(''):'<tr><td colspan="11">No adviser records found.</td></tr>';
+    return '<tr class="former-adviser-row" data-former-adviser="'+esc(encodeURIComponent(g.FormerAdviser))+'" style="cursor:pointer">'+
+      '<td><strong>'+esc(g.FormerAdviser)+'</strong></td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
+  }).join(''):'<tr><td colspan="11">No former adviser records found.</td></tr>';
+  document.querySelectorAll('.former-adviser-row').forEach(function(row){
+    row.onclick=function(){
+      var name=decodeURIComponent(row.getAttribute('data-former-adviser')||'');
+      var group=reports.filter(function(g){return g.FormerAdviser===name;})[0];
+      renderFormerAdviserStudents(group);
+    };
+  });
   var total=reports.reduce(function(n,g){return n+Number(g.Total||0)},0);
   $('adviserReportSummary').innerHTML='<div class="breakdown">'+
-    '<h3>Adviser Summary</h3><div class="breakdown-row"><span>Adviser Groups</span><strong>'+reports.length+'</strong></div>'+
+    '<h3>Former Adviser Summary</h3><div class="breakdown-row"><span>Former Adviser Groups</span><strong>'+reports.length+'</strong></div>'+
     '<div class="breakdown-row"><span>Total Students</span><strong>'+total+'</strong></div></div>';
+}
+function renderFormerAdviserStudents(group){
+  var box=$('adviserStudentList');
+  if(!group){box.classList.add('hidden');box.innerHTML='';return;}
+  var students=group.students||[];
+  box.classList.remove('hidden');
+  box.innerHTML='<div class="dash-panel"><div class="actions" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">Students under '+esc(group.FormerAdviser)+'</h3><div class="muted">'+students.length+' student(s)</div></div><button type="button" class="btn secondary" id="closeFormerAdviserStudents">Close</button></div>'+
+    '<div class="scroll" style="margin-top:12px"><table class="table"><thead><tr><th>Student ID</th><th>Student</th><th>Current Grade</th><th>Previous School</th><th>Previous Section</th><th>Category</th><th>Application Status</th><th>Enrollment Status</th></tr></thead><tbody>'+
+    (students.length?students.map(function(s){
+      return '<tr><td>'+esc(s.StudentID)+'</td><td>'+esc(s.FullName)+'</td><td>'+esc(s.GradeLevel)+'</td><td>'+esc(s.PreviousSchool)+'</td><td>'+esc(s.PreviousSection)+'</td><td>'+esc(s.Category)+'</td><td>'+esc(s.ApplicationStatus)+'</td><td>'+esc(s.EnrollStatus)+'</td></tr>';
+    }).join(''):'<tr><td colspan="8">No students found.</td></tr>')+
+    '</tbody></table></div></div>';
+  $('closeFormerAdviserStudents').onclick=function(){box.classList.add('hidden');box.innerHTML='';};
+  box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function printAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
