@@ -74,6 +74,25 @@
 </tr></thead><tbody></tbody></table></div>
 </section>
 
+<section class="card" id="detailedReportPanel" style="margin-top:16px">
+<h2>Detailed Student Report</h2>
+<div class="muted" style="margin-bottom:10px">View the students behind any report group, including previous-school and former-adviser details.</div>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="detailReportType">Report Dimension</label><select id="detailReportType" style="min-width:220px">
+    <option>Grade Level</option><option>Admission Category</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Classification</option><option>Cluster</option><option>Section</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option>
+  </select></div>
+  <div><label for="detailReportValue">Group</label><select id="detailReportValue" style="min-width:260px"><option value="">All</option></select></div>
+  <button type="button" class="btn blue" id="loadDetailedReport">Generate Report</button>
+  <button type="button" class="btn secondary" id="printDetailedReport">Print</button>
+  <button type="button" class="btn secondary" id="exportDetailedReport">Export CSV</button>
+  <span id="detailedReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="detailedReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="detailedReportTable"><thead><tr>
+<th>Student ID</th><th>Student</th><th>Grade</th><th>Cluster</th><th>Section</th><th>Category</th><th>Classification</th><th>Previous School</th><th>Previous Section</th><th>Former Adviser</th><th>Application Status</th><th>Enrollment Status</th>
+</tr></thead><tbody><tr><td colspan="12">Generate a detailed report to view students.</td></tr></tbody></table></div>
+</section>
+
 <section class="card" id="matrixReportPanel" style="margin-top:16px">
 <h2>Matrix Reports</h2>
 <div class="muted" style="margin-bottom:10px">Compare two admission dimensions in a cross-tab report.</div>
@@ -189,6 +208,52 @@ function drawStats(s){
   });
 }
 
+
+var currentDetailedReport=null;
+function setDetailedReportStatus(t,bad){localStatus('detailedReportStatus',t,bad);}
+function renderDetailedReport(data){
+  var rows=data.students||[], sel=$('detailReportValue');
+  $('detailedReportTable').querySelector('tbody').innerHTML=rows.length?rows.map(function(s){
+    return '<tr><td>'+esc(s.StudentID)+'</td><td><strong>'+esc(s.FullName)+'</strong></td><td>'+esc(s.GradeLevel)+'</td><td>'+esc(s.Cluster)+'</td><td>'+esc(s.Section)+'</td><td>'+esc(s.Category)+'</td><td>'+esc(s.Classification)+'</td><td>'+esc(s.PreviousSchool)+'</td><td>'+esc(s.PreviousSection)+'</td><td>'+esc(s.PreviousAdviser)+'</td><td>'+esc(s.ApplicationStatus)+'</td><td>'+esc(s.EnrollStatus)+'</td></tr>';
+  }).join(''):'<tr><td colspan="12">No records found.</td></tr>';
+  $('detailedReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.reportType)+(data.selectedValue?' · '+esc(data.selectedValue):'')+'</h3><div class="breakdown-row"><span>Students</span><strong>'+rows.length+'</strong></div></div>';
+}
+function refreshDetailedReportValues(selected){
+  var type=$('detailReportType').value;
+  call('admissionPortalReport',[TOKEN,type,''],function(r){
+    var sel=$('detailReportValue');
+    sel.innerHTML='<option value="">All</option>'+r.data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
+    if(selected)sel.value=selected;
+  },function(e){setDetailedReportStatus(e,true);});
+}
+function loadDetailedReport(){
+  var btn=$('loadDetailedReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalDetailedStudentReport',[TOKEN,$('detailReportType').value,$('detailReportValue').value],function(r){
+    currentDetailedReport=r.data;renderDetailedReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');setDetailedReportStatus('Detailed report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setDetailedReportStatus(e,true);});
+}
+function printDetailedReport(){
+  if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Moreh Academy Detailed Student Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:9px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — Detailed Student Report</h1><p>'+esc(currentDetailedReport.reportType)+(currentDetailedReport.selectedValue?' · '+esc(currentDetailedReport.selectedValue):'')+'<br>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('detailedReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportDetailedReport(){
+  if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
+  var headers=['Student ID','Student','Grade','Cluster','Section','Category','Classification','Previous School','Previous Section','Former Adviser','Application Status','Enrollment Status'];
+  var rows=[headers];
+  (currentDetailedReport.students||[]).forEach(function(s){rows.push([s.StudentID,s.FullName,s.GradeLevel,s.Cluster,s.Section,s.Category,s.Classification,s.PreviousSchool,s.PreviousSection,s.PreviousAdviser,s.ApplicationStatus,s.EnrollStatus]);});
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_Detailed_Student_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+$('detailReportType').onchange=function(){refreshDetailedReportValues('');};
+$('loadDetailedReport').onclick=loadDetailedReport;
+$('printDetailedReport').onclick=printDetailedReport;
+$('exportDetailedReport').onclick=exportDetailedReport;
+refreshDetailedReportValues('');
+
 var currentMatrixReport=null;
 function setMatrixReportStatus(t,bad){localStatus('matrixReportStatus',t,bad);}
 function loadMatrixReport(){
@@ -238,8 +303,16 @@ function renderGeneralReport(data){
   if(data.selectedValue)sel.value=data.selectedValue;
   var reports=data.reports||[];
   $('generalReportTable').querySelector('tbody').innerHTML=reports.length?reports.map(function(g){
-    return '<tr><td><strong>'+esc(g.Group)+'</strong></td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
+    return '<tr class="general-report-row" data-report-group="'+esc(encodeURIComponent(g.Group))+'" style="cursor:pointer"><td><strong>'+esc(g.Group)+'</strong></td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
   }).join(''):'<tr><td colspan="11">No records found.</td></tr>';
+  document.querySelectorAll('.general-report-row').forEach(function(row){
+    row.onclick=function(){
+      var group=decodeURIComponent(row.getAttribute('data-report-group')||'');
+      $('detailReportType').value=data.reportType;
+      refreshDetailedReportValues(group);
+      $('detailedReportPanel').scrollIntoView({behavior:'smooth',block:'start'});
+    };
+  });
   var total=reports.reduce(function(n,g){return n+Number(g.Total||0)},0);
   $('generalReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.reportType)+'</h3><div class="breakdown-row"><span>Groups</span><strong>'+reports.length+'</strong></div><div class="breakdown-row"><span>Total Students</span><strong>'+total+'</strong></div></div>';
 }
