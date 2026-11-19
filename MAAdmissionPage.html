@@ -18,7 +18,7 @@
 .adm-content{min-width:0}.adm-view-head{display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid #d8e3f8;border-radius:14px;padding:16px 20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
 .adm-eyebrow{font:700 10px var(--head);letter-spacing:.12em;color:#8191ad}.adm-view-head h2{margin:2px 0;color:var(--navy);font:800 22px var(--head)}.adm-view-head p{margin:2px 0 0;color:#71809b;font-size:12px}
 .adm-menu-toggle{display:none;border:1px solid #d8e3f8;background:#fff;color:var(--blue);border-radius:8px;padding:8px 11px;font-size:18px}
-.adm-view{display:none}.adm-view.active{display:block}.adm-view>.card:first-child{margin-top:0}.adm-panel{background:white;border:1px solid #d8e3f8;border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
+.adm-view{display:none}.adm-view.active{display:block}.adm-view>.card:first-child{margin-top:0}.adm-website-frame{display:block;width:100%;height:calc(100vh - 205px);min-height:850px;border:0;background:#f4f7fd}.adm-panel{background:white;border:1px solid #d8e3f8;border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
 .adm-view #generalReportPanel,.adm-view #specializedReportPanel,.adm-view #detailedReportPanel,.adm-view #matrixReportPanel,.adm-view #adviserReportPanel{margin-top:0}
 .adm-view .card{margin-top:0}
 .top{background:#fff;color:var(--navy);border-bottom:1px solid #d8e3f8}
@@ -96,7 +96,7 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <button class="adm-nav" data-adm-view="detailed"><span class="adm-ico">☷</span><span>Detailed Student Report</span></button>
 <button class="adm-nav" data-adm-view="matrix"><span class="adm-ico">▦</span><span>Matrix Reports</span></button>
 <button class="adm-nav" data-adm-view="adviser"><span class="adm-ico">♙</span><span>Former Adviser Report</span></button></div>
-<div class="adm-nav-group"><div class="adm-nav-heading">WEBSITE</div><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=home" target="_top"><span class="adm-ico">⌂</span><span>Public Homepage</span></a><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=admin-homepage" target="_top"><span class="adm-ico">✎</span><span>Homepage Management</span></a><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=admin-pages" target="_top"><span class="adm-ico">▧</span><span>Website Pages</span></a></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">WEBSITE</div><a class="adm-nav adm-nav-link" href="<?= baseUrl ?>?page=home" target="_blank" rel="noopener"><span class="adm-ico">⌂</span><span>Public Homepage</span></a><button type="button" class="adm-nav" data-adm-view="website-homepage"><span class="adm-ico">✎</span><span>Homepage Management</span></button><button type="button" class="adm-nav" data-adm-view="website-pages"><span class="adm-ico">▧</span><span>Website Pages</span></button></div>
 <div class="adm-sidebar-footer"><span>Moreh Academy</span><small>Admissions Management</small></div>
 </aside>
 <div class="adm-content">
@@ -199,6 +199,8 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 </tr></thead><tbody></tbody></table></div>
 <div id="adviserStudentList" class="hidden" style="margin-top:14px"></div>
 </section></div>
+<div class="adm-view" id="adm-view-website-homepage"><div class="adm-panel" style="padding:0;overflow:hidden"><iframe title="Homepage Management" src="<?= baseUrl ?>?page=admin-homepage&embed=1" class="adm-website-frame"></iframe></div></div>
+<div class="adm-view" id="adm-view-website-pages"><div class="adm-panel" style="padding:0;overflow:hidden"><iframe title="Website Pages Management" src="<?= baseUrl ?>?page=admin-pages&embed=1" class="adm-website-frame"></iframe></div></div>
 </div></div></section>
 </div></main>
 <script>
@@ -601,7 +603,9 @@ var ADM_VIEW_META={
  specialized:['Specialized Reports','Operational, demographic, requirements, scholarship, and school reports.'],
  detailed:['Detailed Student Report','Detailed student records grouped by selected dimension.'],
  matrix:['Matrix Reports','Cross-tabulation of admission dimensions.'],
- adviser:['Former Adviser Report','Reports grouped by former adviser and their students.']
+ adviser:['Former Adviser Report','Reports grouped by former adviser and their students.'],
+ 'website-homepage':['Homepage Management','Manage the public homepage without leaving the admissions dashboard.'],
+ 'website-pages':['Website Pages','Manage website pages without leaving the admissions dashboard.']
 };
 function setAdmissionStaffView(view){
  if(!ADM_VIEW_META[view])view='dashboard';
