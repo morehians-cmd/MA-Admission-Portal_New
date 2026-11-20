@@ -42,15 +42,20 @@ function admissionIdCardHighest_(year) {
 
 function admissionIdCardData(token, studentId) {
   try {
-    authRequireRole_(token, ['Owner', 'Encoder']);
+    var actor = authRequireRole_(token, ['Owner', 'Encoder']);
     var hit = admissionDbFindById_(String(studentId || ''));
     if (!hit) throw new Error('Learner not found.');
-    return { success: true, message: 'ID card data loaded.', data: {
-      studentId: hit.StudentID, fullName: hit.FullName, category: hit.Category,
-      eligible: admissionIdCardIsTlc_(hit.Category), idNumber: hit.IDNumber || '',
-      photo: hit.IDPhotoID ? DriveApp.getFileById(hit.IDPhotoID).getBlob().getAs('image/jpeg').getBytes() : '',
-      lastAssigned: admissionIdCardHighest_(String(hit.SchoolYear || '').slice(0, 4) || Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy'))
-    }};
+    var data = {
+      StudentID: hit.StudentID, FullName: hit.FullName, IDNumber: hit.IDNumber || '',
+      Photo: hit.IDPhotoID ? DriveApp.getFileById(hit.IDPhotoID).getBlob().getAs('image/jpeg').getBytes() : '',
+      LastAssigned: admissionIdCardHighest_(String(hit.SchoolYear || '').slice(0, 4) || Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy'))
+    };
+    if (actor.role === 'Owner') {
+      data.Category = hit.Category;
+      data.Eligible = admissionIdCardIsTlc_(hit.Category);
+      data.ClaimedIDNumber = hit.ClaimedIDNumber || '';
+    }
+    return { success: true, message: 'ID card data loaded.', data: data };
   } catch (e) { return authFail_(e.message || 'Could not load ID card data.'); }
 }
 
