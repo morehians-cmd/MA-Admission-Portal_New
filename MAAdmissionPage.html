@@ -254,7 +254,7 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 </div></div></section>
 </div></main>
 <script>
-var APP_BASE='<?= baseUrl ?>',TOKEN='',CURRENT_ROLE='',CATEGORY_OPTIONS=[];
+var APP_BASE='<?= baseUrl ?>',TOKEN='',CURRENT_ROLE='',CATEGORY_OPTIONS=[],CURRENT_RECORDS=[];
 function $(id){return document.getElementById(id)}
 /* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
 function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
@@ -417,13 +417,9 @@ var currentSpecializedReport=null;
 function setSpecializedReportStatus(t,bad){localStatus('specializedReportStatus',t,bad);}
 function refreshSpecializedSections(){
   var g=$('specializedGrade').value, sel=$('specializedSection');
-  var sections=[];
-  document.querySelectorAll('#results tr').forEach(function(){});
-  call('admissionPortalSearch',[TOKEN,'','','',100,'',''],function(r){
-    sections=r.data.filter(function(x){return !g||x.GradeLevel===g;}).map(function(x){return x.Section||'';});
-    sections=sections.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
-    sel.innerHTML='<option value="">All Sections</option>'+sections.map(function(v){return '<option value="'+esc(v)+'">'+esc(v||'Unassigned')+'</option>';}).join('');
-  });
+  var sections=CURRENT_RECORDS.filter(function(x){return !g||x.GradeLevel===g;}).map(function(x){return x.Section||'';});
+  sections=sections.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+  sel.innerHTML='<option value="">All Sections</option>'+sections.map(function(v){return '<option value="'+esc(v)+'">'+esc(v||'Unassigned')+'</option>';}).join('');
 }
 function loadSpecializedReport(){
   var btn=$('loadSpecializedReport');setButtonLoading(btn,true,'Generate Report');
@@ -589,7 +585,7 @@ $('loadAdviserReport').onclick=loadAdviserReport;
 $('printAdviserReport').onclick=printAdviserReport;
 $('exportAdviserReport').onclick=exportAdviserReport;
 
-function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>';if(CURRENT_ROLE==='Encoder')Array.prototype.forEach.call($('results').querySelectorAll('tr'),function(row){if(row.children[3])row.children[3].style.display='none'});})}
+function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){CURRENT_RECORDS=r.data||[];$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>';if(CURRENT_ROLE==='Encoder')Array.prototype.forEach.call($('results').querySelectorAll('tr'),function(row){if(row.children[3])row.children[3].style.display='none'});})}
 $('searchBtn').onclick=search;
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
