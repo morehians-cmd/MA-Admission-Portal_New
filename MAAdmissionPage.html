@@ -344,7 +344,7 @@ function drawStats(s){try{drawHero(s)}catch(e){}
 
   var recent=s.recent||[];
   var recentHtml='<div class="dash-panel"><h3>Recent Applications</h3>'+
-    (recent.length?recent.map(function(x){return '<div class="recent-row"><div><div class="recent-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+'</div></div><div>'+esc(x.GradeLevel||'')+'</div><div>'+esc(x.Category||'')+'</div><div>'+esc(x.ApplicationStatus||'Submitted')+'</div></div>'}).join(''):'<div class="muted">No applications yet.</div>')+
+    (recent.length?recent.map(function(x){return '<div class="recent-row"><div><div class="recent-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+'</div></div><div>'+esc(x.GradeLevel||'')+'</div>'+(s.role==='Owner'?'<div>'+esc(x.Category||'')+'</div>':'')+'<div>'+esc(x.ApplicationStatus||'Submitted')+'</div></div>'}).join(''):'<div class="muted">No applications yet.</div>')+
     '</div>';
 
   var scholarshipHtml=s.role==='Owner'?'<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){var av=Number(s.byScholarship[a]||0),bv=Number(s.byScholarship[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>':'';
@@ -563,13 +563,14 @@ function renderAdviserReport(data){
 function renderFormerAdviserStudents(group){
   var box=$('adviserStudentList');
   if(!group){box.classList.add('hidden');box.innerHTML='';return;}
-  var students=group.students||[];
+  var students=group.students||[], owner=CURRENT_ROLE==='Owner';
+  var categoryHeader=owner?'<th>Category</th>':'';
   box.classList.remove('hidden');
   box.innerHTML='<div class="dash-panel"><div class="actions" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">Students under '+esc(group.FormerAdviser)+'</h3><div class="muted">'+students.length+' student(s)</div></div><button type="button" class="btn secondary" id="closeFormerAdviserStudents">Close</button></div>'+
-    '<div class="scroll" style="margin-top:12px"><table class="table"><thead><tr><th>Student ID</th><th>Student</th><th>Current Grade</th><th>Previous School</th><th>Previous Section</th><th>Category</th><th>Application Status</th><th>Enrollment Status</th></tr></thead><tbody>'+
+    '<div class="scroll" style="margin-top:12px"><table class="table"><thead><tr><th>Student ID</th><th>Student</th><th>Current Grade</th><th>Previous School</th><th>Previous Section</th>'+categoryHeader+'<th>Application Status</th><th>Enrollment Status</th></tr></thead><tbody>'+
     (students.length?students.map(function(s){
-      return '<tr><td>'+esc(s.StudentID)+'</td><td>'+esc(s.FullName)+'</td><td>'+esc(s.GradeLevel)+'</td><td>'+esc(s.PreviousSchool)+'</td><td>'+esc(s.PreviousSection)+'</td><td>'+esc(s.Category)+'</td><td>'+esc(s.ApplicationStatus)+'</td><td>'+esc(s.EnrollStatus)+'</td></tr>';
-    }).join(''):'<tr><td colspan="8">No students found.</td></tr>')+
+      return '<tr><td>'+esc(s.StudentID)+'</td><td>'+esc(s.FullName)+'</td><td>'+esc(s.GradeLevel)+'</td><td>'+esc(s.PreviousSchool)+'</td><td>'+esc(s.PreviousSection)+'</td>'+(owner?'<td>'+esc(s.Category)+'</td>':'')+'<td>'+esc(s.ApplicationStatus)+'</td><td>'+esc(s.EnrollStatus)+'</td></tr>';
+    }).join(''):'<tr><td colspan="'+(owner?8:7)+'">No students found.</td></tr>')+
     '</tbody></table></div></div>';
   $('closeFormerAdviserStudents').onclick=function(){box.classList.add('hidden');box.innerHTML='';};
   box.scrollIntoView({behavior:'smooth',block:'start'});
