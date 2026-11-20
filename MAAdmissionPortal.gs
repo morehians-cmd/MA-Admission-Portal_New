@@ -21,24 +21,19 @@ function admissionPortalGetBootstrap(token) {
     } else {
       try {
         data.stats = admissionPortalDashboard_(account.role);
+        data.stats.holdsCount = admissionHoldsRows_().filter(function (h) { return h.Status === 'Active'; }).length;
       } catch (dashboardErr) {
-        // Keep the Admissions page usable even if an analytics-only calculation fails.
-        // The compact speed dashboard is the safe fallback; the detailed dashboard can
-        // be diagnosed without blocking the whole Admissions Personnel screen.
+        // Keep the Admissions workspace available with empty analytics if a dashboard
+        // calculation fails; do not maintain a second, divergent dashboard implementation.
         console.error('Admission dashboard analytics failed: ' + (dashboardErr.message || dashboardErr));
-        data.stats = maAdmissionSpeedDashboard_();
-        data.stats.byApplicationStatus = {};
-        data.stats.pipeline = {};
-        data.stats.trend = [];
-        data.stats.recent = [];
-        data.stats.needsAction = [];
-        data.stats.needsActionTotal = 0;
-        data.stats.byGradeCluster = {};
-        data.stats.bySex = {};
-        data.stats.byPreviousSchool = {};
-        data.stats.byScholarship = {};
-        data.stats.role = account.role;
-        data.stats.dashboardWarning = 'Detailed dashboard analytics are temporarily unavailable.';
+        data.stats = {
+          total: 0, byStatus: {}, byApplicationStatus: {}, byGrade: {}, byCategory: {},
+          enrolledByGrade: {}, enrolledByCluster: {}, pipeline: {}, trend: [], trendSummary: {},
+          recent: [], needsAction: [], needsActionTotal: 0, bySex: {}, byGender: {},
+          byPreviousSchoolTop: [], byScholarship: {}, role: account.role,
+          grades: ADM_DB.GRADES.slice(), activeSchoolYear: admissionDbActiveYear_(), holdsCount: 0,
+          dashboardWarning: 'Detailed dashboard analytics are temporarily unavailable.'
+        };
       }
     }
     return { success: true, message: 'Admission portal loaded.', data: data };
@@ -49,7 +44,7 @@ function admissionPortalGetBootstrap(token) {
 
 function admissionPortalSearch(token, q, status, applicationStatus, limit, grade, sy) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
     q = String(q == null ? '' : q).trim().toLowerCase();
     status = String(status == null ? '' : status).trim();
     applicationStatus = String(applicationStatus == null ? '' : applicationStatus).trim();
@@ -65,7 +60,7 @@ function admissionPortalSearch(token, q, status, applicationStatus, limit, grade
       return [r.StudentID, r.LRN, r.FullName, r.Surname, r.FirstName, r.Email, r.Section].join(' ').toLowerCase().indexOf(q) >= 0;
     });
     rows.sort(function (a, b) { return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); });
-    rows = rows.slice(0, limit).map(admissionPortalPublicRecord_);
+    rows = rows.slice(0, limit).map(function (r) { return admissionPortalPublicRecord_(r, actor.role); });
     return { success: true, message: 'Students loaded.', data: rows };
   } catch (err) {
     return authFail_(err.message || 'Could not search admission records.');
@@ -74,10 +69,11 @@ function admissionPortalSearch(token, q, status, applicationStatus, limit, grade
 
 function admissionPortalGetStudent(token, studentId) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
     var r = admissionDbFindById_(studentId);
     if (!r) throw new Error('Admission record not found.');
     r.RequirementItems = admissionDbRequirementItems_(r);
+    if (actor.role === 'Encoder') admissionPortalRestrictEncoderRecord_(r);
     delete r._row;
     return { success: true, message: 'Admission record loaded.', data: r };
   } catch (err) {
@@ -97,6 +93,13 @@ function admissionPortalSaveStudent(token, studentId, changes) {
     blocked.ReqRemarks = true;
     // ID number / photo / claimed ID have their own validated workflow (AdmissionIdCard.gs); IDPhotoID is a Drive file id and must never be staff-editable.
     blocked.IDNumber = true; blocked.IDPhotoID = true; blocked.ClaimedIDNumber = true;
+    if (actor.role === 'Encoder') {
+      ['Category','PrevScholarship','EscCertNo','VoucherCertNo','EscSchoolNo','CertNo',
+       'SexualOrient','GenderOrient','Religion','ReligionOther','Birthdate','BirthPlace','Age',
+       'FatherReligion','FatherReligionOther','MotherReligion','MotherReligionOther',
+       'RelBirthdate','RelAge','RelSex','RelGender','RelGenderOther','RelReligion','RelReligionOther',
+       'ReqConsent','ReqConsentStatus','ReqConsentDate','ConsentAt'].forEach(function (key) { blocked[key] = true; });
+    }
     var update = {};
     Object.keys(changes).forEach(function (key) {
       if (blocked[key]) return;
@@ -167,7 +170,10 @@ function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
     var record = admissionDbFindById_(studentId);
     if (!record) throw new Error('Admission record not found.');
     var applicable = admissionDbRequirementItems_(record), allowedKeys = {};
-    applicable.forEach(function (item) { allowedKeys[item.statusKey] = item; });
+    applicable.forEach(function (item) {
+      if (actor.role === 'Encoder' && item.key === 'ReqConsent') return;
+      allowedKeys[item.statusKey] = item;
+    });
     var staged = [];
     Object.keys(changes).forEach(function (key) {
       if (!allowedKeys[key]) throw new Error('This document is not applicable to the learner.');
@@ -429,8 +435,9 @@ function admissionDbEnsureStatusLogSheet_() {
 
 function admissionPortalReport(token, reportType, reportValue) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
     reportType = String(reportType || 'Grade Level').trim();
+    if (actor.role === 'Encoder' && ['Admission Category', 'Sex', 'Gender', 'Previous Scholarship'].indexOf(reportType) >= 0) throw new Error('This report contains restricted category or demographic information.');
     reportValue = String(reportValue || '').trim();
     var rows = admissionDbRows_();
     var groups = {};
@@ -469,8 +476,9 @@ function admissionPortalReport(token, reportType, reportValue) {
 
 function admissionPortalSpecializedReport(token, reportType, gradeLevel, section) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
     reportType = String(reportType || 'Admission Daily').trim();
+    if (actor.role === 'Encoder' && ['Demographic', 'No Parental Consent', 'Scholarship Beneficiaries', 'Scholarship by Grade', 'Personal Data'].indexOf(reportType) >= 0) throw new Error('This report contains restricted demographic, scholarship, or consent information.');
     gradeLevel = String(gradeLevel || '').trim();
     section = String(section || '').trim();
 
@@ -556,6 +564,7 @@ function admissionPortalSpecializedReport(token, reportType, gradeLevel, section
       var reqMap = {};
       rows.forEach(function(r) {
         admissionDbRequirementItems_(r).forEach(function(item) {
+          if (actor.role === 'Encoder' && item.key === 'ReqConsent') return;
           var key = item.label || item.statusKey;
           if (!reqMap[key]) reqMap[key] = { required: 0, pending: 0, received: 0, verified: 0, incomplete: 0 };
           reqMap[key].required++;
@@ -620,6 +629,10 @@ function admissionPortalSpecializedReport(token, reportType, gradeLevel, section
       throw new Error('Invalid specialized report type.');
     }
 
+    if (actor.role === 'Encoder' && reportType === 'Advisory Class') {
+      columns = columns.filter(function (column) { return column !== 'Category'; });
+      dataRows = dataRows.map(function (row) { return row.filter(function (value, index) { return index !== 4; }); });
+    }
     return {
       success: true,
       message: 'Specialized report loaded.',
@@ -632,7 +645,8 @@ function admissionPortalSpecializedReport(token, reportType, gradeLevel, section
 
 function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
+    if (actor.role === 'Encoder' && ['Admission Category', 'Sex', 'Gender', 'Previous Scholarship'].indexOf(String(reportType || '').trim()) >= 0) throw new Error('This report contains restricted category or demographic information.');
     var allowed = {
       'Grade Level': 'GradeLevel',
       'Admission Category': 'Category',
@@ -652,10 +666,7 @@ function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
 
     var rows = admissionDbRows_();
     function admissionPortalReportValueFor_(r) {
-      var value = r[allowed[reportType]];
-      if (reportType === 'Enrollment Status') value = value || 'Not Enrolled';
-      else if (reportType === 'Application Status') value = value || 'Submitted';
-      return String(value == null ? '' : value).trim() || 'Unspecified';
+      return admissionDimension_(r, reportType);
     }
     if (reportValue) {
       rows = rows.filter(function(r) {
@@ -673,7 +684,7 @@ function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
         GradeLevel: r.GradeLevel || '',
         Cluster: r.Cluster || '',
         Section: r.Section || '',
-        Category: r.Category || '',
+        Category: actor.role === 'Owner' ? (r.Category || '') : '',
         Classification: r.Classification || '',
         PreviousSchool: r.PrevSchool || '',
         PreviousSection: r.PrevSection || '',
@@ -695,7 +706,11 @@ function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
 
 function admissionPortalMatrixReport(token, rowDimension, columnDimension) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
+    if (actor.role === 'Encoder') {
+      var restricted = ['Admission Category', 'Sex', 'Gender', 'Previous Scholarship'];
+      if (restricted.indexOf(String(rowDimension || '').trim()) >= 0 || restricted.indexOf(String(columnDimension || '').trim()) >= 0) throw new Error('This matrix contains restricted category or demographic information.');
+    }
     var allowed = {
       'Grade Level': 'GradeLevel',
       'Admission Category': 'Category',
@@ -714,10 +729,7 @@ function admissionPortalMatrixReport(token, rowDimension, columnDimension) {
 
     var rows = admissionDbRows_();
     function admissionPortalMatrixValueFor_(r, label) {
-      var key = allowed[label], value = r[key];
-      if (label === 'Enrollment Status') value = value || 'Not Enrolled';
-      else if (label === 'Application Status') value = value || 'Submitted';
-      return String(value == null ? '' : value).trim() || 'Unspecified';
+      return admissionDimension_(r, label);
     }
 
     var colSet = {}, matrix = {};
@@ -761,7 +773,7 @@ function admissionPortalMatrixReport(token, rowDimension, columnDimension) {
 
 function admissionPortalFormerAdviserReport(token, formerAdviser) {
   try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
+    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
     formerAdviser = String(formerAdviser == null ? '' : formerAdviser).trim();
     var rows = admissionDbRows_();
     if (formerAdviser) {
@@ -793,7 +805,7 @@ function admissionPortalFormerAdviserReport(token, formerAdviser) {
       g.students.push({
         StudentID: r.StudentID, FullName: r.FullName, GradeLevel: r.GradeLevel,
         PreviousSchool: r.PrevSchool, PreviousSection: r.PrevSection,
-        Category: r.Category, ApplicationStatus: as, EnrollStatus: es
+        Category: actor.role === 'Owner' ? r.Category : '', ApplicationStatus: as, EnrollStatus: es
       });
     });
     var advisers = Object.keys(groups).sort(function (a, b) {
@@ -828,19 +840,41 @@ function admissionPortalDashboard(token) {
   }
 }
 
+/** Return a shared, normalized dimension key for dashboards and reports. */
+function admissionDimension_(record, name) {
+  var fields = {
+    grade: 'GradeLevel', 'Grade Level': 'GradeLevel',
+    category: 'Category', 'Admission Category': 'Category',
+    enrollment: 'EnrollStatus', 'Enrollment Status': 'EnrollStatus',
+    application: 'ApplicationStatus', 'Application Status': 'ApplicationStatus',
+    sex: 'SexualOrient', 'Sex': 'SexualOrient',
+    gender: 'GenderOrient', 'Gender': 'GenderOrient',
+    previousSchool: 'PrevSchool', 'Previous School': 'PrevSchool',
+    scholarship: 'PrevScholarship', 'Previous Scholarship': 'PrevScholarship',
+    classification: 'Classification', 'Classification': 'Classification',
+    cluster: 'Cluster', 'Cluster': 'Cluster',
+    section: 'Section', 'Section': 'Section'
+  };
+  var field = fields[String(name || '')];
+  if (!field) throw new Error('Unsupported admission dimension: ' + name);
+  var fallback = field === 'EnrollStatus' ? 'Not Enrolled' : field === 'ApplicationStatus' ? 'Submitted' : 'Unspecified';
+  return String(record && record[field] || fallback).trim() || fallback;
+}
+
 function admissionPortalDashboard_(role) {
-  var rows = maAdmissionSpeedRecords_();
-  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {}, byCluster = {},
-      bySex = {}, byPrevSchool = {}, byScholarship = {}, recent = [], needsAction = [],
+  var activeYear = admissionDbActiveYear_();
+  var rows = maAdmissionSpeedRecords_().filter(function (r) { return String(r.SchoolYear || '').trim() === activeYear; });
+  var isOwner = String(role || '') === 'Owner';
+  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {},
+      enrolledByGrade = {}, enrolledByCluster = {}, bySex = {}, byGender = {},
+      byPrevSchool = {}, byScholarship = {}, recent = [], needsAction = [],
       needsActionTotal = 0, today = new Date(), trend = [];
 
   function inc(map, key) {
     key = String(key || 'Unspecified').trim() || 'Unspecified';
     map[key] = (map[key] || 0) + 1;
   }
-  function dayKey(d) {
-    return Utilities.formatDate(d, 'Asia/Manila', 'yyyy-MM-dd');
-  }
+  function dayKey(d) { return Utilities.formatDate(d, 'Asia/Manila', 'yyyy-MM-dd'); }
   function parseDate(v) {
     var d = new Date(String(v || ''));
     return isNaN(d.getTime()) ? null : d;
@@ -853,108 +887,135 @@ function admissionPortalDashboard_(role) {
   var trendIndex = {};
   trend.forEach(function (x, i) { trendIndex[x.date] = i; });
 
-  var requirementStatusFields = [
-    'ReqSF9InitialStatus','ReqSF9CompletionStatus','ReqBirthInitialStatus',
-    'ReqBirthCompletionStatus','ReqPhotoStatus','ReqEnvelopeStatus',
-    'ReqF137Status','ReqMoralStatus','ReqJHSStatus','ReqTransfereeStatus','ReqConsentStatus'
-  ];
-  var certificateCategories = ['ESC GRANTEE','TLC SCHOLAR','PUB-QVR','QVA PASSER'];
+  var certificateCategories = ADM_DB.CATEGORIES.filter(function (category) {
+    return /ESC|TLC|PUB-QVR|QVA/i.test(category);
+  }).map(function (category) { return admissionDbCategoryLoose_(category).toUpperCase(); });
 
   rows.forEach(function (r) {
-    var s = r.EnrollStatus || 'Unspecified';
-    var a = r.ApplicationStatus || 'Submitted';
-    inc(byStatus, s);
-    inc(byApplicationStatus, a);
-    inc(byGrade, r.GradeLevel);
-    inc(byCategory, r.Category);
-    inc(bySex, r.SexualOrient);
-    inc(byPrevSchool, r.PrevSchool);
-    if (r.PrevScholarship) inc(byScholarship, r.PrevScholarship);
-    if (r.Cluster) inc(byCluster, (r.GradeLevel || 'Unspecified') + ' · ' + r.Cluster);
+    var status = admissionDimension_(r, 'enrollment');
+    var appStatus = admissionDimension_(r, 'application');
+    var grade = admissionDimension_(r, 'grade');
+    inc(byStatus, status);
+    inc(byApplicationStatus, appStatus);
+    inc(byGrade, grade);
+
+    if (isOwner) {
+      inc(byCategory, admissionDimension_(r, 'category'));
+      inc(bySex, admissionDimension_(r, 'sex'));
+      inc(byGender, admissionDimension_(r, 'gender'));
+      inc(byPrevSchool, admissionDimension_(r, 'previousSchool'));
+      if (r.PrevScholarship) inc(byScholarship, admissionDimension_(r, 'scholarship'));
+    }
+
+    if (status === 'Enrolled') {
+      inc(enrolledByGrade, grade);
+      if ((grade === 'Grade 11' || grade === 'Grade 12') && r.Cluster) {
+        inc(enrolledByCluster, grade + ' · ' + r.Cluster);
+      }
+    }
 
     var created = parseDate(r.CreatedAt);
     if (created) {
-      var dk = dayKey(created);
-      if (trendIndex[dk] != null) trend[trendIndex[dk]].count++;
+      var dateKey = dayKey(created);
+      if (trendIndex[dateKey] != null) trend[trendIndex[dateKey]].count++;
     }
 
-    var reason = '';
-    var incomplete = requirementStatusFields.some(function (f) {
-      var v = String(r[f] || '');
-      return v === 'Incomplete' || v === 'Pending Submission';
+    var reasons = [];
+    if (appStatus === 'Submitted') reasons.push('Waiting for initial review');
+
+    var requirementItems = admissionDbRequirementItems_(r);
+    var incomplete = requirementItems.some(function (item) {
+      var value = String(r[item.statusKey] || item.status || '');
+      return value === 'Incomplete' || value === 'Pending Submission';
     });
-    var consentMissing = String(r.ReqConsentStatus || '') !== 'Verified' &&
-                         String(r.ReqConsentStatus || '') !== 'Received';
-    var certMissing = certificateCategories.indexOf(admissionDbCategoryLoose_(r.Category).toUpperCase()) >= 0 &&
-                      !String(r.CertNo || r.VoucherCertNo || r.EscCertNo || '').trim();
+    if (incomplete) reasons.push('Incomplete requirements need follow-up');
 
-    if (a === 'Submitted') reason = 'Waiting for initial review';
-    else if (a === 'Under Review' && consentMissing) reason = 'Consent document needs verification';
-    else if (a === 'Under Review' && incomplete) reason = 'Incomplete requirements need follow-up';
-    else if (a === 'Under Review' && certMissing) reason = 'Scholarship certificate number is missing';
-    else if (a === 'Approved' && String(s) !== 'Enrolled') reason = 'Ready for enrollment processing';
+    var consentStatus = String(r.ReqConsentStatus || '');
+    var consentMissing = consentStatus !== 'Verified' && consentStatus !== 'Received';
+    if (isOwner && consentMissing) reasons.push('Consent document needs verification');
 
-    if (reason) {
+    var normalizedCategory = admissionDbCategoryLoose_(r.Category).toUpperCase();
+    var certMissing = certificateCategories.indexOf(normalizedCategory) >= 0 &&
+      !String(r.CertNo || r.VoucherCertNo || r.EscCertNo || '').trim();
+    if (certMissing) reasons.push('Scholarship certificate number is missing');
+    if (appStatus === 'Approved' && status !== 'Enrolled') reasons.push('Ready for enrollment processing');
+
+    if (reasons.length) {
       needsActionTotal++;
-      if (needsAction.length < 20) {
-        needsAction.push({
-          StudentID: r.StudentID,
-          FullName: r.FullName,
-          GradeLevel: r.GradeLevel,
-          Category: r.Category,
-          ApplicationStatus: a,
-          EnrollStatus: s,
-          Reason: reason
-        });
+      if (needsAction.length < 40) {
+        needsAction.push({ StudentID: r.StudentID, FullName: r.FullName, GradeLevel: r.GradeLevel,
+          Category: isOwner ? r.Category : '', ApplicationStatus: appStatus, EnrollStatus: status,
+          Reason: reasons.join(' · ') });
       }
     }
   });
 
-  recent = rows.slice().sort(function(a,b){ return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); })
-    .slice(0, 5).map(function(r) {
-      return { StudentID:r.StudentID, FullName:r.FullName, GradeLevel:r.GradeLevel,
-        Category:r.Category, ApplicationStatus:r.ApplicationStatus || 'Submitted',
-        CreatedAt:r.CreatedAt };
+  recent = rows.slice().sort(function (a, b) { return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); })
+    .slice(0, 5).map(function (r) {
+      return { StudentID: r.StudentID, FullName: r.FullName, GradeLevel: r.GradeLevel,
+        Category: isOwner ? r.Category : '', ApplicationStatus: r.ApplicationStatus || 'Submitted', CreatedAt: r.CreatedAt };
     });
 
   var pipeline = {
     'Not Enrolled': Number(byStatus['Not Enrolled'] || 0),
     'Enrolled': Number(byStatus.Enrolled || 0),
     'Temporary': Number(byStatus.Temporary || 0),
-    'Transferred': Number(byStatus.Transferred || byStatus['Transferred Out'] || 0),
+    'Transferred': Number(byStatus.Transferred || 0) + Number(byStatus['Transferred Out'] || 0),
     'Cancelled': Number(byStatus.Cancelled || 0)
   };
 
-  var gradeCluster = {};
-  Object.keys(byCluster).forEach(function(k) {
-    var parts = k.split(' · ');
-    var grade = parts.shift() || 'Unspecified';
-    var cluster = parts.join(' · ') || 'Unspecified';
-    if (!gradeCluster[grade]) gradeCluster[grade] = {};
-    gradeCluster[grade][cluster] = byCluster[k];
+  var topSchools = [];
+  if (isOwner) {
+    var schoolEntries = Object.keys(byPrevSchool).map(function (key) { return { name: key, count: byPrevSchool[key] }; })
+      .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name); });
+    topSchools = schoolEntries.slice(0, 5);
+    var others = schoolEntries.slice(5).reduce(function (sum, item) { return sum + item.count; }, 0);
+    if (others) topSchools.push({ name: 'Others', count: others });
+  }
+
+  var totalTrend = trend.reduce(function (sum, item) { return sum + Number(item.count || 0); }, 0);
+  var previousWeek = trend.slice(0, 7).reduce(function (sum, item) { return sum + Number(item.count || 0); }, 0);
+  var currentWeek = trend.slice(7).reduce(function (sum, item) { return sum + Number(item.count || 0); }, 0);
+  var todayKey = dayKey(today);
+  var yesterday = new Date(today.getTime() - 86400000);
+  var todayCount = 0, yesterdayCount = 0;
+  trend.forEach(function (item) {
+    if (item.date === todayKey) todayCount = item.count;
+    if (item.date === dayKey(yesterday)) yesterdayCount = item.count;
   });
 
   return {
-    total: rows.length,
-    byStatus: byStatus,
-    byApplicationStatus: byApplicationStatus,
-    byGrade: byGrade,
-    byCategory: byCategory,
-    pipeline: pipeline,
-    trend: trend,
-    recent: recent,
-    needsAction: needsAction,
-    needsActionTotal: needsActionTotal,
-    byGradeCluster: gradeCluster,
-    bySex: bySex,
-    byPreviousSchool: byPrevSchool,
-    byScholarship: byScholarship,
-    role: role
+    total: rows.length, activeSchoolYear: activeYear, grades: ADM_DB.GRADES.slice(),
+    byStatus: byStatus, byApplicationStatus: byApplicationStatus, byGrade: byGrade,
+    byCategory: byCategory, enrolledByGrade: enrolledByGrade, enrolledByCluster: enrolledByCluster,
+    pipeline: pipeline, trend: trend,
+    trendSummary: { last14Days: totalTrend, currentWeek: currentWeek, previousWeek: previousWeek,
+      weekDelta: currentWeek - previousWeek, today: todayCount, yesterday: yesterdayCount,
+      dayDelta: todayCount - yesterdayCount },
+    recent: recent, needsAction: needsAction, needsActionTotal: needsActionTotal,
+    bySex: bySex, byGender: byGender, byPreviousSchoolTop: topSchools,
+    byScholarship: byScholarship, role: role
   };
 }
 
-function admissionPortalPublicRecord_(r) {
-  return {
+
+function admissionPortalRestrictEncoderRecord_(r) {
+  [
+    'Category', 'PrevScholarship', 'EscCertNo', 'VoucherCertNo', 'EscSchoolNo', 'CertNo',
+    'SexualOrient', 'GenderOrient', 'Religion', 'ReligionOther', 'Birthdate', 'BirthPlace', 'Age',
+    'FatherReligion', 'FatherReligionOther', 'MotherReligion', 'MotherReligionOther',
+    'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelReligion', 'RelReligionOther',
+    'ReqConsent', 'ReqConsentStatus', 'ReqConsentDate', 'ConsentAt'
+  ].forEach(function (key) { delete r[key]; });
+  if (Array.isArray(r.RequirementItems)) {
+    r.RequirementItems = r.RequirementItems.filter(function (item) { return item.key !== 'ReqConsent'; });
+  }
+  if (r.Requirements) delete r.Requirements.Consent;
+  return r;
+}
+
+function admissionPortalPublicRecord_(r, role) {
+  var out = {
     StudentID: r.StudentID, CreatedAt: r.CreatedAt, FullName: r.FullName,
     LRN: r.LRN, SchoolYear: r.SchoolYear, Category: r.Category,
     GradeLevel: r.GradeLevel, Department: r.Department, Cluster: r.Cluster,
@@ -967,4 +1028,5 @@ function admissionPortalPublicRecord_(r) {
       Consent: r.ReqConsent, Envelope: r.ReqEnvelope
     }
   };
+  return role === 'Encoder' ? admissionPortalRestrictEncoderRecord_(out) : out;
 }
