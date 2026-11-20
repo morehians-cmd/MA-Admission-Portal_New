@@ -1,972 +1,539 @@
 /**
- * MAAdmissionPortal.gs
+ * AdmissionDb.gs
  *
- * Admission System integration layer for MA-Admission-Portal_New.
- * Uses the destination Auth/AdmissionDb foundations; it does not import the
- * Backup project's authentication or public Homepage implementation.
+ * Isolated admission-record store for the destination portal.
+ * Authentication remains in Auth.gs / AuthAccount.gs. The Users sheet stores account identity;
+ * AdmissionStudents stores student/application information. The relationship is Users.StudentID.
+ *
+ * IMPORTANT:
+ * - Run admissionDbSetup_() manually from the Apps Script editor only after backing up the target sheet.
+ * - This creates schema sheets only; it does not import or overwrite source-repository data.
+ * - All browser-facing functions enforce destination sessions and ownership server-side.
  */
 
-function admissionPortalGetBootstrap(token) {
-  try {
-    var account = authRequireRole_(token, ['Applicant', 'Student', 'Encoder', 'Owner']);
-    var data = {
-      account: { email: account.email, role: account.role, studentId: account.studentId || '', fullName: account.fullName || '' },
-      application: null,
-      stats: null
-    };
-    if (['Applicant', 'Student'].indexOf(account.role) >= 0) {
-      var mine = admissionGetMyApplication(token);
-      if (!mine.success) return mine;
-      data.application = mine.data;
-    } else {
-      try {
-        data.stats = admissionPortalDashboard_(account.role);
-      } catch (dashboardErr) {
-        // Keep the Admissions page usable even if an analytics-only calculation fails.
-        // The compact speed dashboard is the safe fallback; the detailed dashboard can
-        // be diagnosed without blocking the whole Admissions Personnel screen.
-        console.error('Admission dashboard analytics failed: ' + (dashboardErr.message || dashboardErr));
-        data.stats = maAdmissionSpeedDashboard_();
-        data.stats.byApplicationStatus = {};
-        data.stats.pipeline = {};
-        data.stats.trend = [];
-        data.stats.recent = [];
-        data.stats.needsAction = [];
-        data.stats.needsActionTotal = 0;
-        data.stats.byGradeCluster = {};
-        data.stats.bySex = {};
-        data.stats.byPreviousSchool = {};
-        data.stats.byScholarship = {};
-        data.stats.role = account.role;
-        data.stats.dashboardWarning = 'Detailed dashboard analytics are temporarily unavailable.';
-      }
-    }
-    return { success: true, message: 'Admission portal loaded.', data: data };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the admission portal.');
-  }
-}
-
-function admissionPortalSearch(token, q, status, applicationStatus, limit, grade, sy) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    q = String(q == null ? '' : q).trim().toLowerCase();
-    status = String(status == null ? '' : status).trim();
-    applicationStatus = String(applicationStatus == null ? '' : applicationStatus).trim();
-    grade = String(grade == null ? '' : grade).trim();
-    sy = String(sy == null ? '' : sy).trim();
-    limit = Number(limit); if (!isFinite(limit) || limit < 1) limit = 25; limit = Math.min(100, Math.floor(limit));
-    var rows = maAdmissionSpeedRecords_().filter(function (r) {
-      if (status && r.EnrollStatus !== status) return false;
-      if (applicationStatus && String(r.ApplicationStatus || 'Submitted') !== applicationStatus) return false;
-      if (grade && r.GradeLevel !== grade) return false;
-      if (sy && r.SchoolYear !== sy) return false;
-      if (!q) return true;
-      return [r.StudentID, r.LRN, r.FullName, r.Surname, r.FirstName, r.Email, r.Section].join(' ').toLowerCase().indexOf(q) >= 0;
-    });
-    rows.sort(function (a, b) { return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); });
-    rows = rows.slice(0, limit).map(admissionPortalPublicRecord_);
-    return { success: true, message: 'Students loaded.', data: rows };
-  } catch (err) {
-    return authFail_(err.message || 'Could not search admission records.');
-  }
-}
-
-function admissionPortalGetStudent(token, studentId) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    var r = admissionDbFindById_(studentId);
-    if (!r) throw new Error('Admission record not found.');
-    r.RequirementItems = admissionDbRequirementItems_(r);
-    delete r._row;
-    return { success: true, message: 'Admission record loaded.', data: r };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the admission record.');
-  }
-}
-
-function admissionPortalSaveStudent(token, studentId, changes) {
-  var lock = null;
-  try {
-    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
-    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('Invalid record data.');
-
-    var blocked = { StudentID: true, CreatedAt: true, FullName: true, Age: true, Email: true, ConsentAt: true, ApplicationStatus: true, EnrollStatus: true,
-      StatusChangedAt: true, TempUntil: true, TempBy: true, TempReason: true, CancelDate: true, CancelReason: true, CancelReasonOther: true };
-    ADM_DB.REQUIREMENTS.forEach(function (item) { blocked[item.statusKey] = true; blocked[item.key] = true; blocked[item.key + 'Date'] = true; });
-    blocked.ReqRemarks = true;
-    // ID number / photo / claimed ID have their own validated workflow (AdmissionIdCard.gs); IDPhotoID is a Drive file id and must never be staff-editable.
-    blocked.IDNumber = true; blocked.IDPhotoID = true; blocked.ClaimedIDNumber = true;
-    var update = {};
-    Object.keys(changes).forEach(function (key) {
-      if (blocked[key]) return;
-      if (ADM_DB.HEADERS.indexOf(key) < 0) throw new Error('Unsupported admission field: ' + key);
-      update[key] = admissionDbCleanText_(changes[key], 1000);
-    });
-    if (update.GradeLevel != null && ADM_DB.GRADES.indexOf(update.GradeLevel) < 0) throw new Error('Unsupported grade level: ' + update.GradeLevel);
-    if (update.EnrollStatus != null) update.EnrollStatus = admissionDbOneOf_(update.EnrollStatus, ADM_DB.ENROLL_STATUSES, 'enrollment status');
-    if (update.ApplicationStatus != null) update.ApplicationStatus = admissionDbOneOf_(update.ApplicationStatus, ADM_DB.APPLICATION_STATUSES, 'application status');
-    if (update.Surname != null) update.Surname = String(update.Surname).toUpperCase();
-    if (update.FirstName != null) update.FirstName = String(update.FirstName).toUpperCase();
-    if (update.MiddleName != null) update.MiddleName = String(update.MiddleName).toUpperCase();
-    if (update.Suffix != null) update.Suffix = String(update.Suffix).toUpperCase();
-    if (update.LRN && !/^[1-5]\d{11}$/.test(update.LRN)) throw new Error('LRN must be 12 digits and start with 1, 2, 3, 4 or 5.');
-    ['Mobile', 'FatherMobile', 'MotherMobile', 'EmMobile', 'GuardMobile', 'RelMobile'].forEach(function (k) {
-      if (update[k] && !/^09\d{9}$/.test(update[k])) throw new Error('Enter a valid 11-digit mobile number (starting with 09).');
-    });
-    if (update.Birthdate) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(update.Birthdate) || !admissionDbAge_(update.Birthdate)) throw new Error('Enter a valid birth date.');
-      update.Age = admissionDbAge_(update.Birthdate);
-    }
-
-    lock = LockService.getScriptLock();
-    if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
-    var r = admissionDbFindById_(studentId);
-    if (!r) throw new Error('Admission record not found.');
-    // Identity fields are locked once the learner is enrolled. Unchanged values are tolerated (the form may resend the whole record).
-    if (r.EnrollStatus === 'Enrolled') {
-      ['LRN','Surname','FirstName','MiddleName','Suffix','Birthdate','SexualOrient','GenderOrient'].forEach(function (k) {
-        if (update[k] != null && String(update[k]) !== String(r[k] || '')) throw new Error('Identity fields are locked after enrollment.');
-      });
-    }
-    // A category that is being changed must be one of the official names; an unchanged legacy value is tolerated.
-    if (update.PrevScholarship != null) update.PrevScholarship = (update.PrevScholarship === r.PrevScholarship) ? admissionDbCategoryLoose_(update.PrevScholarship) : admissionDbCategory_(update.PrevScholarship);
-    if (update.Category != null) update.Category = (update.Category === r.Category) ? admissionDbCategoryLoose_(update.Category) : admissionDbCategory_(update.Category);
-    if (update.LRN && admissionDbRows_().some(function (x) { return x.LRN === update.LRN && x.StudentID !== r.StudentID; })) {
-      throw new Error('Another admission record already uses this LRN.');
-    }
-    if (update.Surname || update.FirstName || update.MiddleName || update.Suffix) {
-      var sn = update.Surname != null ? update.Surname : r.Surname;
-      var fn = update.FirstName != null ? update.FirstName : r.FirstName;
-      var mn = update.MiddleName != null ? update.MiddleName : r.MiddleName;
-      var sx = update.Suffix != null ? update.Suffix : r.Suffix;
-      if (!sn || !fn) throw new Error('Surname and first name are required.');
-      update.FullName = String(sn).toUpperCase() + ', ' + String(fn).toUpperCase() + (mn ? ' ' + String(mn).toUpperCase() : '') + (sx ? ' ' + String(sx).toUpperCase() : '');
-    }
-    if (!Object.keys(update).length) { delete r._row; return { success: true, message: 'No changes were supplied.', data: r }; }
-
-    var sh = admissionDbSheet_(), range = sh.getRange(r._row, 1, 1, ADM_DB.HEADERS.length), vals = range.getValues();
-    Object.keys(update).forEach(function (key) { vals[0][ADM_DB.HEADERS.indexOf(key)] = update[key]; });
-    range.setNumberFormat('@').setValues(vals);   // one write; text format keeps "=..." from becoming a formula
-    maAdmissionSpeedBump_();
-    admissionDbAudit_(actor.email, 'student-updated', r.StudentID, Object.keys(update).join(', '));
-    var fresh = admissionDbFindById_(r.StudentID); delete fresh._row;
-    return { success: true, message: 'Admission record saved.', data: fresh };
-  } catch (err) {
-    return authFail_(err.message || 'Could not save the admission record.');
-  } finally {
-    if (lock) { try { lock.releaseLock(); } catch (e) {} }
-  }
-}
-
-/** Only Admission Personnel (Encoder / Owner) may update document verification statuses. */
-function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
-  var lock = null;
-  try {
-    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
-    if (!changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('Invalid requirement status data.');
-    var allowedStatuses = ['Pending Submission', 'Received', 'Verified', 'Incomplete'];
-    var record = admissionDbFindById_(studentId);
-    if (!record) throw new Error('Admission record not found.');
-    var applicable = admissionDbRequirementItems_(record), allowedKeys = {};
-    applicable.forEach(function (item) { allowedKeys[item.statusKey] = item; });
-    var staged = [];
-    Object.keys(changes).forEach(function (key) {
-      if (!allowedKeys[key]) throw new Error('This document is not applicable to the learner.');
-      var status = admissionDbCleanText_(changes[key], 40);
-      if (allowedStatuses.indexOf(status) < 0) throw new Error('Invalid document status.');
-      staged.push({ key: key, label: allowedKeys[key].label, status: status });
-    });
-    lock = LockService.getScriptLock();
-    if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
-    record = admissionDbFindById_(studentId);
-    if (!record) throw new Error('Admission record not found.');
-    var latestAllowed = {};
-    admissionDbRequirementItems_(record).forEach(function (item) { latestAllowed[item.statusKey] = item; });
-    staged.forEach(function (item) {
-      if (!latestAllowed[item.key]) throw new Error('The learner requirements changed. Reload the record and try again.');
-    });
-    var updates = [];
-    staged.forEach(function (item) {
-      var oldStatus = String(record[item.key] || 'Pending Submission');
-      if (oldStatus === item.status) return;
-      var col = ADM_DB.HEADERS.indexOf(item.key) + 1;
-      admissionDbSheet_().getRange(record._row, col).setNumberFormat('@').setValue(item.status);
-      admissionDbAudit_(actor.email, 'requirement-status-updated', record.StudentID,
-        item.label + ': ' + oldStatus + ' -> ' + item.status);
-      updates.push(item.key);
-    });
-    if (updates.length) maAdmissionSpeedBump_();
-    var fresh = admissionDbFindById_(record.StudentID);
-    fresh.RequirementItems = admissionDbRequirementItems_(fresh);
-    delete fresh._row;
-    return { success: true, message: updates.length ? 'Document statuses updated and recorded.' : 'No document status changes were made.', data: fresh };
-  } catch (err) {
-    return authFail_(err.message || 'Could not update document statuses.');
-  } finally {
-    if (lock) { try { lock.releaseLock(); } catch (e) {} }
-  }
-}
-
+var ADM_DB = {
+  VERSION: 7,
+  STUDENTS: 'AdmissionStudents',
+  AUDIT: 'AdmissionAudit',
+  HEADERS: [
+    'StudentID', 'CreatedAt',
+    'Classification', 'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'FullName',
+    'Category', 'GradeLevel', 'Department', 'Cluster', 'Section', 'ReferredBy',
+    'PrevSchoolType', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection', 'PrevAdviser', 'PrevScholarship',
+    'EscCertNo', 'VoucherCertNo', 'EscSchoolNo',
+    'AddressLine1', 'AddressLine2', 'Barangay', 'City', 'Province',
+    'Birthdate', 'Age', 'Mobile', 'SexualOrient', 'GenderOrient', 'Religion', 'ReligionOther', 'Email',
+    'FatherName', 'FatherStatus', 'FatherOccupation', 'FatherEducation', 'FatherMobile', 'FatherReligion', 'FatherReligionOther',
+    'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherReligion', 'MotherReligionOther',
+    'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
+    'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile', 'ConsentAt',
+    'ReqSF9', 'ReqF137', 'ReqBirth', 'ReqMoral', 'ReqJHS', 'ReqPhoto', 'ReqTransferee', 'ReqConsent', 'ReqRemarks',
+    'EnrollStatus', 'ApplicationStatus', 'CancelDate', 'CancelReason', 'CertNo',
+    'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
+    'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
+    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'EmSource',
+    'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther',
+    'CancelReasonOther', 'DestSchool', 'DestAddress', 'DestType', 'DestGrade',
+    'ProcessedBy', 'ProcessedDate', 'ProcessedTime', 'BirthPlace',
+    'PrevSchoolID', 'PrevAddress',
+    'ReqSF9Date', 'ReqF137Date', 'ReqBirthDate', 'ReqMoralDate', 'ReqJHSDate', 'ReqPhotoDate', 'ReqTransfereeDate', 'ReqConsentDate',
+    'ReqEnvelope', 'ReqEnvelopeDate',
+    'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID',
+    'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus',
+    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus',
+    'TempReason', 'ClaimedIDNumber'
+  ],
+  AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
+  GRADES: ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'],
+  // The official admission / scholarship categories, exactly as they are stored. Matching elsewhere ignores letter case.
+  CATEGORIES: ['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'],
+  CATEGORY_ALIASES: { 'TLC': 'TLC Scholar', 'ESC': 'ESC Grantee', 'ESC JHS': 'ESC Grantee', 'ESC SHS': 'ESC Grantee' },   // short forms used by older records
+  ENROLL_STATUSES: ['Not Enrolled','Enrolled','Temporary','Transferred','Transferred Out','Cancelled'],
+  TEMP_MAX_DAYS: 120,
+  STATUS_LOG: 'AdmissionStatusLog',
+  STATUS_LOG_HEADERS: ['At','ActorEmail','StudentID','OldApplicationStatus','NewApplicationStatus','OldEnrollStatus','NewEnrollStatus','Reason'],
+  APPLICATION_STATUSES: ['Submitted','Under Review','Approved','Declined'],
+  // Staff-only columns that an applicant/student must never receive back from the server.
+  APPLICANT_HIDDEN: ['ReqRemarks','CancelDate','CancelReason','CancelReasonOther','CertNo','VoucherCertNo','EscCertNo','EscSchoolNo',
+                     'ProcessedBy','ProcessedDate','ProcessedTime','TempBy','TempUntil','StatusChangedAt','IDNumber','IDPhotoID','TempReason','ClaimedIDNumber'],
+  REQUIREMENTS: [
+    { key: 'ReqSF9Initial', label: 'Report Card — Photocopy', statusKey: 'ReqSF9InitialStatus' },
+    { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy', statusKey: 'ReqBirthInitialStatus' },
+    { key: 'ReqPhoto', label: 'Three (3) 2x2 ID photos, white background, with nametag', statusKey: 'ReqPhotoStatus' },
+    { key: 'ReqEnvelope', label: 'Long Brown Expandable Envelope', statusKey: 'ReqEnvelopeStatus' },
+    { key: 'ReqSF9Completion', label: 'Report Card — Original', statusKey: 'ReqSF9CompletionStatus' },
+    { key: 'ReqF137', label: 'Form 137 / SF10', statusKey: 'ReqF137Status' },
+    { key: 'ReqMoral', label: 'Good Moral Certificate', statusKey: 'ReqMoralStatus' },
+    { key: 'ReqBirthCompletion', label: 'PSA Birth Certificate — Original', statusKey: 'ReqBirthCompletionStatus' },
+    { key: 'ReqJHS', label: 'JHS Completion Certificate', statusKey: 'ReqJHSStatus' },
+    { key: 'ReqTransferee', label: 'Transferee / Scholarship Certification', statusKey: 'ReqTransfereeStatus' },
+    { key: 'ReqConsent', label: 'Parental Consent & Data Privacy Undertaking Form', statusKey: 'ReqConsentStatus' },
+    // Legacy status columns are retained for compatibility with existing records.
+    { key: 'ReqSF9', label: 'Legacy Report Card Status', statusKey: 'ReqSF9Status' },
+    { key: 'ReqBirth', label: 'Legacy Birth Certificate Status', statusKey: 'ReqBirthStatus' }
+  ],
+  APPLICANT_FIELDS: [
+    'SchoolYear', 'LRN', 'Surname', 'FirstName', 'MiddleName', 'Suffix', 'Category', 'GradeLevel',
+    'Department', 'Cluster', 'ReferredBy', 'PrevSchool', 'PrevSY', 'PrevGrade', 'PrevCluster', 'PrevSection',
+    'PrevAdviser', 'PrevScholarship', 'PrevSchoolID', 'PrevAddress',
+    'PrevSchoolType',
+    'FatherName', 'FatherStatus', 'FatherOccupation', 'FatherEducation', 'FatherMobile', 'FatherReligion', 'FatherReligionOther',
+    'MotherName', 'MotherStatus', 'MotherOccupation', 'MotherEducation', 'MotherMobile', 'MotherReligion', 'MotherReligionOther',
+    'AddressLine1', 'AddressLine2', 'Barangay', 'City', 'Province',
+    'Birthdate', 'Mobile', 'SexualOrient', 'GenderOrient', 'Religion', 'ReligionOther',
+    'EmName', 'EmRelation', 'EmMobile', 'EmSameAddr', 'EmAddress',
+    'GuardName', 'GuardRelation', 'GuardEmail', 'GuardMobile',
+    'Facebook', 'FatherEmail', 'MotherEmail', 'LivingWith',
+    'RelName', 'RelRelation', 'RelBirthdate', 'RelAge', 'RelSex', 'RelGender', 'RelGenderOther', 'RelMobile',
+    'RelCivil', 'RelSameAddr', 'RelAddress', 'RelSide', 'EmSource', 'BirthPlace',
+    'RelStatus', 'RelOccupation', 'RelEducation', 'RelEmail', 'RelReligion', 'RelReligionOther'
+  ]
+};
 
 /**
- * Sets ApplicationStatus and/or EnrollStatus through the controlled admission workflow.
- * Accepts one update object or an array of up to 500 update objects:
- * {StudentID, ApplicationStatus?, EnrollStatus?, Reason?, TempUntil?, TempReason?, CancelReason?, CancelReasonOther?, CancelDate?}
- *
- * Application approval promotes the linked Applicant account to Student and bumps its token version.
- * Enrolled/Temporary are only available after ApplicationStatus=Approved.
+ * Owner-only schema setup. Creates missing sheets and appends the Users.StudentID header
+ * through the existing controlled Users migration. Existing admission data is never cleared.
  */
-function admissionPortalSetStatus(token, updates) {
-  var lock = null;
-  try {
-    var actor = authRequireRole_(token, ['Encoder', 'Owner']);
-    if (!updates) throw new Error('No status changes were supplied.');
-    if (!Array.isArray(updates)) updates = [updates];
-    if (!updates.length || updates.length > 500) throw new Error('Submit between 1 and 500 status changes.');
-
-    var normalized = updates.map(function (u) {
-      u = u || {};
-      var item = {
-        StudentID: String(u.StudentID || '').trim(),
-        ApplicationStatus: u.ApplicationStatus == null ? '' : String(u.ApplicationStatus).trim(),
-        EnrollStatus: u.EnrollStatus == null ? '' : String(u.EnrollStatus).trim(),
-        Reason: String(u.Reason || '').trim().slice(0, 200),
-        TempUntil: String(u.TempUntil || '').trim(),
-        TempReason: String(u.TempReason || '').trim().slice(0, 200),
-        CancelReason: String(u.CancelReason || '').trim().slice(0, 200),
-        CancelReasonOther: String(u.CancelReasonOther || '').trim().slice(0, 200),
-        CancelDate: String(u.CancelDate || '').trim()
-      };
-      if (!item.StudentID) throw new Error('StudentID is required for every status change.');
-      if (!item.ApplicationStatus && !item.EnrollStatus) throw new Error('Specify an application or enrollment status.');
-      if (item.ApplicationStatus && ADM_DB.APPLICATION_STATUSES.indexOf(item.ApplicationStatus) < 0) throw new Error('Unsupported application status: ' + item.ApplicationStatus);
-      if (item.EnrollStatus && ADM_DB.ENROLL_STATUSES.indexOf(item.EnrollStatus) < 0) throw new Error('Unsupported enrollment status: ' + item.EnrollStatus);
-      return item;
-    });
-
-    lock = LockService.getScriptLock();
-    if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
-
-    var today = Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy-MM-dd');
-    var plan = [], seen = {};
-
-    // PASS 1 - validate EVERYTHING (records, status rules, linked accounts) and write NOTHING.
-    // A bad item now rejects the whole batch instead of leaving it half-applied.
-    normalized.forEach(function (item) {
-      if (seen[item.StudentID]) throw new Error('StudentID appears more than once in this batch: ' + item.StudentID);
-      seen[item.StudentID] = true;
-      var r = admissionDbFindById_(item.StudentID);
-      if (!r) throw new Error('Admission record not found: ' + item.StudentID);
-
-      var oldApp = String(r.ApplicationStatus || 'Submitted');
-      var oldEnroll = String(r.EnrollStatus || 'Not Enrolled');
-      var newApp = item.ApplicationStatus || oldApp;
-      var newEnroll = item.EnrollStatus || oldEnroll;
-
-      if (newEnroll === 'Enrolled' || newEnroll === 'Temporary') {
-        if (newApp !== 'Approved') throw new Error('Learner ' + item.StudentID + ' must be Approved before being marked ' + newEnroll + '.');
-      }
-      if (newApp === 'Declined' && ['Enrolled','Temporary'].indexOf(newEnroll) >= 0) {
-        throw new Error('A Declined applicant cannot be enrolled.');
-      }
-
-      if (newEnroll === 'Temporary') {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(item.TempUntil)) throw new Error('Temporary enrollment requires an end date.');
-        if (item.TempUntil <= today) throw new Error('The temporary enrollment end date must be in the future.');
-        var max = new Date();
-        max.setDate(max.getDate() + ADM_DB.TEMP_MAX_DAYS);
-        var maxDate = Utilities.formatDate(max, 'Asia/Manila', 'yyyy-MM-dd');
-        if (item.TempUntil > maxDate) throw new Error('Temporary enrollment can be at most ' + ADM_DB.TEMP_MAX_DAYS + ' days.');
-        var why = item.TempReason || String(r.TempReason || '').trim();
-        if (!why) throw new Error('Temporary enrollment requires a reason.');
-        item.TempReason = why;
-      }
-      if (['Cancelled','Transferred','Transferred Out'].indexOf(newEnroll) >= 0) {
-        var cancelWhy = item.CancelReason || String(r.CancelReason || '').trim() || item.Reason;
-        if (!cancelWhy) throw new Error(newEnroll + ' requires a reason.');
-        item.CancelReason = cancelWhy;
-        item.CancelDate = item.CancelDate || String(r.CancelDate || '').trim() || today;
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(item.CancelDate)) throw new Error('The cancellation / transfer date is invalid.');
-        if (item.CancelReason === 'Other' && !item.CancelReasonOther && !r.CancelReasonOther) {
-          throw new Error('Please specify the other cancellation / transfer reason.');
-        }
-      }
-
-      var updatesMap = {};
-      if (newApp !== oldApp) updatesMap.ApplicationStatus = newApp;
-      if (newEnroll !== oldEnroll) updatesMap.EnrollStatus = newEnroll;
-      if (newEnroll === 'Temporary') {
-        updatesMap.TempUntil = item.TempUntil;
-        updatesMap.TempReason = item.TempReason;
-      } else if (oldEnroll === 'Temporary') {
-        updatesMap.TempUntil = '';
-        updatesMap.TempBy = '';
-        updatesMap.TempReason = '';
-      }
-      if (['Cancelled','Transferred','Transferred Out'].indexOf(newEnroll) >= 0) {
-        updatesMap.CancelReason = item.CancelReason;
-        updatesMap.CancelDate = item.CancelDate;
-        if (item.CancelReasonOther) updatesMap.CancelReasonOther = item.CancelReasonOther;
-      } else if (newEnroll !== oldEnroll && ['Cancelled','Transferred','Transferred Out'].indexOf(oldEnroll) >= 0) {
-        updatesMap.CancelReason = '';
-        updatesMap.CancelDate = '';
-        updatesMap.CancelReasonOther = '';
-      }
-      if (newEnroll !== oldEnroll || newApp !== oldApp) updatesMap.StatusChangedAt = new Date().toISOString();
-      if (newEnroll === 'Temporary' && newEnroll !== oldEnroll) updatesMap.TempBy = actor.email;
-
-      // Linked-account effect, decided and validated now so it cannot fail after sheet writes have started.
-      var account = '';   // '' | 'promote' | 'demote'
-      var email = String(r.Email || '').trim().toLowerCase();
-      if (newApp === 'Approved') {
-        var acct = email ? authFindUser_(email) : null;
-        if (oldApp !== 'Approved') {
-          if (!email) throw new Error('Approved learner has no linked account email.');
-          if (!acct) throw new Error('The applicant account for ' + item.StudentID + ' could not be found.');
-          if (acct.status !== 'Active') throw new Error('The applicant account for ' + item.StudentID + ' is not active.');
-          if (['Applicant', 'Student'].indexOf(acct.role) < 0) throw new Error('The account for ' + item.StudentID + ' is not an applicant or student account.');
-          if (acct.studentId && acct.studentId !== r.StudentID) throw new Error('The account for ' + item.StudentID + ' is linked to a different StudentID.');
-        }
-        // Also heals a record that was approved earlier but whose account was never promoted.
-        if (acct && acct.status === 'Active' && acct.role === 'Applicant' && (!acct.studentId || acct.studentId === r.StudentID)) account = 'promote';
-      } else if (oldApp === 'Approved' && email) {
-        var cur = authFindUser_(email);
-        if (cur && cur.role === 'Student' && cur.studentId === r.StudentID) account = 'demote';
-      }
-
-      plan.push({ item: item, r: r, oldApp: oldApp, newApp: newApp, oldEnroll: oldEnroll, newEnroll: newEnroll,
-                  updatesMap: updatesMap, account: account, email: email });
-    });
-
-    // PASS 2 - apply. Per learner: account change first, then the sheet, so a learner is never left half-changed.
-    var changed = [], sh = admissionDbSheet_();
-    plan.forEach(function (x) {
-      if (x.account === 'promote') authPromoteApplicantToStudentLocked_(x.email, x.r.StudentID);
-      else if (x.account === 'demote') authDemoteStudentLocked_(x.email, x.r.StudentID);
-
-      if (Object.keys(x.updatesMap).length) {
-        var vals = sh.getRange(x.r._row, 1, 1, ADM_DB.HEADERS.length).getValues();
-        Object.keys(x.updatesMap).forEach(function (k) {
-          vals[0][ADM_DB.HEADERS.indexOf(k)] = x.updatesMap[k];
-        });
-        sh.getRange(x.r._row, 1, 1, ADM_DB.HEADERS.length).setNumberFormat('@').setValues(vals);
-
-        var log = admissionDbEnsureStatusLogSheet_();
-        log.getRange(log.getLastRow() + 1, 1, 1, ADM_DB.STATUS_LOG_HEADERS.length).setNumberFormat('@').setValues([[
-          new Date().toISOString(), actor.email, x.r.StudentID, x.oldApp, x.newApp, x.oldEnroll, x.newEnroll,
-          x.item.Reason || x.item.TempReason || x.item.CancelReason || ''
-        ]]);
-        admissionDbAudit_(actor.email, 'status-changed', x.r.StudentID,
-          'ApplicationStatus: ' + x.oldApp + ' -> ' + x.newApp + '; EnrollStatus: ' + x.oldEnroll + ' -> ' + x.newEnroll);
-        changed.push(x.r.StudentID);
-      }
-    });
-    if (changed.length || plan.some(function (x) { return x.account; })) maAdmissionSpeedBump_();
-
-    return {
-      success: true,
-      message: changed.length + ' status change' + (changed.length === 1 ? '' : 's') + ' saved.',
-      data: { changed: changed }
-    };
-  } catch (err) {
-    return authFail_(err.message || 'Could not update admission status.');
-  } finally {
-    if (lock) { try { lock.releaseLock(); } catch (e) {} }
-  }
-}
-
-/**
- * Temporary enrollment expiry. Moves 'Temporary' learners whose TempUntil date has passed back to 'Not Enrolled'
- * and records it in the status log. Idempotent and safe if called by anyone (runs at most once an hour).
- * Install the daily trigger once from the editor with admissionInstallTempExpiryTrigger().
- */
-function admissionExpireTemporaryEnrollments() {
-  var cache = CacheService.getScriptCache();
-  if (cache.get('adm_temp_expiry_ran')) return;
-  cache.put('adm_temp_expiry_ran', '1', 3600);
-  var lock = LockService.getScriptLock(); lock.waitLock(30000);
-  try {
-    var sh = admissionDbSheet_(), rows = admissionDbRows_(), n = 0, now = new Date().toISOString();
-    var today = Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy-MM-dd'), log = null;
-    rows.forEach(function (r) {
-      if (r.EnrollStatus !== 'Temporary') return;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(r.TempUntil) || r.TempUntil >= today) return;
-      var range = sh.getRange(r._row, 1, 1, ADM_DB.HEADERS.length), vals = range.getValues();
-      var set = { EnrollStatus: 'Not Enrolled', TempUntil: '', TempBy: '', TempReason: '', StatusChangedAt: now };
-      Object.keys(set).forEach(function (k) { vals[0][ADM_DB.HEADERS.indexOf(k)] = set[k]; });
-      range.setNumberFormat('@').setValues(vals);
-      log = log || admissionDbEnsureStatusLogSheet_();
-      log.getRange(log.getLastRow() + 1, 1, 1, ADM_DB.STATUS_LOG_HEADERS.length).setNumberFormat('@').setValues([[
-        now, 'system', r.StudentID, r.ApplicationStatus || 'Submitted', r.ApplicationStatus || 'Submitted', 'Temporary', 'Not Enrolled',
-        'Temporary enrollment expired on ' + r.TempUntil
-      ]]);
-      n++;
-    });
-    if (n) { maAdmissionSpeedBump_(); admissionDbAudit_('system', 'temp-enrollment-expired', '', n + ' learner(s)'); }
-  } finally { lock.releaseLock(); }
-}
-
-/** Run ONCE from the Apps Script editor: installs the daily trigger for admissionExpireTemporaryEnrollments. */
-function admissionInstallTempExpiryTrigger() {
+function admissionDbSetup_() {
   authRequireEditor_();
-  ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (t.getHandlerFunction() === 'admissionExpireTemporaryEnrollments') ScriptApp.deleteTrigger(t);
-  });
-  ScriptApp.newTrigger('admissionExpireTemporaryEnrollments').timeBased().everyDays(1).atHour(1).create();
-  Logger.log('Daily temporary-enrollment expiry trigger installed.');
+  authMigrateUsersSheet();
+  var ss = authSpreadsheet_();
+  admissionDbEnsureSchemaSheet_(ss, ADM_DB.STUDENTS, ADM_DB.HEADERS);
+  admissionDbEnsureSchemaSheet_(ss, ADM_DB.AUDIT, ADM_DB.AUDIT_HEADERS);
+  admissionDbEnsureSchemaSheet_(ss, ADM_DB.STATUS_LOG, ADM_DB.STATUS_LOG_HEADERS);
+
+  SpreadsheetApp.flush();
+  // Verify (never overwrite) the final header row; throws if anything is out of place.
+  admissionDbSheet_();
+
+  Logger.log('Admission database schema v' + ADM_DB.VERSION + ' is ready in ' + ss.getName() + '. No source data was imported.');
 }
 
-/** Creates the status-log sheet lazily when the deployment has not run the schema setup yet. */
-function admissionDbEnsureStatusLogSheet_() {
-  var ss = authSpreadsheet_();
-  var sh = ss.getSheetByName(ADM_DB.STATUS_LOG);
+/**
+ * Creates a schema sheet or migrates an existing one by header name.
+ *
+ * Existing columns are never matched by position during migration. This is important
+ * because newer schema fields may have been added in the middle of an older sheet.
+ * The migration:
+ *   1. validates that existing header names are unique;
+ *   2. builds the desired schema in ADM_DB.HEADERS order;
+ *   3. keeps any legacy headers that are not in the desired schema after the new schema;
+ *   4. moves each existing value with its header, so records are not misaligned;
+ *   5. appends genuinely new fields as blank columns.
+ *
+ * No source records are imported or deleted.
+ */
+function admissionDbEnsureSchemaSheet_(ss, name, headers) {
+  var sh = ss.getSheetByName(name);
+
   if (!sh) {
-    sh = ss.insertSheet(ADM_DB.STATUS_LOG);
-    sh.getRange(1, 1, 1, ADM_DB.STATUS_LOG_HEADERS.length).setValues([ADM_DB.STATUS_LOG_HEADERS]).setFontWeight('bold');
+    sh = ss.insertSheet(name);
+    if (sh.getMaxColumns() < headers.length) {
+      sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    }
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
+    return sh;
   }
+
+  if (sh.getLastRow() === 0) {
+    if (sh.getMaxColumns() < headers.length) {
+      sh.insertColumnsAfter(sh.getMaxColumns(), headers.length - sh.getMaxColumns());
+    }
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    return sh;
+  }
+
+  var lastCol = Math.max(sh.getLastColumn(), 1);
+  var existingHeaders = sh.getRange(1, 1, 1, lastCol).getDisplayValues()[0].map(function (h) {
+    return String(h || '').trim();
+  });
+
+  var indexByHeader = {};
+  for (var i = 0; i < existingHeaders.length; i++) {
+    var existing = existingHeaders[i];
+    if (!existing) continue;
+    if (Object.prototype.hasOwnProperty.call(indexByHeader, existing)) {
+      throw new Error('Duplicate header "' + existing + '" found in ' + name + '. No headers or records were changed.');
+    }
+    indexByHeader[existing] = i;
+  }
+
+  // Desired headers always occupy the positions expected by the application code.
+  // Any legacy headers are retained after them so no existing field is discarded.
+  var targetHeaders = headers.slice();
+  existingHeaders.forEach(function (h) {
+    if (h && targetHeaders.indexOf(h) < 0) targetHeaders.push(h);
+  });
+
+  // If the existing sheet already has exactly the expected number of columns and
+  // the migration layout is otherwise positional, repair the header row directly.
+  // This specifically handles sheets whose header cells became blank while the
+  // corresponding data columns remained in the correct schema positions.
+  if (targetHeaders.length === headers.length && existingHeaders.length === headers.length) {
+    var headerNeedsRepair = false;
+    for (var h = 0; h < headers.length; h++) {
+      if (existingHeaders[h] !== headers[h]) {
+        headerNeedsRepair = true;
+        break;
+      }
+    }
+    if (headerNeedsRepair) {
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+      sh.setFrozenRows(1);
+      Logger.log('Repaired ' + name + ' header row: restored ' + headers.length + ' schema headers in expected positions.');
+      return sh;
+    }
+  }
+
+  var schemaAlreadyAligned = targetHeaders.length === existingHeaders.length;
+  if (schemaAlreadyAligned) {
+    for (var s = 0; s < targetHeaders.length; s++) {
+      if (targetHeaders[s] !== existingHeaders[s]) {
+        schemaAlreadyAligned = false;
+        break;
+      }
+    }
+  }
+
+  if (schemaAlreadyAligned) {
+    sh.setFrozenRows(1);
+    return sh;
+  }
+
+  var lastRow = sh.getLastRow();
+  var sourceValues = sh.getRange(1, 1, lastRow, lastCol).getValues();
+  var migratedValues = new Array(lastRow);
+
+  for (var r = 0; r < lastRow; r++) {
+    migratedValues[r] = new Array(targetHeaders.length);
+    for (var c = 0; c < targetHeaders.length; c++) {
+      var sourceIndex = indexByHeader[targetHeaders[c]];
+      migratedValues[r][c] = sourceIndex == null ? '' : sourceValues[r][sourceIndex];
+    }
+  }
+
+  // The header row is the schema itself: write the real header names, including the new ones.
+  // (Without this, brand-new columns were written with BLANK headers, so the sheet kept
+  // reporting its old width and the schema check failed on every run.)
+  migratedValues[0] = targetHeaders.slice();
+
+  if (sh.getMaxColumns() < targetHeaders.length) {
+    sh.insertColumnsAfter(sh.getMaxColumns(), targetHeaders.length - sh.getMaxColumns());
+  }
+
+  // Write the complete migrated matrix in one operation. Every value is sourced
+  // by its header name, so inserting RelStatus/other fields cannot shift data
+  // underneath a different field.
+  sh.getRange(1, 1, lastRow, targetHeaders.length).setValues(migratedValues);
+  sh.getRange(1, 1, 1, targetHeaders.length).setFontWeight('bold');
+  sh.setFrozenRows(1);
+  SpreadsheetApp.flush();   // commit the migration before anything re-reads the sheet dimensions
+
+  Logger.log('Migrated ' + name + ' schema by header name: ' +
+             existingHeaders.length + ' existing columns -> ' + targetHeaders.length + ' columns.');
+
   return sh;
 }
 
-function admissionPortalReport(token, reportType, reportValue) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    reportType = String(reportType || 'Grade Level').trim();
-    reportValue = String(reportValue || '').trim();
-    var rows = admissionDbRows_();
-    var groups = {};
-    function keyFor(r) {
-      if (reportType === 'Grade Level') return String(r.GradeLevel || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Admission Category') return String(r.Category || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Enrollment Status') return String(r.EnrollStatus || 'Not Enrolled').trim() || 'Not Enrolled';
-      if (reportType === 'Application Status') return String(r.ApplicationStatus || 'Submitted').trim() || 'Submitted';
-      if (reportType === 'Previous School') return String(r.PrevSchool || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Sex') return String(r.SexualOrient || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Gender') return String(r.GenderOrient || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Previous Scholarship') return String(r.PrevScholarship || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Classification') return String(r.Classification || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Cluster') return String(r.Cluster || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Section') return String(r.Section || 'Unspecified').trim() || 'Unspecified';
-      return 'Unspecified';
-    }
-    if (reportValue) rows = rows.filter(function(r){ return keyFor(r).toLowerCase() === reportValue.toLowerCase(); });
-    rows.forEach(function(r){
-      var key=keyFor(r);
-      if(!groups[key]) groups[key]={Group:key,Total:0,Enrolled:0,NotEnrolled:0,Temporary:0,Transferred:0,Cancelled:0,Submitted:0,UnderReview:0,Approved:0,Declined:0};
-      var g=groups[key]; g.Total++;
-      var es=String(r.EnrollStatus||'Not Enrolled');
-      if(es==='Enrolled')g.Enrolled++;else if(es==='Temporary')g.Temporary++;else if(es==='Transferred')g.Transferred++;else if(es==='Cancelled')g.Cancelled++;else g.NotEnrolled++;
-      var as=String(r.ApplicationStatus||'Submitted');
-      if(as==='Under Review')g.UnderReview++;else if(as==='Approved')g.Approved++;else if(as==='Declined')g.Declined++;else g.Submitted++;
-    });
-    var reports=Object.keys(groups).sort(function(a,b){return a.localeCompare(b);}).map(function(k){return groups[k];});
-    var values=Object.keys(groups).sort(function(a,b){return a.localeCompare(b);});
-    return {success:true,message:'Report loaded.',data:{reportType:reportType,selectedValue:reportValue,values:values,reports:reports}};
-  } catch(err) { return authFail_(err.message || 'Could not load the report.'); }
+/** The ONE place that knows the active school year (Script Property ADM_SY_ACTIVE) and its fallback. Update the fallback here once a year. */
+function admissionDbActiveYear_() {
+  return PropertiesService.getScriptProperties().getProperty('ADM_SY_ACTIVE') || '2026-2027';
+}
+/** Department label for a grade index in ADM_DB.GRADES. Single definition used by sign-up, profile edits and re-enrollment. */
+function admissionDbDepartment_(gi) {
+  return gi < 3 ? 'Preschool' : gi < 9 ? 'Elementary' : gi < 13 ? 'Junior High School' : 'Senior High School';
 }
 
+var ADM_SCHEMA_OK_ = false;   // header row verified during this execution (each web request is a fresh execution)
+function admissionDbSheet_() {
+  var ss = authSpreadsheet_(), sh = ss.getSheetByName(ADM_DB.STUDENTS);
+  if (!sh) throw new Error('Admission database is not initialized. Ask the system owner to run admissionDbSetup_().');
+  if (ADM_SCHEMA_OK_) return sh;
 
-
-
-function admissionPortalSpecializedReport(token, reportType, gradeLevel, section) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    reportType = String(reportType || 'Admission Daily').trim();
-    gradeLevel = String(gradeLevel || '').trim();
-    section = String(section || '').trim();
-
-    var rows = admissionDbRows_().filter(function(r) {
-      if (gradeLevel && String(r.GradeLevel || '').trim() !== gradeLevel) return false;
-      if (section === '(none)' && String(r.Section || '').trim() !== '') return false;
-      if (section && section !== '(none)' && String(r.Section || '').trim() !== section) return false;
-      return true;
-    });
-
-    function active(r) {
-      var es = String(r.EnrollStatus || 'Not Enrolled');
-      return es !== 'Cancelled' && es !== 'Transferred' && es !== 'Transferred Out';
-    }
-    function count(list, fn) {
-      return list.filter(fn).length;
-    }
-    function pct(a, b) {
-      return b ? (Math.round((a / b) * 1000) / 10).toFixed(1) + '%' : '0.0%';
-    }
-    function groupBy(list, keyFn) {
-      var map = {};
-      list.forEach(function(r) {
-        var key = String(keyFn(r) || 'Unspecified').trim() || 'Unspecified';
-        if (!map[key]) map[key] = [];
-        map[key].push(r);
-      });
-      return map;
-    }
-
-    var title = reportType;
-    var columns = [];
-    var dataRows = [];
-    var summary = {};
-
-    if (reportType === 'Admission Daily') {
-      var dayMap = groupBy(rows, function(r) {
-        return String(r.CreatedAt || '').slice(0, 10) || 'Unknown';
-      });
-      Object.keys(dayMap).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(day) {
-        var x = dayMap[day];
-        dataRows.push([day, x.length, count(x, function(r){return active(r);}), count(x, function(r){return r.EnrollStatus === 'Enrolled';})]);
-      });
-      columns = ['Date', 'Registrations', 'Active', 'Enrolled'];
-      title = 'ADMISSION DAILY REPORT';
-      summary = { Total: rows.length, Active: count(rows, active), Enrolled: count(rows, function(r){return r.EnrollStatus === 'Enrolled';}) };
-    } else if (reportType === 'School Overview') {
-      var groups = {};
-      rows.forEach(function(r) {
-        var g = String(r.GradeLevel || 'Unspecified');
-        if (!groups[g]) groups[g] = [];
-        groups[g].push(r);
-      });
-      Object.keys(groups).sort(function(a,b){return a.localeCompare(b);}).forEach(function(g) {
-        var x = groups[g], enrolled = count(x, function(r){return r.EnrollStatus === 'Enrolled';});
-        dataRows.push([g, x.length, enrolled, count(x, function(r){return r.EnrollStatus === 'Not Enrolled';}), count(x, function(r){return r.EnrollStatus === 'Cancelled';}), count(x, function(r){return r.EnrollStatus === 'Transferred' || r.EnrollStatus === 'Transferred Out';}), pct(enrolled, x.length)]);
-      });
-      columns = ['Grade Level', 'Applicants', 'Enrolled', 'Not Enrolled', 'Cancelled', 'Transferred', 'Conversion Rate'];
-      title = 'SCHOOL OVERVIEW / ADMISSION CONVERSION';
-      summary = { Total: rows.length, Enrolled: count(rows, function(r){return r.EnrollStatus === 'Enrolled';}), ConversionRate: pct(count(rows, function(r){return r.EnrollStatus === 'Enrolled';}), rows.length) };
-    } else if (reportType === 'Previous School') {
-      var schoolMap = groupBy(rows, function(r){ return r.PrevSchool || '(NONE)'; });
-      Object.keys(schoolMap).sort(function(a,b){
-        return schoolMap[b].length - schoolMap[a].length || a.localeCompare(b);
-      }).forEach(function(k) {
-        var x = schoolMap[k], e = count(x, function(r){return r.EnrollStatus === 'Enrolled';});
-        dataRows.push([k, x.length, e, pct(e, x.length)]);
-      });
-      columns = ['Previous School', 'Applicants', 'Enrolled', 'Conversion Rate'];
-      title = 'PER PREVIOUS SCHOOL REPORT';
-      summary = { Schools: Object.keys(schoolMap).length, Total: rows.length };
-    } else if (reportType === 'Demographic') {
-      var sex = groupBy(rows.filter(active), function(r){ return r.SexualOrient || 'Not specified'; });
-      Object.keys(sex).sort(function(a,b){return sex[b].length-sex[a].length || a.localeCompare(b);}).forEach(function(k){ dataRows.push(['Sex', k, sex[k].length]); });
-      var gender = groupBy(rows.filter(active), function(r){ return r.GenderOrient || 'Not specified'; });
-      Object.keys(gender).sort(function(a,b){return gender[b].length-gender[a].length || a.localeCompare(b);}).forEach(function(k){ dataRows.push(['Gender', k, gender[k].length]); });
-      var religion = groupBy(rows.filter(active), function(r){ return r.Religion === 'Others, specify' ? ('OTHERS: ' + (r.ReligionOther || '')) : (r.Religion || 'Not specified'); });
-      Object.keys(religion).sort(function(a,b){return religion[b].length-religion[a].length || a.localeCompare(b);}).forEach(function(k){ dataRows.push(['Religion', k, religion[k].length]); });
-      columns = ['Dimension', 'Value', 'Students'];
-      title = 'DEMOGRAPHIC REPORT';
-      summary = { ActiveLearners: rows.filter(active).length };
-    } else if (reportType === 'Requirements Status') {
-      var reqMap = {};
-      rows.forEach(function(r) {
-        admissionDbRequirementItems_(r).forEach(function(item) {
-          var key = item.label || item.statusKey;
-          if (!reqMap[key]) reqMap[key] = { required: 0, pending: 0, received: 0, verified: 0, incomplete: 0 };
-          reqMap[key].required++;
-          var st = String(item.status || 'Pending Submission');
-          if (st === 'Received') reqMap[key].received++;
-          else if (st === 'Verified') reqMap[key].verified++;
-          else if (st === 'Incomplete') reqMap[key].incomplete++;
-          else reqMap[key].pending++;
-        });
-      });
-      Object.keys(reqMap).sort().forEach(function(k) {
-        var q = reqMap[k];
-        dataRows.push([k, q.required, q.pending, q.received, q.verified, q.incomplete]);
-      });
-      columns = ['Requirement', 'Applicable Learners', 'Pending Submission', 'Received', 'Verified', 'Incomplete'];
-      title = 'REQUIREMENTS STATUS REPORT';
-      summary = { Requirements: Object.keys(reqMap).length, ApplicableLearners: rows.length };
-    } else if (reportType === 'Scholarship Beneficiaries') {
-      var cat = groupBy(rows.filter(active), function(r){ return r.Category || 'Not set'; });
-      Object.keys(cat).sort(function(a,b){return cat[b].length-cat[a].length || a.localeCompare(b);}).forEach(function(k) {
-        dataRows.push([k, cat[k].length, pct(cat[k].length, rows.filter(active).length)]);
-      });
-      columns = ['Scholarship / Category', 'Students', 'Share'];
-      title = 'SCHOLARSHIP BENEFICIARIES REPORT';
-      summary = { ActiveLearners: rows.filter(active).length, Beneficiaries: rows.filter(active).filter(function(r){return String(r.Category||'').toUpperCase() !== 'REGULAR';}).length };
-    } else if (reportType === 'Scholarship by Grade') {
-      var grades = ADM_DB.GRADES;
-      var categories = ADM_DB.CATEGORIES;
-      var pop = rows.filter(active);
-      grades.forEach(function(g) {
-        var x = pop.filter(function(r){return r.GradeLevel===g;});
-        if (!x.length) return;
-        dataRows.push([g].concat(categories.map(function(cat){return count(x,function(r){return admissionDbCategoryLoose_(r.Category).toUpperCase()===cat.toUpperCase();});}),[x.length]));
-      });
-      dataRows.push(['TOTAL'].concat(categories.map(function(cat){return count(pop,function(r){return admissionDbCategoryLoose_(r.Category).toUpperCase()===cat.toUpperCase();});}),[pop.length]));
-      columns = ['Grade Level'].concat(categories,['Total Students']);
-      title = 'SCHOLARSHIP BENEFICIARIES BY GRADE LEVEL';
-      summary = { ActiveLearners: pop.length, ScholarshipCategories: categories.length };
-    } else if (reportType === 'No Parental Consent') {
-      var missingConsent = rows.filter(function(r) {
-        return active(r) && String(r.ReqConsent || '') !== 'Original' && String(r.ReqConsentStatus || '') !== 'Verified';
-      }).sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
-      dataRows = missingConsent.map(function(r){return [r.StudentID,r.FullName,r.GradeLevel,r.Section,r.EnrollStatus||'Not Enrolled',r.ApplicationStatus||'Submitted'];});
-      columns = ['Student ID','Learner','Grade Level','Section','Enrollment Status','Application Status'];
-      title = 'LEARNERS WITHOUT PARENTAL CONSENT';
-      summary = { MissingConsent: missingConsent.length, ActiveLearners: rows.filter(active).length };
-    } else if (reportType === 'Advisory Class') {
-      var ax = rows.filter(active).slice().sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
-      dataRows = ax.map(function(r){ return [r.StudentID, r.FullName, r.GradeLevel, r.Section, r.Category, r.EnrollStatus || 'Not Enrolled']; });
-      columns = ['Student ID', 'Learner', 'Grade Level', 'Section', 'Category', 'Enrollment Status'];
-      title = 'ADVISORY CLASS REPORT';
-      summary = { Students: ax.length };
-    } else if (reportType === 'Personal Data') {
-      var px = rows.slice().sort(function(a,b){return String(a.FullName||'').localeCompare(String(b.FullName||''));});
-      dataRows = px.map(function(r){
-        return [r.StudentID, r.FullName, r.LRN, r.GradeLevel, r.Section, r.Birthdate, r.SexualOrient, r.Religion === 'Others, specify' ? (r.ReligionOther || 'Others') : (r.Religion || ''), r.Mobile];
-      });
-      columns = ['Student ID', 'Full Name', 'LRN', 'Grade Level', 'Section', 'Birth Date', 'Sex', 'Religion', 'Mobile'];
-      title = "LEARNER'S PERSONAL DATA REPORT";
-      summary = { Students: px.length };
-    } else {
-      throw new Error('Invalid specialized report type.');
-    }
-
-    return {
-      success: true,
-      message: 'Specialized report loaded.',
-      data: { reportType: reportType, title: title, columns: columns, rows: dataRows, summary: summary }
-    };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the specialized report.');
+  var actualCount = sh.getLastColumn();
+  var expectedCount = ADM_DB.HEADERS.length;
+  if (actualCount < expectedCount) {
+    throw new Error('Admission database schema is invalid: expected ' + expectedCount +
+      ' columns but the database has ' + actualCount + '. Run admissionDbSetup_() from the Apps Script editor.');
   }
+
+  var actual = sh.getRange(1, 1, 1, expectedCount).getDisplayValues()[0];
+  for (var i = 0; i < expectedCount; i++) {
+    var expected = ADM_DB.HEADERS[i];
+    var got = String(actual[i] || '').trim();
+    if (got !== expected) {
+      throw new Error('Admission database schema mismatch at column ' + (i + 1) +
+        ': expected "' + expected + '" but found "' + got +
+        '". Database: ' + ss.getName() + '. Run admissionDbSetup_() to repair the schema.');
+    }
+  }
+  ADM_SCHEMA_OK_ = true;
+  return sh;
 }
 
-function admissionPortalDetailedStudentReport(token, reportType, reportValue) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    var allowed = {
-      'Grade Level': 'GradeLevel',
-      'Admission Category': 'Category',
-      'Enrollment Status': 'EnrollStatus',
-      'Application Status': 'ApplicationStatus',
-      'Previous School': 'PrevSchool',
-      'Classification': 'Classification',
-      'Cluster': 'Cluster',
-      'Section': 'Section',
-      'Sex': 'SexualOrient',
-      'Gender': 'GenderOrient',
-      'Previous Scholarship': 'PrevScholarship'
-    };
-    reportType = String(reportType || 'Grade Level').trim();
-    reportValue = String(reportValue || '').trim();
-    if (!allowed[reportType]) throw new Error('Invalid detailed report dimension.');
-
-    var rows = admissionDbRows_();
-    function admissionPortalReportValueFor_(r) {
-      var value = r[allowed[reportType]];
-      if (reportType === 'Enrollment Status') value = value || 'Not Enrolled';
-      else if (reportType === 'Application Status') value = value || 'Submitted';
-      return String(value == null ? '' : value).trim() || 'Unspecified';
-    }
-    if (reportValue) {
-      rows = rows.filter(function(r) {
-        return admissionPortalReportValueFor_(r).toLowerCase() === reportValue.toLowerCase();
-      });
-    }
-    rows.sort(function(a,b) {
-      return String(a.FullName || '').localeCompare(String(b.FullName || ''));
-    });
-
-    var students = rows.map(function(r) {
-      return {
-        StudentID: r.StudentID || '',
-        FullName: r.FullName || '',
-        GradeLevel: r.GradeLevel || '',
-        Cluster: r.Cluster || '',
-        Section: r.Section || '',
-        Category: r.Category || '',
-        Classification: r.Classification || '',
-        PreviousSchool: r.PrevSchool || '',
-        PreviousSection: r.PrevSection || '',
-        PreviousAdviser: r.PrevAdviser || '',
-        ApplicationStatus: r.ApplicationStatus || 'Submitted',
-        EnrollStatus: r.EnrollStatus || 'Not Enrolled'
-      };
-    });
-    return {
-      success: true,
-      message: 'Detailed student report loaded.',
-      data: { reportType: reportType, selectedValue: reportValue, students: students }
-    };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the detailed student report.');
-  }
-}
-
-
-function admissionPortalMatrixReport(token, rowDimension, columnDimension) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    var allowed = {
-      'Grade Level': 'GradeLevel',
-      'Admission Category': 'Category',
-      'Enrollment Status': 'EnrollStatus',
-      'Application Status': 'ApplicationStatus',
-      'Previous School': 'PrevSchool',
-      'Sex': 'SexualOrient',
-      'Gender': 'GenderOrient',
-      'Previous Scholarship': 'PrevScholarship',
-      'Cluster': 'Cluster',
-      'Section': 'Section'
-    };
-    rowDimension = String(rowDimension || 'Grade Level').trim();
-    columnDimension = String(columnDimension || 'Admission Category').trim();
-    if (!allowed[rowDimension] || !allowed[columnDimension]) throw new Error('Invalid matrix report dimension.');
-
-    var rows = admissionDbRows_();
-    function admissionPortalMatrixValueFor_(r, label) {
-      var key = allowed[label], value = r[key];
-      if (label === 'Enrollment Status') value = value || 'Not Enrolled';
-      else if (label === 'Application Status') value = value || 'Submitted';
-      return String(value == null ? '' : value).trim() || 'Unspecified';
-    }
-
-    var colSet = {}, matrix = {};
-    rows.forEach(function(r) {
-      var rowKey = admissionPortalMatrixValueFor_(r, rowDimension), colKey = admissionPortalMatrixValueFor_(r, columnDimension);
-      colSet[colKey] = true;
-      if (!matrix[rowKey]) matrix[rowKey] = {};
-      matrix[rowKey][colKey] = (matrix[rowKey][colKey] || 0) + 1;
-    });
-
-    var columns = Object.keys(colSet).sort(function(a,b){ return a.localeCompare(b); });
-    var reportRows = Object.keys(matrix).sort(function(a,b){ return a.localeCompare(b); }).map(function(rowKey) {
-      var cells = {};
-      columns.forEach(function(colKey){ cells[colKey] = Number(matrix[rowKey][colKey] || 0); });
-      var total = columns.reduce(function(n,colKey){ return n + cells[colKey]; }, 0);
-      cells.Total = total;
-      cells.Group = rowKey;
-      return cells;
-    });
-
-    var totals = { Group: 'Total', Total: rows.length };
-    columns.forEach(function(colKey) {
-      totals[colKey] = rows.reduce(function(n,r){ return n + (admissionPortalMatrixValueFor_(r, columnDimension) === colKey ? 1 : 0); }, 0);
-    });
-
-    return {
-      success: true,
-      message: 'Matrix report loaded.',
-      data: {
-        rowDimension: rowDimension,
-        columnDimension: columnDimension,
-        columns: columns,
-        reports: reportRows,
-        totals: totals
-      }
-    };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the matrix report.');
-  }
-}
-
-function admissionPortalFormerAdviserReport(token, formerAdviser) {
-  try {
-    authRequireRole_(token, ['Encoder', 'Owner']);
-    formerAdviser = String(formerAdviser == null ? '' : formerAdviser).trim();
-    var rows = admissionDbRows_();
-    if (formerAdviser) {
-      rows = rows.filter(function (r) {
-        return String(r.PrevAdviser || '').trim().toLowerCase() === formerAdviser.toLowerCase();
-      });
-    }
-    var groups = {};
-    rows.forEach(function (r) {
-      var key = String(r.PrevAdviser || '').trim() || 'Unassigned';
-      if (!groups[key]) groups[key] = {
-        FormerAdviser: key, Total: 0, Enrolled: 0, NotEnrolled: 0, Temporary: 0,
-        Transferred: 0, Cancelled: 0, Submitted: 0, UnderReview: 0, Approved: 0, Declined: 0,
-        students: []
-      };
-      var g = groups[key];
-      g.Total++;
-      var es = String(r.EnrollStatus || 'Not Enrolled');
-      if (es === 'Enrolled') g.Enrolled++;
-      else if (es === 'Temporary') g.Temporary++;
-      else if (es === 'Transferred') g.Transferred++;
-      else if (es === 'Cancelled') g.Cancelled++;
-      else g.NotEnrolled++;
-      var as = String(r.ApplicationStatus || 'Submitted');
-      if (as === 'Under Review') g.UnderReview++;
-      else if (as === 'Approved') g.Approved++;
-      else if (as === 'Declined') g.Declined++;
-      else g.Submitted++;
-      g.students.push({
-        StudentID: r.StudentID, FullName: r.FullName, GradeLevel: r.GradeLevel,
-        PreviousSchool: r.PrevSchool, PreviousSection: r.PrevSection,
-        Category: r.Category, ApplicationStatus: as, EnrollStatus: es
-      });
-    });
-    var advisers = Object.keys(groups).sort(function (a, b) {
-      if (a === 'Unassigned') return 1;
-      if (b === 'Unassigned') return -1;
-      return a.localeCompare(b);
-    }).map(function (key) {
-      var g = groups[key];
-      g.students.sort(function (a, b) { return String(a.FullName).localeCompare(String(b.FullName)); });
-      return g;
-    });
-    return {
-      success: true,
-      message: 'Former adviser report loaded.',
-      data: {
-        selectedFormerAdviser: formerAdviser,
-        advisers: advisers.map(function (g) { return g.FormerAdviser; }),
-        reports: advisers
-      }
-    };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the former adviser report.');
-  }
-}
-
-function admissionPortalDashboard(token) {
-  try {
-    var account = authRequireRole_(token, ['Encoder', 'Owner']);
-    return { success: true, message: 'Dashboard loaded.', data: admissionPortalDashboard_(account.role) };
-  } catch (err) {
-    return authFail_(err.message || 'Could not load the admission dashboard.');
-  }
-}
-
-function admissionPortalDashboard_(role) {
-  var rows = maAdmissionSpeedRecords_();
-  var byStatus = {}, byApplicationStatus = {}, byGrade = {}, byCategory = {}, byCluster = {},
-      bySex = {}, byPrevSchool = {}, byScholarship = {}, recent = [], needsAction = [],
-      needsActionTotal = 0, today = new Date(), trend = [];
-
-  function inc(map, key) {
-    key = String(key || 'Unspecified').trim() || 'Unspecified';
-    map[key] = (map[key] || 0) + 1;
-  }
-  function dayKey(d) {
-    return Utilities.formatDate(d, 'Asia/Manila', 'yyyy-MM-dd');
-  }
-  function parseDate(v) {
-    var d = new Date(String(v || ''));
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  for (var i = 13; i >= 0; i--) {
-    var d = new Date(today.getTime() - i * 86400000);
-    trend.push({ date: dayKey(d), label: Utilities.formatDate(d, 'Asia/Manila', 'MMM d'), count: 0 });
-  }
-  var trendIndex = {};
-  trend.forEach(function (x, i) { trendIndex[x.date] = i; });
-
-  var requirementStatusFields = [
-    'ReqSF9InitialStatus','ReqSF9CompletionStatus','ReqBirthInitialStatus',
-    'ReqBirthCompletionStatus','ReqPhotoStatus','ReqEnvelopeStatus',
-    'ReqF137Status','ReqMoralStatus','ReqJHSStatus','ReqTransfereeStatus','ReqConsentStatus'
-  ];
-  var certificateCategories = ['ESC GRANTEE','TLC SCHOLAR','PUB-QVR','QVA PASSER'];
-
-  rows.forEach(function (r) {
-    var s = r.EnrollStatus || 'Unspecified';
-    var a = r.ApplicationStatus || 'Submitted';
-    inc(byStatus, s);
-    inc(byApplicationStatus, a);
-    inc(byGrade, r.GradeLevel);
-    inc(byCategory, r.Category);
-    inc(bySex, r.SexualOrient);
-    inc(byPrevSchool, r.PrevSchool);
-    if (r.PrevScholarship) inc(byScholarship, r.PrevScholarship);
-    if (r.Cluster) inc(byCluster, (r.GradeLevel || 'Unspecified') + ' · ' + r.Cluster);
-
-    var created = parseDate(r.CreatedAt);
-    if (created) {
-      var dk = dayKey(created);
-      if (trendIndex[dk] != null) trend[trendIndex[dk]].count++;
-    }
-
-    var reason = '';
-    var incomplete = requirementStatusFields.some(function (f) {
-      var v = String(r[f] || '');
-      return v === 'Incomplete' || v === 'Pending Submission';
-    });
-    var consentMissing = String(r.ReqConsentStatus || '') !== 'Verified' &&
-                         String(r.ReqConsentStatus || '') !== 'Received';
-    var certMissing = certificateCategories.indexOf(admissionDbCategoryLoose_(r.Category).toUpperCase()) >= 0 &&
-                      !String(r.CertNo || r.VoucherCertNo || r.EscCertNo || '').trim();
-
-    if (a === 'Submitted') reason = 'Waiting for initial review';
-    else if (a === 'Under Review' && consentMissing) reason = 'Consent document needs verification';
-    else if (a === 'Under Review' && incomplete) reason = 'Incomplete requirements need follow-up';
-    else if (a === 'Under Review' && certMissing) reason = 'Scholarship certificate number is missing';
-    else if (a === 'Approved' && String(s) !== 'Enrolled') reason = 'Ready for enrollment processing';
-
-    if (reason) {
-      needsActionTotal++;
-      if (needsAction.length < 20) {
-        needsAction.push({
-          StudentID: r.StudentID,
-          FullName: r.FullName,
-          GradeLevel: r.GradeLevel,
-          Category: r.Category,
-          ApplicationStatus: a,
-          EnrollStatus: s,
-          Reason: reason
-        });
-      }
-    }
+function admissionDbRows_() {
+  var sh = admissionDbSheet_(), last = sh.getLastRow();
+  if (last < 2) return [];
+  var values = sh.getRange(2, 1, last - 1, ADM_DB.HEADERS.length).getValues(), out = [];
+  values.forEach(function (row, index) {
+    var id = String(row[0] || '').trim();
+    if (!id) return;
+    var obj = { _row: index + 2 };
+    ADM_DB.HEADERS.forEach(function (h, i) { obj[h] = row[i] == null ? '' : String(row[i]); });
+    out.push(obj);
   });
-
-  recent = rows.slice().sort(function(a,b){ return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); })
-    .slice(0, 5).map(function(r) {
-      return { StudentID:r.StudentID, FullName:r.FullName, GradeLevel:r.GradeLevel,
-        Category:r.Category, ApplicationStatus:r.ApplicationStatus || 'Submitted',
-        CreatedAt:r.CreatedAt };
-    });
-
-  var pipeline = {
-    'Not Enrolled': Number(byStatus['Not Enrolled'] || 0),
-    'Enrolled': Number(byStatus.Enrolled || 0),
-    'Temporary': Number(byStatus.Temporary || 0),
-    'Transferred': Number(byStatus.Transferred || byStatus['Transferred Out'] || 0),
-    'Cancelled': Number(byStatus.Cancelled || 0)
-  };
-
-  var gradeCluster = {};
-  Object.keys(byCluster).forEach(function(k) {
-    var parts = k.split(' · ');
-    var grade = parts.shift() || 'Unspecified';
-    var cluster = parts.join(' · ') || 'Unspecified';
-    if (!gradeCluster[grade]) gradeCluster[grade] = {};
-    gradeCluster[grade][cluster] = byCluster[k];
-  });
-
-  return {
-    total: rows.length,
-    byStatus: byStatus,
-    byApplicationStatus: byApplicationStatus,
-    byGrade: byGrade,
-    byCategory: byCategory,
-    pipeline: pipeline,
-    trend: trend,
-    recent: recent,
-    needsAction: needsAction,
-    needsActionTotal: needsActionTotal,
-    byGradeCluster: gradeCluster,
-    bySex: bySex,
-    byPreviousSchool: byPrevSchool,
-    byScholarship: byScholarship,
-    role: role
-  };
+  return out;
 }
 
-function admissionPortalPublicRecord_(r) {
-  return {
-    StudentID: r.StudentID, CreatedAt: r.CreatedAt, FullName: r.FullName,
-    LRN: r.LRN, SchoolYear: r.SchoolYear, Category: r.Category,
-    GradeLevel: r.GradeLevel, Department: r.Department, Cluster: r.Cluster,
-    Section: r.Section, Email: r.Email, EnrollStatus: r.EnrollStatus,
-    ApplicationStatus: r.ApplicationStatus || 'Submitted',
-    ProcessedBy: r.ProcessedBy, ProcessedDate: r.ProcessedDate,
-    Requirements: {
-      SF9: r.ReqSF9, F137: r.ReqF137, Birth: r.ReqBirth, Moral: r.ReqMoral,
-      JHS: r.ReqJHS, Photo: r.ReqPhoto, Transferee: r.ReqTransferee,
-      Consent: r.ReqConsent, Envelope: r.ReqEnvelope
+/** One StudentID-column read plus one row read. (It used to scan every column of every row whenever the compact cache was cold.) */
+function admissionDbFindById_(studentId) {
+  studentId = String(studentId || '').trim();
+  if (!studentId) return null;
+  return maAdmissionSpeedReadStudentRow_(studentId);
+}
+
+function admissionDbAge_(isoDate) {
+  var d = new Date(isoDate + 'T00:00:00');
+  if (isNaN(d.getTime()) || Utilities.formatDate(d, 'Asia/Manila', 'yyyy-MM-dd') !== isoDate) return '';
+  var now = new Date(), age = now.getFullYear() - d.getFullYear();
+  if (now.getMonth() < d.getMonth() || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
+  return age >= 0 && age <= 120 ? String(age) : '';
+}
+
+/** Returns the canonical category (e.g. 'REGULAR' / 'TLC' -> 'Regular' / 'TLC Scholar'), '' for blank, or throws. */
+function admissionDbCategory_(v) {
+  v = String(v == null ? '' : v).trim();
+  if (!v) return '';
+  var u = v.toUpperCase();
+  if (ADM_DB.CATEGORY_ALIASES[u]) return ADM_DB.CATEGORY_ALIASES[u];
+  for (var i = 0; i < ADM_DB.CATEGORIES.length; i++) if (ADM_DB.CATEGORIES[i].toUpperCase() === u) return ADM_DB.CATEGORIES[i];
+  throw new Error('Unsupported admission category: ' + v);
+}
+/** Never throws: canonical name when recognised, otherwise the trimmed original. Use when READING possibly-legacy rows. */
+function admissionDbCategoryLoose_(v) {
+  try { return admissionDbCategory_(v); } catch (e) { return String(v == null ? '' : v).trim(); }
+}
+function admissionDbOneOf_(v, list, label) {
+  v = String(v == null ? '' : v).trim();
+  if (v && list.indexOf(v) < 0) throw new Error('Unsupported ' + label + ': ' + v);
+  return v;
+}
+
+function admissionDbCleanText_(value, max) {
+  var s = String(value == null ? '' : value).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim();
+  if (s.length > max) throw new Error('One of the submitted fields is too long.');
+  return s;
+}
+
+function admissionDbNormalizeApplicant_(input, account) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid application data.');
+  var out = {};
+  if (input.PrivacyConsent !== true) throw new Error('You must accept the Data Privacy consent before submitting.');
+  Object.keys(input).forEach(function (key) {
+    if (key === 'PrivacyConsent') return;
+    if (ADM_DB.APPLICANT_FIELDS.indexOf(key) < 0) throw new Error('Unsupported application field: ' + key);
+    var v = input[key];
+    if (typeof v === 'boolean') v = v ? 'Yes' : 'No';
+    out[key] = admissionDbCleanText_(v, 1000);
+  });
+  out.ConsentAt = new Date().toISOString();
+  out.Surname = admissionDbCleanText_(out.Surname, 80).toUpperCase();
+  out.FirstName = admissionDbCleanText_(out.FirstName, 80).toUpperCase();
+  if (!out.Surname || !out.FirstName) throw new Error('Surname and first name are required.');
+  if (!out.Birthdate || !/^\d{4}-\d{2}-\d{2}$/.test(out.Birthdate) || !admissionDbAge_(out.Birthdate)) throw new Error('Enter a valid birth date.');
+  if (!out.SchoolYear || !/^20\d{2}-20\d{2}$/.test(out.SchoolYear)) throw new Error('Select a valid school year.');
+  if (!out.GradeLevel || ADM_DB.GRADES.indexOf(out.GradeLevel) < 0) throw new Error('Select an intended grade level.');
+  out.Category = admissionDbCategory_(out.Category);
+  out.PrevScholarship = out.PrevScholarship ? admissionDbCategory_(out.PrevScholarship) : '';   // Previous Scholarship uses the same official names
+  if (!out.LRN || !/^[1-5]\d{11}$/.test(out.LRN)) throw new Error('LRN must be 12 digits and start with 1, 2, 3, 4 or 5.');
+  ['Mobile', 'FatherMobile', 'MotherMobile', 'EmMobile', 'GuardMobile', 'RelMobile'].forEach(function (k) {
+    if (out[k] && !/^09\d{9}$/.test(out[k])) throw new Error('Enter a valid 11-digit mobile number (starting with 09) for ' + k.replace(/Mobile$/, '') + ' contact.');
+  });
+  out.FullName = out.Surname + ', ' + out.FirstName + (out.MiddleName ? ' ' + out.MiddleName : '') + (out.Suffix ? ' ' + out.Suffix : '');
+  out.Email = account.email;
+  out.Classification = 'New';
+  out.Age = admissionDbAge_(out.Birthdate);
+  out.EnrollStatus = 'Not Enrolled';
+  out.ApplicationStatus = 'Submitted';
+  ADM_DB.REQUIREMENTS.forEach(function (item) { out[item.statusKey] = 'Not Applicable'; });
+  admissionDbRequirementItems_(out).forEach(function (item) { out[item.statusKey] = 'Pending Submission'; });
+  return out;
+}
+
+function admissionDbRequirementItems_(record) {
+  var grades = ADM_DB.GRADES;
+  var index = grades.indexOf(String(record.GradeLevel || ''));
+  if (index < 0) return [];
+  var level = index < 3 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
+  var applicable = [];
+  if (index >= 2) applicable.push('ReqSF9Initial', 'ReqSF9Completion');
+  applicable.push('ReqBirthInitial', 'ReqPhoto', 'ReqEnvelope');
+  if (level !== 'PRE') applicable.push('ReqF137', 'ReqMoral');
+  if (level === 'SHS') applicable.push('ReqBirthCompletion');
+  if (String(record.GradeLevel) === 'Grade 11') applicable.push('ReqJHS');
+  var eligible = (level === 'JHS' || level === 'SHS') &&
+    ['TLC SCHOLAR','ESC GRANTEE','PUB-QVR','QVA PASSER'].indexOf(admissionDbCategoryLoose_(record.Category).toUpperCase()) >= 0;
+  if (eligible) applicable.push('ReqTransferee');
+  applicable.push('ReqConsent');
+  var items = [];
+  ADM_DB.REQUIREMENTS.forEach(function (item) {
+    if (applicable.indexOf(item.key) < 0) return;
+    items.push({
+      key: item.key,
+      statusKey: item.statusKey,
+      label: item.label,
+      stage: (item.key.indexOf('Initial') >= 0 || item.key === 'ReqPhoto' || item.key === 'ReqEnvelope' || item.key === 'ReqConsent') ? 'Initial Requirements' : 'For Completion',
+      required: true,
+      status: String(record[item.statusKey] || ((item.key === 'ReqSF9Initial' || item.key === 'ReqSF9Completion') ? record.ReqSF9Status : item.key === 'ReqBirthInitial' ? record.ReqBirthStatus : '') || 'Pending Submission')
+    });
+  });
+  return items;
+}
+
+function admissionDbNewStudentId_(schoolYear) {
+  var match = String(schoolYear || '').match(/^20\d{2}/);
+  var year = match ? match[0] : Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy');
+  return 'MA-' + year + '-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase();
+}
+
+/**
+ * Browser-facing first application submission.
+ * Only an active Applicant may create their own record. The server supplies email, StudentID,
+ * timestamps, FullName, Age, Classification, and EnrollStatus; client-supplied system fields are rejected.
+ */
+function admissionCreateApplication(token, input) {
+  var account;
+  try {
+    account = authRequireRole_(token, ['Applicant']);
+    if (account.studentId) throw new Error('An admission record is already linked to this account.');
+    var record = admissionDbNormalizeApplicant_(input, account);
+    var lock = LockService.getScriptLock();
+    if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
+    var insertedRow = 0, sh = null, studentId = '';
+    try {
+      var current = authResolveSession_(token);
+      if (!current || current.email !== account.email || current.role !== 'Applicant' || current.studentId) throw new Error('Your session or account status changed. Please sign in again.');
+      sh = admissionDbSheet_();
+      var existing = admissionDbRows_();
+      if (existing.some(function (r) { return r.Email.toLowerCase() === account.email.toLowerCase(); })) throw new Error('An admission record already exists for this account.');
+      if (record.LRN && existing.some(function (r) { return r.LRN === record.LRN; })) throw new Error('An application with this LRN already exists. Please contact the Admissions Office if you believe this is an error.');
+      studentId = admissionDbNewStudentId_(record.SchoolYear);
+      var row = {};
+      ADM_DB.HEADERS.forEach(function (h) { row[h] = ''; });
+      row.StudentID = studentId;
+      row.CreatedAt = new Date().toISOString();
+      Object.keys(record).forEach(function (k) { row[k] = record[k]; });
+      var values = [ADM_DB.HEADERS.map(function (h) { return row[h] == null ? '' : String(row[h]); })];
+      insertedRow = sh.getLastRow() + 1;
+      sh.getRange(insertedRow, 1, 1, ADM_DB.HEADERS.length).setNumberFormat('@').setValues(values);
+      authLinkStudentLocked_(account.email, studentId);
+      maAdmissionSpeedBump_();
+      admissionDbAudit_(account.email, 'application-created', studentId, 'Initial application record created');
+    } catch (err) {
+      if (insertedRow && sh) sh.deleteRow(insertedRow);
+      throw err;
+    } finally {
+      lock.releaseLock();
     }
-  };
+    return { success: true, message: 'Your application record has been created.', data: { studentId: studentId } };
+  } catch (err) {
+    return authFail_(err.message || 'Could not save the application. Please try again.');
+  }
+}
+
+/** Applicant/Student can read only the record linked to their own authenticated account. */
+function admissionGetMyApplication(token) {
+  try {
+    var account = authRequireRole_(token, ['Applicant', 'Student']);
+    if (!account.studentId) return { success: true, message: 'No application has been submitted yet.', data: null };
+    var record = admissionDbFindById_(account.studentId);
+    if (!record) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
+    record.RequirementItems = admissionDbRequirementItems_(record);
+    delete record._row;
+    ADM_DB.APPLICANT_HIDDEN.forEach(function (k) { delete record[k]; });   // staff-only notes and processing fields
+    return { success: true, message: 'Application loaded.', data: record };
+  } catch (err) {
+    return authFail_(err.message || 'Could not load your application.');
+  }
+}
+
+/** Best-effort audit. Never logs passwords, OTPs, tokens, or full application payloads. */
+function admissionDbAudit_(actorEmail, action, studentId, detail) {
+  try {
+    var ss = authSpreadsheet_(), sh = ss.getSheetByName(ADM_DB.AUDIT);
+    if (!sh) return;
+    var clean = function (v, n) { return String(v == null ? '' : v).replace(/[\u0000-\u001F]/g, ' ').slice(0, n); };
+    var row = [new Date().toISOString(), clean(actorEmail, 254), clean(action, 80), clean(studentId, 40), clean(detail, 300)];
+    var target = sh.getRange(sh.getLastRow() + 1, 1, 1, row.length);
+    target.setNumberFormat('@').setValues([row]);
+  } catch (e) { console.error('Admission audit failed: ' + e.message); }
+}
+
+/**
+ * Public Apps Script menu/dropdown wrapper for database setup.
+ * Do not use the trailing-underscore function directly from the Run dropdown.
+ */
+/**
+ * Run ONCE from the editor after deploying: rewrites old category names in the Category and Previous Scholarship columns
+ * ('TLC' -> 'TLC Scholar', 'ESC' -> 'ESC Grantee', 'REGULAR' -> 'Regular', 'QVA PASSER' -> 'QVA Passer'). Only the Category column is touched.
+ * Unrecognised values are left exactly as they are and listed in the log.
+ */
+function admissionNormalizeCategories() {
+  authRequireEditor_();
+  var lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    var sh = admissionDbSheet_(), last = sh.getLastRow();
+    if (last < 2) { Logger.log('No records.'); return; }
+    var total = 0, unknown = {};
+    ['Category', 'PrevScholarship'].forEach(function (name) {
+      var col = ADM_DB.HEADERS.indexOf(name) + 1, range = sh.getRange(2, col, last - 1, 1);
+      var vals = range.getValues(), changed = 0;
+      vals.forEach(function (r) {
+        var v = String(r[0] == null ? '' : r[0]).trim();
+        if (!v) return;
+        var n;
+        try { n = admissionDbCategory_(v); } catch (e) { unknown[name + ': ' + v] = true; return; }
+        if (n !== r[0]) { r[0] = n; changed++; }
+      });
+      if (changed) range.setNumberFormat('@').setValues(vals);
+      total += changed;
+    });
+    if (total) { maAdmissionSpeedBump_(); admissionDbAudit_('script-owner', 'categories-normalized', '', total + ' value(s)'); }
+    Logger.log('Normalized ' + total + ' value(s) in Category / PrevScholarship. Unrecognised values left as-is: ' + (Object.keys(unknown).join('; ') || 'none'));
+  } finally { lock.releaseLock(); }
+}
+
+function setupAdmissionDatabase() {
+  admissionDbSetup_();
+}
+
+/**
+ * Public repair action for an existing AdmissionStudents sheet.
+ * Only the header row is replaced; all existing data rows remain untouched.
+ * This is intentionally separate from migration so a damaged/blank header row
+ * can be repaired without moving or rewriting student records.
+ */
+function repairAdmissionDatabaseHeaders() {
+  authRequireEditor_();
+  var ss = authSpreadsheet_();
+  var sh = ss.getSheetByName(ADM_DB.STUDENTS);
+  if (!sh) throw new Error('Admission database is not initialized. Run setupAdmissionDatabase first.');
+
+  if (sh.getMaxColumns() < ADM_DB.HEADERS.length) {
+    sh.insertColumnsAfter(sh.getMaxColumns(), ADM_DB.HEADERS.length - sh.getMaxColumns());
+  }
+
+  sh.getRange(1, 1, 1, ADM_DB.HEADERS.length)
+    .setValues([ADM_DB.HEADERS])
+    .setFontWeight('bold');
+  sh.setFrozenRows(1);
+
+  Logger.log('Repaired AdmissionStudents header row: restored ' +
+    ADM_DB.HEADERS.length + ' schema headers. Existing data rows were not changed.');
+}
+
+function runAdmissionDbSetup() {
+  admissionDbSetup_();
 }
