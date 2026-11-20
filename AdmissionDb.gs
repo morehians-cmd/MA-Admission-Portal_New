@@ -403,8 +403,8 @@ function admissionDbNewStudentId_(schoolYear) {
  * Only an active Applicant may create their own record. The server supplies email, StudentID,
  * timestamps, FullName, Age, Classification, and EnrollStatus; client-supplied system fields are rejected.
  */
-function admissionCreateApplication(token, input) {
-  var account;
+function admissionCreateApplication(token, input, photoDataUrl) {
+  var account, photoSaved = null;
   try {
     account = authRequireRole_(token, ['Applicant']);
     if (account.studentId) throw new Error('An admission record is already linked to this account.');
@@ -429,6 +429,18 @@ function admissionCreateApplication(token, input) {
       insertedRow = sh.getLastRow() + 1;
       sh.getRange(insertedRow, 1, 1, ADM_DB.HEADERS.length).setNumberFormat('@').setValues(values);
       authLinkStudentLocked_(account.email, studentId);
+      // Optional applicant photo (already resized to a square JPEG by the browser). It must never block the application itself.
+      if (photoDataUrl) {
+        photoSaved = false;
+        try {
+          var photoBytes = admissionIdCardJpeg_(photoDataUrl, ADM_IDCARD.MAX_PHOTO_BYTES);
+          var photoFile = admissionIdCardFolder_().createFile(Utilities.newBlob(photoBytes, 'image/jpeg', studentId + '_idphoto.jpg'));
+          sh.getRange(insertedRow, ADM_DB.HEADERS.indexOf('IDPhotoID') + 1).setNumberFormat('@').setValue(photoFile.getId());
+          photoSaved = true;
+        } catch (photoErr) {
+          console.error('Applicant photo was not saved: ' + (photoErr.message || photoErr));
+        }
+      }
       maAdmissionSpeedBump_();
       admissionDbAudit_(account.email, 'application-created', studentId, 'Initial application record created');
     } catch (err) {
@@ -437,7 +449,7 @@ function admissionCreateApplication(token, input) {
     } finally {
       lock.releaseLock();
     }
-    return { success: true, message: 'Your application record has been created.', data: { studentId: studentId } };
+    return { success: true, message: 'Your application record has been created.', data: { studentId: studentId, photoSaved: photoSaved } };
   } catch (err) {
     return authFail_(err.message || 'Could not save the application. Please try again.');
   }

@@ -15,6 +15,7 @@
 .req-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 4px}#requirementsFields{display:block;width:100%}.req-card{border:1px solid var(--line);border-radius:12px;background:#f9fbff;padding:14px;min-width:0}.req-card h3{margin:0;color:var(--navy);font:700 13px var(--head)}.req-instruction{margin:2px 0 10px;color:var(--muted);font-size:10px;line-height:1.35}.req-card .doc-list{margin:0}.doc-list{display:grid;gap:9px;margin:12px 0 18px}.doc-item{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:11px 13px;border:1px solid #e4ebf7;border-radius:9px;background:#fbfcff}.doc-item strong{display:block;color:var(--navy);font:600 12px var(--head)}.doc-item small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.doc-state{flex:none;border-radius:20px;padding:4px 9px;background:#edf2fb;color:#53627d;font:600 10px var(--head)}.doc-state.verified{background:#e8f6ee;color:#16834a}.doc-state.received{background:#eaf2ff;color:#0648ad}.doc-downloads{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.doc-reminder{padding:13px 15px;border:1px solid #ffe2bd;background:#fff8ed;color:#84500d;border-radius:10px;font-size:12px;margin:15px 0}
 @media(max-width:900px){.shell{grid-template-columns:220px minmax(0,1fr)}}
 @media(max-width:700px){.req-columns{grid-template-columns:1fr}.shell{display:block}.side{padding:13px 16px;gap:12px}.brand{padding:0 4px 12px}.nav-label{display:none}.nav{display:flex;overflow-x:auto}.nav a{white-space:nowrap;padding:9px 11px}.side-bottom{display:none}.top{min-height:64px;padding:10px 16px}.user-info{display:none}.content{padding:22px 15px}.steps{grid-template-columns:repeat(4,minmax(70px,1fr));overflow-x:auto}.step{padding:9px}.field-grid,.review,.relative-fields{grid-template-columns:1fr}.field.full,.subhead{grid-column:1}.panel{padding:17px}.actions .btn{flex:1}.crumb{font-size:10px}}
+.photo-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}.photo-box{width:150px;height:150px;border:2px dashed #9db6e6;border-radius:12px;background:#fff;display:grid;place-items:center;text-align:center;color:var(--muted);font:600 12px var(--head);overflow:hidden;flex:none}.photo-box img{width:100%;height:100%;object-fit:cover;display:block}.photo-side{flex:1;min-width:220px}.photo-side .btn{margin:0 6px 8px 0}.photo-specs{margin:6px 0 4px 18px;padding:0;color:var(--ink);font-size:12.5px;line-height:1.7}.photo-msg{display:block;font-size:12px;color:var(--muted)}.photo-msg.err{color:var(--red)}.assess-notice{border:1px solid #f5c26b;background:#fff8e8;border-left:5px solid var(--orange);border-radius:10px;padding:12px 16px;color:var(--ink)}.assess-notice strong{display:block;font:700 13px var(--head);color:var(--navy);margin-bottom:4px}.assess-notice p{margin:3px 0;font-size:13px}
 </style>
 </head>
 <body>
@@ -114,7 +115,7 @@ function restoreDraft(){
     var savedPrevSchool=d.data.PrevSchool||'';
     updateGradeRules();updateApplicantAge();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updatePreviousClusterRules();updateRequirementRules();
     var prevSchoolEl=document.getElementById('f_PrevSchool');
-    if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
+    if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;updateAdmissionCategoryRules();updateRequirementRules();
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
     setDraftStatus('Draft restored ✓');
   }catch(e){}
@@ -137,13 +138,22 @@ var GRADES=['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade
 var CLUSTERS=['Science, Technology, Engineering, and Mathematics','Arts, Social Sciences, and Humanities','Business and Entrepreneurship','ICT Support and Computer Programming Technologies','Hospitality and Tourism'];
 var PREVIOUS_SCHOOLS={
  'Public Elementary Schools':[
- 'Bagong Tanyag Elementary School Annex A','Bagong Tanyag Integrated School','Cipriano P. Santa Teresa Elementary School','Daanghari Elementary School',"EM's Signal Village Elementary School",'Kapt. Jose Cardones Integrated School','Maharlika Integrated School','Ricardo P. Cruz, Sr. Elementary School','Silangan Elementary School','Upper Bicutan Elementary School'
+ 'Bagong Tanyag Elementary School Annex A','Bagong Tanyag Integrated School','Cipriano P. Santa Teresa Elementary School','Daanghari Elementary School',
+ "EM's Signal Village Elementary School",'Kapt. Jose Cardones Integrated School','Maharlika Integrated School','Ricardo P. Cruz, Sr. Elementary School',
+ 'Silangan Elementary School','Upper Bicutan Elementary School'
  ],
  'Public High Schools':[
- 'Bagong Tanyag Integrated School','Bagumbayan National High School','Kapt. Jose Cardones Integrated School','Ma. Asuncion R. Tiñga Memorial High School','Maharlika Integrated School','Signal Village National High School','Taguig National High School','Upper Bicutan National High School','Western Bicutan National High School'
+ 'Bagong Tanyag Integrated School','Bagumbayan National High School','Dr. Arcadio Santos National High School','Kapt. Jose Cardones Integrated School',
+ 'Ma. Asuncion R. Tiñga Memorial High School','Maharlika Integrated School','Muntinlupa Business High School-Main','Muntinlupa Business High School- Sucat Annex',
+ 'Parañaque National High School- Main','Pasay City East High School','Signal Village National High School','Taguig National High School',
+ 'Upper Bicutan National High School','Western Bicutan National High School'
  ],
  'Private Schools':[
- 'Moreh Academy','Arandia College Taguig',"Army's Angel's Integrated School",'Asian Christian Technological School and Colleges, Inc.','Bicutan Parochial School','FTJCA Christian Academy','Good Shepherd of Taguig Colleges','Grant Cecilia Integrated School, Inc',"Heaven's Door Christian Academy",'Huckleberry Montessori School, Inc.','Learn and Explore Montessori School, Inc.','MCA Montessori School','Monlimar Development Academy',"Noah's Academy",'Saint Francis of Assisi College','Saint Ives School','Saint Theodore School'
+ 'Moreh Academy','Arandia College Taguig',"Army's Angel's Integrated School",'Asian Christian Technological School and Colleges, Inc.',
+ 'Bicutan Parochial School','FTJCA Christian Academy','Gabby Christian Missionary School','Good Shepherd of Taguig Colleges',
+ 'Grant Cecilia Integrated School, Inc',"Heaven's Door Christian Academy",'Huckleberry Montessori School, Inc.','Learn and Explore Montessori School, Inc.',
+ 'MCA Montessori School','Monlimar Development Academy','Mother Of Perpetual Help School',"Noah's Academy",
+ 'Saint Francis of Assisi College','Saint Ives School','Saint Lawrence Foundation School','Saint Theodore School'
  ]
 };
 function updatePreviousSchoolRules(){
@@ -176,6 +186,7 @@ function updatePreviousSchoolRules(){
 function buildFields(){
  var sy=opts(['2026-2027','2027-2028','2028-2029']);
  document.getElementById('academicFields').innerHTML=
+  '<div class="field full photo-field"><label>Applicant Photo</label><div class="photo-wrap"><div class="photo-box" id="photoBox"><span>2 × 2<br>PHOTO</span></div><div class="photo-side"><input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" hidden><button type="button" class="btn secondary" id="photoPick">Upload Photo</button><button type="button" class="btn secondary" id="photoRemove" hidden>Remove Photo</button><div style="font:700 12px var(--head);color:var(--navy);margin-top:2px">Photo Specification</div><ul class="photo-specs"><li>Recent photo (taken within the last six months)</li><li>White background</li></ul><small class="photo-msg" id="photoMsg">JPG, PNG or WEBP. The photo is cropped to a square (2 × 2) automatically.</small></div></div></div>'+
   field('SchoolYear','School Year','select',sy,true)+field('LRN','Learner Reference Number (LRN)','text',null,true,'Required. Enter exactly 12 digits beginning with 1, 2, 3, 4, or 5.')+
   field('Surname','Surname','text',null,true)+field('FirstName','First Name','text',null,true)+field('MiddleName','Middle Name','text')+field('Suffix','Suffix (e.g. Jr., III)','text')+
   field('GradeLevel','Intended Grade Level','select',opts(GRADES),true)+field('Department','Department','text',null,false,'Automatically determined from the selected grade level.')+
@@ -189,7 +200,8 @@ function buildFields(){
   field('PrevSection','Previous Section','text')+field('PrevAdviser','Previous Adviser','text')+
   field('PrevScholarship','Previous Scholarship (if any)','select',opts(['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular']))+
   field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'')+
-  field('Category','Admission Category','select',[],false,'Options depend on the intended grade level and previous school type.');
+  field('Category','Admission Category','select',[],false,'Options depend on the intended grade level and previous school type.')+
+  '<div class="field full" id="categoryNotice" style="display:none"><div class="assess-notice" role="status"><strong>For Admissions Office Assessment</strong><p>Your admission category will be evaluated and determined by the Admissions Office based on your previous educational background and eligibility.</p><p>You do not need to select an admission category at this time.</p></div></div>';
  document.getElementById('personalFields').innerHTML=
   field('Birthdate','Date of Birth','date',null,true)+'<div class="field"><label for="f_AgeDisplay">Age</label><input id="f_AgeDisplay" type="text" readonly tabindex="-1" placeholder="Automatically computed"><small>Automatically computed from the date of birth.</small></div>'+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
   field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Prefer not to disclose']))+
@@ -320,9 +332,40 @@ function updateReligionRules(prefix){
    if(!active){other.value='';other.required=false}else{other.required=true}
  });
 }
+var applicantPhoto='';
+function setPhotoMsg(t,err){var m=document.getElementById('photoMsg');if(!m)return;m.textContent=t;m.classList.toggle('err',!!err)}
+function showPhoto(){
+ var box=document.getElementById('photoBox'),rm=document.getElementById('photoRemove');if(!box)return;
+ if(applicantPhoto){box.innerHTML='<img alt="Applicant photo preview" src="'+applicantPhoto+'">';if(rm)rm.hidden=false}
+ else{box.innerHTML='<span>2 × 2<br>PHOTO</span>';if(rm)rm.hidden=true}
+}
+function processPhoto(file){
+ if(!file)return;
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)){setPhotoMsg('Please choose a JPG, PNG or WEBP image.',true);return}
+ if(file.size>10*1024*1024){setPhotoMsg('The image is too large. Please choose a file under 10 MB.',true);return}
+ var url=URL.createObjectURL(file),img=new Image();
+ img.onload=function(){
+   try{
+     var side=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-side)/2,sy=(img.naturalHeight-side)/2;
+     var c=document.createElement('canvas');c.width=c.height=600;
+     var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,600,600);x.drawImage(img,sx,sy,side,side,0,0,600,600);
+     var q=0.88,out=c.toDataURL('image/jpeg',q);
+     while(out.length>1300000&&q>0.4){q-=0.12;out=c.toDataURL('image/jpeg',q)}
+     applicantPhoto=out;showPhoto();setPhotoMsg('Photo ready. Make sure it is recent and has a white background.',false);
+   }catch(e){setPhotoMsg('That image could not be processed. Please try another photo.',true)}
+   URL.revokeObjectURL(url);
+ };
+ img.onerror=function(){URL.revokeObjectURL(url);setPhotoMsg('That file could not be read as an image.',true)};
+ img.src=url;
+}
 function updateAdmissionCategoryRules(){
  var grade=value('GradeLevel'),idx=GRADES.indexOf(grade),schoolType=value('PrevSchoolType');
  var category=document.getElementById('f_Category');if(!category)return;
+ var assess=schoolType==='Others, Please Specify'&&value('PrevSchool')!=='';
+ var notice=document.getElementById('categoryNotice'),catBox=category.closest('.field');
+ if(notice)notice.style.display=assess?'':'none';
+ if(assess){category.value='';category.disabled=true;catBox.style.display='none';return}
+ catBox.style.display='';
  var publicSchool=schoolType==='Public Elementary Schools'||schoolType==='Public High Schools';
  var privateSchool=schoolType==='Private Schools';
  var options=[];
@@ -440,7 +483,7 @@ function collect(){
  return out;
 }
 function renderReview(){
- var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Age',computeAge(d.Birthdate)],['Mobile',d.Mobile],['Sex',d.SexualOrient],['Gender identity',d.GenderOrient],['Religion',d.Religion],['Facebook',d.Facebook||'Not provided'],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
+ var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Age',computeAge(d.Birthdate)],['Mobile',d.Mobile],['Sex',d.SexualOrient],['Gender identity',d.GenderOrient],['Religion',d.Religion],['Facebook',d.Facebook||'Not provided'],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Applicant photo',applicantPhoto?'Uploaded':'Not uploaded'],['Admission category',d.Category||((d.PrevSchoolType==='Others, Please Specify'&&d.PrevSchool)?'For Admissions Office Assessment':'Not selected')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
  document.getElementById('reviewSummary').innerHTML=items.map(function(x){return '<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'—')+'</strong></div>'}).join('');
 }
 function stepHasInput(stepIndex){
@@ -546,11 +589,12 @@ function submitApplication(){
  }
  var d=collect();d.PrivacyConsent=!!d.PrivacyConsent;
  var btn=document.getElementById('next');btn.disabled=true;btn.textContent='Submitting…';showError('');
- run('admissionCreateApplication',[token(),d],function(r){
+ run('admissionCreateApplication',[token(),d,applicantPhoto||''],function(r){
   if(!r||r.success!==true){btn.disabled=false;btn.textContent='Submit Application';showError((r&&r.message)||'We could not submit your application. Please review the information and try again.');return}
   document.getElementById('formPanel').style.display='none';
   document.getElementById('submittedResult').classList.add('show');
   document.getElementById('generatedId').textContent=r.data&&r.data.studentId?'Student ID: '+r.data.studentId:'Application submitted';
+  if(applicantPhoto&&r.data&&r.data.photoSaved===false)window.alert('Your application was submitted, but your photo could not be saved. Please bring a printed photo to the Admissions Office.');
   clearDraft();
  },function(e){btn.disabled=false;btn.textContent='Submit Application';showError(e)});
 }
@@ -637,7 +681,16 @@ document.addEventListener('change',function(e){
  if(e.target.dataset.src)applyEmergencySource(e.target.checked?e.target.dataset.src:'');
 });
 
+document.addEventListener('click',function(e){
+ if(e.target.id==='photoPick'){var f=document.getElementById('photoFile');if(f)f.click()}
+ if(e.target.id==='photoRemove'){applicantPhoto='';var f2=document.getElementById('photoFile');if(f2)f2.value='';showPhoto();setPhotoMsg('Photo removed.',false)}
+});
+document.addEventListener('change',function(e){
+ if(e.target.id==='photoFile'&&e.target.files&&e.target.files[0])processPhoto(e.target.files[0]);
+ if(e.target.id==='f_PrevSchool'){updateAdmissionCategoryRules();updateRequirementRules()}
+});
 document.addEventListener('input',function(e){
+ if(e.target.id==='f_PrevSchool')updateAdmissionCategoryRules();
  if(e.target.id==='f_LRN')e.target.value=e.target.value.replace(/\D/g,'').slice(0,12);
  if(e.target.dataset&&/Mobile$/.test(e.target.dataset.key||''))e.target.value=e.target.value.replace(/\D/g,'').slice(0,11);
  if(e.target.id==='f_Birthdate')updateApplicantAge();
