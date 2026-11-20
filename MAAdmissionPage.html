@@ -254,7 +254,7 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 </div></div></section>
 </div></main>
 <script>
-var APP_BASE='<?= baseUrl ?>',TOKEN='',CURRENT_ROLE='';
+var APP_BASE='<?= baseUrl ?>',TOKEN='',CURRENT_ROLE='',CATEGORY_OPTIONS=[];
 function $(id){return document.getElementById(id)}
 /* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
 function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
@@ -275,7 +275,7 @@ function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){$('welcome').textContent='Your session is missing. Please sign in from the Moreh Academy Homepage.';msg('Please sign in from the Moreh Academy Homepage first.',true);return}load()}   /* one round trip: the bootstrap call already verifies the session */
-function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');CURRENT_ROLE=a.role||'';$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;applyRoleRestrictions(a.role);if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{});populateSpecializedGrades((r.data.stats||{}).grades||[])}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
+function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');CURRENT_ROLE=a.role||'';CATEGORY_OPTIONS=(r.data.stats&&r.data.stats.categories)||[];$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;applyRoleRestrictions(a.role);if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{});populateSpecializedGrades((r.data.stats||{}).grades||[])}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
 function applyRoleRestrictions(role){
   if(role!=='Encoder')return;
   var restricted=['Admission Category','Sex','Gender','Previous Scholarship','Demographic','Scholarship Beneficiaries','Scholarship by Grade','No Parental Consent','Personal Data'];
@@ -592,7 +592,8 @@ function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
     var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
-    var categoryOptions=['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'];
+    if(CURRENT_ROLE==='Encoder')keys=keys.filter(function(k){return k!=='Category'&&k!=='Birthdate'});
+    var categoryOptions=CATEGORY_OPTIONS.slice();
     var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
       if(k==='ApplicationStatus'){
         var currentStatus=String(x[k]||'Submitted');
