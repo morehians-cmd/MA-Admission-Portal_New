@@ -1,32 +1,7 @@
-/**
- * HomepageMgmt.gs - Phase 2 backend: homepage content in Google Sheets (draft vs published) and images in Drive.
- * Sheet "HomepageContent": one row per section -> Section | Draft | Published | DraftUpdatedAt | DraftUpdatedBy | PublishedAt | PublishedBy
- * Sheet "HomepageHistory": append-only log of every publish (for rollback).
- * Public visitors can call ONLY getPublishedHomepage(). Every other function checks hpAssertAdmin_().
- */
-var HP = {
-  SHEET: 'HomepageContent', HISTORY: 'HomepageHistory', FOLDER: 'MorehAcademy_Website_Images',
-  SECTIONS: ['masthead', 'hero', 'values', 'admission', 'about', 'programs', 'news', 'footer', 'display'],
-  LIMITS: { ids: 3, slides: 6, items: 12, steps: 12 },
-  MAX_IMG: 3 * 1024 * 1024, MIME: { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
-};
-
-/* ---------- Authorization ---------- */
-/**
- * The ONLY function in this file that knows the portal's session model. Delegates to Auth.gs, which returns
- * { email, role } for a valid, unexpired session, else null. Fails closed.
- */
-function hpResolveSession_(token) {
-  return authResolveSession_(token);   // Auth.gs: {email, role} or null
-}
-
-/**
- * Owner only. Accepts (1) a valid portal session whose role is Owner, or (2) break-glass: a Google account
- * listed in Script Property HP_ADMIN_EMAILS (comma separated). Every break-glass use is audited.
- */
+/** Website Administrator or Owner. A valid portal session is required. */
 function hpAssertAdmin_(token) {
   var s = token ? hpResolveSession_(token) : null;
-  if (s && s.email && String(s.role).toLowerCase() === 'owner') return String(s.email).toLowerCase();
+  if (s && s.email && ['owner', 'website administrator'].indexOf(String(s.role).toLowerCase()) >= 0) return String(s.email).toLowerCase();
   var email = (Session.getActiveUser().getEmail() || '').toLowerCase();
   var list = (PropertiesService.getScriptProperties().getProperty('HP_ADMIN_EMAILS') || '')
     .toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(String);
