@@ -311,11 +311,16 @@ function drawStats(s){try{drawHero(s)}catch(e){}
       '</div>';
   }
 
-  var enrolledHtml=list('Enrolled by Grade — '+esc(s.activeSchoolYear||''),s.enrolledByGrade);
-  var clusterRows=Object.keys(s.enrolledByCluster||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.enrolledByCluster[k]||0)+'</strong></div>'}).join('');
-  var clusterHtml='<div class="breakdown"><h3>Senior High Enrolled by Cluster</h3>'+(clusterRows||'<div class="muted">No enrolled Senior High learners yet.</div>')+'</div>';
+  var gradeEntries=Object.keys(s.enrolledByGrade||{}).sort(),enrolledTotal=gradeEntries.reduce(function(n,k){return n+Number(s.enrolledByGrade[k]||0)},0);
+  var palette=['#1f5fe0','#2f9d63','#7a5fdb','#d58b2a','#c9524f','#1596a5','#65758b','#b45b9a'];
+  var cursor=0,segments=gradeEntries.map(function(k,i){var pct=enrolledTotal?Number(s.enrolledByGrade[k]||0)/enrolledTotal*100:0;var seg=palette[i%palette.length]+' '+cursor+'% '+(cursor+pct)+'%';cursor+=pct;return seg;});
+  var legend=gradeEntries.map(function(k,i){return '<div class="breakdown-row"><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+palette[i%palette.length]+';margin-right:7px"></i>'+esc(k)+'</span><strong>'+Number(s.enrolledByGrade[k]||0)+'</strong></div>'}).join('');
+  var donutHtml='<div class="breakdown"><h3>Enrolled by Level — '+esc(s.activeSchoolYear||'')+'</h3><div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:8px 0"><div style="width:138px;height:138px;border-radius:50%;background:'+(segments.length?'conic-gradient('+segments.join(',')+')':'#e8eef7')+';display:grid;place-items:center;flex:none"><div style="width:88px;height:88px;border-radius:50%;background:var(--card,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center"><strong style="font-size:23px">'+enrolledTotal+'</strong><span class="muted" style="font-size:10px">Enrolled</span></div></div><div style="flex:1;min-width:150px">'+(legend||'<div class="muted">No enrolled learners yet.</div>')+'</div></div></div>';
+  var clusterEntries=Object.keys(s.enrolledByCluster||{}).sort();
+  var clusterRows=clusterEntries.map(function(k){var parts=k.split(' · ');return '<tr><td>'+esc(parts.shift()||'')+'</td><td>'+esc(parts.join(' · '))+'</td><td style="text-align:right"><strong>'+Number(s.enrolledByCluster[k]||0)+'</strong></td></tr>'}).join('');
+  var clusterHtml='<div class="breakdown"><h3>Senior High Enrolled by Cluster</h3><div class="scroll"><table class="table"><thead><tr><th>Grade</th><th>Cluster</th><th>Enrolled</th></tr></thead><tbody>'+(clusterRows||'<tr><td colspan="3">No enrolled Senior High learners yet.</td></tr>')+'</tbody></table></div></div>';
   var categoryHtml=s.role==='Owner'?list('Applications by Admission Category',s.byCategory):'';
-  $('dashboardBreakdown').innerHTML=enrolledHtml+clusterHtml+categoryHtml;
+  $('dashboardBreakdown').innerHTML=donutHtml+clusterHtml+categoryHtml;
 
   var trend=s.trend||[], maxTrend=Math.max.apply(null,trend.map(function(x){return Number(x.count||0)}).concat([1]));
   var ts=s.trendSummary||{};
