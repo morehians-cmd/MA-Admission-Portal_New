@@ -34,14 +34,55 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 #staff:not(.hidden){margin-top:18px!important}
 @media(max-width:1000px){.adm-shell{grid-template-columns:210px minmax(0,1fr);gap:12px}.adm-sidebar{padding:10px 8px}.adm-nav{padding:9px 8px;font-size:12px}}
 @media(max-width:760px){.adm-shell{grid-template-columns:1fr}.adm-sidebar{position:static;min-height:0;display:none}.adm-sidebar.mobile-open{display:flex}.adm-menu-toggle{display:inline-flex}.adm-view-head{padding:13px 15px}.adm-panel,.adm-view .card{padding:15px}.adm-nav-group{margin-bottom:8px}.top .wrap{min-height:68px}.top .brand{font-size:15px}.top a{font-size:12px;padding:8px}.top .brand:before{width:36px;height:36px}}
-</style></head><body>
+</style>
+<style id="ma-redesign">
+/* ===== Redesign layer: overrides only; every ID and handler below is unchanged ===== */
+:root{--rd-bg:#eef2fb;--rd-side:#e8eefb;--rd-line:#e3e9f6}
+body:has(#staff:not(.hidden)){background:var(--rd-bg)}
+.adm-sidebar{background:var(--rd-side);border:0;box-shadow:none;border-radius:20px;color:#16213d}
+.adm-side-brand{border-bottom:1px solid var(--rd-line)}.adm-brand-mark{background:#1f5fe0}
+.adm-side-brand strong{color:#16213d}.adm-side-brand small{color:#66738f}
+.adm-nav-heading{color:#66738f;letter-spacing:.13em}
+.adm-nav{color:#16213d;font-weight:600;padding:7px 10px;border-radius:12px}
+.adm-nav:hover{background:rgba(31,95,224,.08);color:#16213d}
+.adm-nav.active{background:#c9dafc;color:#0f3f9e;box-shadow:none}
+.adm-nav .adm-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:#dfe9ff;color:#0648AD}
+.adm-nav.active .adm-ico{background:#fff;color:#0648AD}
+.adm-nav[data-adm-view=holds] .adm-ico{background:#fbdada;color:#b5413f}
+.adm-nav em{margin-left:auto;font-style:normal;background:#d64545;color:#fff;border-radius:99px;font-size:11px;padding:0 7px;font-weight:700}
+.adm-sidebar-footer{color:#16213d;border-top:1px solid var(--rd-line)}.adm-sidebar-footer small{color:#66738f}
+.adm-view-head{border-radius:18px;border-color:var(--rd-line);box-shadow:none;background:#fff}
+.adm-view-head h2{color:#16213d}
+.adm-panel,.adm-view .card,.dash-panel,.breakdown{border-radius:16px;border-color:var(--rd-line)}
+.hero{background:linear-gradient(110deg,#1f5fe0,#2f6ff0 60%,#4b86f5);color:#fff;border-radius:18px;padding:22px 26px;position:relative;overflow:hidden;margin-bottom:14px}
+.hero:after{content:"";position:absolute;right:-40px;top:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.1)}
+.hero small{opacity:.92;font-size:13px}.hero h1{margin:4px 0;font:800 26px var(--head);color:#fff}
+.qa{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 12px;margin-bottom:6px}
+.qb{display:flex;align-items:center;gap:9px;white-space:nowrap;background:#fff;border:1px solid var(--rd-line);border-radius:99px;padding:7px 16px 7px 8px;font:600 13px var(--head);cursor:pointer;color:#16213d;box-shadow:0 2px 6px rgba(20,40,100,.07)}
+.qb i{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.stats .stat{border-radius:16px;padding:16px;color:#fff;min-height:96px}
+.stats .stat span{color:#fff;opacity:.92;font-size:12px}.stats .stat strong{color:#fff;font-size:28px;margin-top:4px}
+.stats .stat:nth-child(1){background:linear-gradient(135deg,#3c6fd0,#2d5cbc)}.stats .stat:nth-child(2){background:linear-gradient(135deg,#7a5fdb,#5b49c4)}
+.stats .stat:nth-child(3){background:linear-gradient(135deg,#e59a2e,#cf7f12)}.stats .stat:nth-child(4){background:linear-gradient(135deg,#2f9d63,#1f8a54)}
+.stats .stat:nth-child(5){background:linear-gradient(135deg,#c9524f,#b5413f)}.stats .stat:nth-child(6){background:linear-gradient(135deg,#1f9aa8,#157f8c)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));border:1px solid var(--rd-line);border-radius:16px;margin-bottom:14px;background:#fff}
+.sc{display:flex;align-items:center;gap:12px;padding:14px 16px;border-right:1px solid var(--rd-line)}.sc:last-child{border:0}.sc div{flex:1;min-width:0}
+.sc small{color:#66738f;font-size:12px;display:block}.sc b{font:700 19px var(--head);display:block;line-height:1.2;color:#16213d}
+.hold-note{border:1px solid #f08a1c;background:#fff7ec;border-radius:12px;padding:12px 14px;margin:12px 0;color:#6b4300;font-size:13px}
+.hold-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--rd-line)}.hold-row:last-child{border:0}
+.hold-row .grow{flex:1;min-width:0}.hold-row b{display:block;font-size:13px}.hold-row span{font-size:12px;color:#66738f}
+.hold-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}
+@media(max-width:900px){.hold-grid{grid-template-columns:1fr}.sc{border-right:0;border-bottom:1px solid var(--rd-line)}}
+</style>
+</head><body>
 <header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY <span style="font:600 11px var(--body);color:#71809b;display:block">ADMISSIONS MANAGEMENT</span></div><nav><a href="<?= baseUrl ?>?page=home" target="_top">Public Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
 <main><div class="wrap">
 <div class="head"><div><h1>Admissions Portal</h1><p id="welcome">Loading your admission portal…</p></div></div>
 <div id="message" class="status hidden"></div>
 
 <section id="applicant" class="card hidden">
-<h2>Application</h2><p id="appState">Complete your admission record using the information requested below.</p>
+<h2>Application</h2><p id="appState">Complete your admission record using the information requested below.</p><div id="appHolds" class="hidden"></div>
 <form id="applicationForm"><div class="form-grid">
 <div class="section">Academic Information</div>
 <div><label>School Year</label><input name="SchoolYear" placeholder="2026-2027" required></div>
@@ -90,7 +131,8 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <aside class="adm-sidebar" aria-label="Admission dashboard navigation">
 <div class="adm-side-brand"><span class="adm-brand-mark">MA</span><div><strong>Admission Office</strong><small>Management Portal</small></div></div>
 <div class="adm-nav-group"><div class="adm-nav-heading">OVERVIEW</div><button class="adm-nav active" data-adm-view="dashboard"><span class="adm-ico">▦</span><span>Dashboard</span></button></div>
-<div class="adm-nav-group"><div class="adm-nav-heading">ADMISSIONS</div><button class="adm-nav" data-adm-view="records"><span class="adm-ico">▤</span><span>Admission Records</span></button></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">ADMISSIONS</div><button class="adm-nav" data-adm-view="records"><span class="adm-ico">▤</span><span>Admission Records</span></button>
+<button class="adm-nav" data-adm-view="holds"><span class="adm-ico">⚑</span><span>Enrollment Holds</span><em id="holdsBadge" class="hidden">0</em></button></div>
 <div class="adm-nav-group"><div class="adm-nav-heading">REPORTS & ANALYTICS</div>
 <button class="adm-nav" data-adm-view="general"><span class="adm-ico">▥</span><span>General Report</span></button>
 <button class="adm-nav" data-adm-view="specialized"><span class="adm-ico">▧</span><span>Specialized Reports</span></button>
@@ -101,8 +143,18 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 </aside>
 <div class="adm-content">
 <div class="adm-view-head"><div><div class="adm-eyebrow">ADMISSIONS WORKSPACE</div><h2 id="admViewTitle">Admission Dashboard</h2><p id="admViewDescription">Admissions overview and activity.</p></div><button class="adm-menu-toggle" id="admMenuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button></div>
-<div class="adm-view active" id="adm-view-dashboard"><h2>Admission Dashboard</h2><div id="stats" class="stats"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
+<div class="adm-view active" id="adm-view-dashboard"><div class="hero"><small id="heroDate"></small><h1 id="heroHi">Welcome</h1><small>Here is what is happening with admissions today.</small></div><div class="qa"><button class="qb" data-adm-view="records"><i style="background:#1f5fe0">▤</i>Admission Records</button><button class="qb" data-adm-view="holds"><i style="background:#c9524f">⚑</i>Enrollment Holds</button><button class="qb" data-adm-view="general"><i style="background:#2f9d63">▥</i>General Report</button><button class="qb" data-adm-view="detailed"><i style="background:#7a5fdb">☷</i>Detailed Report</button></div><div id="stats" class="stats"></div><div id="ringStrip" class="strip"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
 </div>
+<div class="adm-view" id="adm-view-holds"><div class="hold-grid">
+<div class="adm-panel"><h2>Active holds <span class="action-tag submitted" id="holdsCount">0</span></h2><p class="muted">A hold blocks "Enrolled". Use Temporary enrollment (reason, end date, 120 days max) to allow an exception.</p><div id="holdsList"><div class="muted">Loading…</div></div></div>
+<div class="adm-panel"><h2>Raise a hold</h2><div class="form-grid" style="grid-template-columns:1fr">
+<div><label>Student ID</label><input id="holdStudent" placeholder="e.g. MAT2627-0001"></div>
+<div><label>Office</label><select id="holdOffice"><option>Guidance</option><option>Accounting</option><option>Academic</option></select></div>
+<div><label>Reason (staff only)</label><input id="holdReason" maxlength="200"></div>
+<div><label>Instruction shown to the student</label><input id="holdInstr" maxlength="200"></div></div>
+<div class="actions"><button class="btn blue" id="holdRaiseBtn">Raise hold</button></div>
+<p class="muted" style="margin-top:10px">Students see the office and instruction only, never the reason.</p></div>
+</div></div>
 <div class="adm-view" id="adm-view-records"><div class="adm-panel"><h2>Admission Records</h2><p class="muted">Search, filter, and open admission records.</p><div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
 <div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div></div></div>
 <div class="adm-view" id="adm-view-general"><section class="card" id="generalReportPanel" style="margin-top:16px">
@@ -213,11 +265,11 @@ function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){$('welcome').textContent='Your session is missing. Please sign in from the Moreh Academy Homepage.';msg('Please sign in from the Moreh Academy Homepage first.',true);return}load()}   /* one round trip: the bootstrap call already verifies the session */
 function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
-function fill(r){document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
+function fill(r){try{showHolds(r.Holds)}catch(e){}document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
 function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k){o[k]=v});return o}
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
 $('refreshApplicant').onclick=load;
-function drawStats(s){
+function drawStats(s){try{drawHero(s)}catch(e){}
   var app=s.byApplicationStatus||{}, enroll=s.byStatus||{};
   $('stats').innerHTML=
     '<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+
@@ -617,6 +669,7 @@ function openIdCard(id){
 // Centralized staff navigation. Existing admission/report actions remain bound to their original IDs.
 var ADM_VIEW_META={
  dashboard:['Admission Dashboard','Admissions overview, pipeline statistics, and items requiring attention.'],
+ holds:['Enrollment Holds','Office holds that block enrollment until cleared.'],
  records:['Admission Records','Search, filter, and open admission records.'],
  general:['General Report','Summarized admission and enrollment statistics by selected dimension.'],
  specialized:['Specialized Reports','Operational, demographic, requirements, scholarship, and school reports.'],
@@ -635,6 +688,38 @@ function setAdmissionStaffView(view){
 }
 document.addEventListener('click',function(e){var b=e.target.closest('[data-adm-view]');if(b)setAdmissionStaffView(b.getAttribute('data-adm-view'))});
 $('admMenuToggle').onclick=function(){var side=document.querySelector('.adm-sidebar');side.classList.toggle('mobile-open');this.setAttribute('aria-expanded',side.classList.contains('mobile-open')?'true':'false')};
+
+/* ===== Redesign: hero, rings, holds ===== */
+function ringSvg(p,c){p=Math.max(0,Math.min(100,p));var C=2*Math.PI*17;return '<svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="17" fill="none" stroke="#eaf1ff" stroke-width="5"/><circle cx="23" cy="23" r="17" fill="none" stroke="'+c+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(p/100*C)+' '+C+'" transform="rotate(-90 23 23)"/><text x="23" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="#16213d">'+Math.round(p)+'%</text></svg>'}
+function drawHero(s){
+  var n=($('welcome').textContent||'').split(' · ')[0]||'there',h=new Date().getHours();
+  $('heroHi').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+n;
+  $('heroDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  var t=Math.max(Number(s.total||0),1),a=s.byApplicationStatus||{},e=s.byStatus||{},need=Number(s.needsActionTotal||0);
+  var items=[['Reviewed',Math.round((t-Number(a.Submitted||0))/t*100),'past initial review','#1f5fe0'],['Approved',Math.round(Number(a.Approved||0)/t*100),Number(a.Approved||0)+' applications','#1f9d55'],['Enrolled',Math.round(Number(e.Enrolled||0)/t*100),Number(e.Enrolled||0)+' learners','#7a5fdb'],['Needs action',Math.round(need/t*100),need+' to follow up','#d64545']];
+  $('ringStrip').innerHTML=items.map(function(x){return '<div class="sc"><div><small>'+esc(x[0])+'</small><b>'+esc(x[2])+'</b></div>'+ringSvg(x[1],x[3])+'</div>'}).join('');
+  holdsLoad(true);
+}
+function showHolds(list){var el=$('appHolds');if(!el)return;if(!list||!list.length){el.classList.add('hidden');el.innerHTML='';return}
+  el.innerHTML=list.map(function(h){return '<div class="hold-note"><b>'+esc(h.Office)+':</b> '+esc(h.Instruction)+'</div>'}).join('');el.classList.remove('hidden')}
+function holdsLoad(quiet){
+  call('admissionHoldsOverview',[TOKEN],function(r){
+    var L=(r.data&&r.data.holds)||[];$('holdsCount').textContent=L.length;
+    var b=$('holdsBadge');b.textContent=L.length;b.classList.toggle('hidden',!L.length);
+    $('holdsList').innerHTML=L.length?L.map(function(h){return '<div class="hold-row"><div class="grow"><b>'+esc(h.FullName||h.StudentID)+' · '+esc(h.Office)+'</b><span>'+esc(h.StudentID)+(h.GradeLevel?' · '+esc(h.GradeLevel):'')+' — '+esc(h.Reason)+'</span></div><button type="button" class="btn secondary" data-clear-hold="'+esc(h.HoldID)+'">Clear</button></div>'}).join(''):'<div class="muted">No active holds.</div>';
+  },function(e){if(!quiet)msg(e,true);$('holdsList').innerHTML='<div class="muted">Holds are not available yet.</div>'});
+}
+document.addEventListener('click',function(e){
+  if(e.target.closest('[data-adm-view="holds"]'))holdsLoad();
+  var c=e.target.closest('[data-clear-hold]');
+  if(c){c.disabled=true;call('admissionHoldClear',[TOKEN,c.getAttribute('data-clear-hold')],function(r){msg(r.message);holdsLoad(true)},function(m){c.disabled=false;msg(m,true)})}
+});
+$('holdRaiseBtn').onclick=function(){
+  var b=this;b.disabled=true;
+  call('admissionHoldRaise',[TOKEN,$('holdStudent').value,$('holdOffice').value,$('holdReason').value,$('holdInstr').value],function(r){
+    b.disabled=false;msg(r.message);$('holdReason').value='';$('holdInstr').value='';holdsLoad(true)
+  },function(m){b.disabled=false;msg(m,true)});
+};
 
 boot();
 </script></body></html>
