@@ -53,7 +53,7 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <div><label>Surname</label><input name="Surname" required></div><div><label>First Name</label><input name="FirstName" required></div>
 <div><label>Middle Name</label><input name="MiddleName"></div><div><label>Suffix</label><input name="Suffix"></div>
 <div><label>Birthdate</label><input name="Birthdate" type="date" required></div><div><label>Birth Place</label><input name="BirthPlace"></div>
-<div><label>Mobile</label><input name="Mobile" inputmode="tel"></div><div><label>Sex</label><input name="SexualOrient"></div>
+<div><label>Mobile</label><input name="Mobile" inputmode="numeric" maxlength="11" minlength="11" pattern="09[0-9]{9}" title="11-digit mobile number starting with 09"></div><div><label>Sex</label><input name="SexualOrient"></div>
 <div><label>Gender</label><input name="GenderOrient"></div><div><label>Religion</label><input name="Religion"></div><div><label>Religion (Other)</label><input name="ReligionOther"></div>
 <div class="section">Address</div>
 <div><label>Address Line 1</label><input name="AddressLine1"></div><div><label>Address Line 2</label><input name="AddressLine2"></div>
@@ -66,16 +66,16 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <div class="section">Parents / Guardian</div>
 <div><label>Father's Name</label><input name="FatherName"></div><div><label>Father's Status</label><input name="FatherStatus"></div>
 <div><label>Father's Occupation</label><input name="FatherOccupation"></div><div><label>Father's Education</label><input name="FatherEducation"></div>
-<div><label>Father's Mobile</label><input name="FatherMobile"></div><div><label>Father's Email</label><input name="FatherEmail"></div>
+<div><label>Father's Mobile</label><input name="FatherMobile" inputmode="numeric" maxlength="11" minlength="11" pattern="09[0-9]{9}" title="11-digit mobile number starting with 09"></div><div><label>Father's Email</label><input name="FatherEmail"></div>
 <div><label>Mother's Name</label><input name="MotherName"></div><div><label>Mother's Status</label><input name="MotherStatus"></div>
 <div><label>Mother's Occupation</label><input name="MotherOccupation"></div><div><label>Mother's Education</label><input name="MotherEducation"></div>
-<div><label>Mother's Mobile</label><input name="MotherMobile"></div><div><label>Mother's Email</label><input name="MotherEmail"></div>
+<div><label>Mother's Mobile</label><input name="MotherMobile" inputmode="numeric" maxlength="11" minlength="11" pattern="09[0-9]{9}" title="11-digit mobile number starting with 09"></div><div><label>Mother's Email</label><input name="MotherEmail"></div>
 <div><label>Living With</label><input name="LivingWith"></div>
 <div><label>Guardian Name</label><input name="GuardName"></div><div><label>Guardian Relation</label><input name="GuardRelation"></div>
-<div><label>Guardian Email</label><input name="GuardEmail"></div><div><label>Guardian Mobile</label><input name="GuardMobile"></div>
+<div><label>Guardian Email</label><input name="GuardEmail"></div><div><label>Guardian Mobile</label><input name="GuardMobile" inputmode="numeric" maxlength="11" minlength="11" pattern="09[0-9]{9}" title="11-digit mobile number starting with 09"></div>
 <div class="section">Emergency Contact</div>
 <div><label>Emergency Name</label><input name="EmName"></div><div><label>Relationship</label><input name="EmRelation"></div>
-<div><label>Emergency Mobile</label><input name="EmMobile"></div><div><label>Same Address</label><input name="EmSameAddr"></div><div class="wide"><label>Emergency Address</label><textarea name="EmAddress"></textarea></div>
+<div><label>Emergency Mobile</label><input name="EmMobile" inputmode="numeric" maxlength="11" minlength="11" pattern="09[0-9]{9}" title="11-digit mobile number starting with 09"></div><div><label>Same Address</label><input name="EmSameAddr"></div><div class="wide"><label>Emergency Address</label><textarea name="EmAddress"></textarea></div>
 <div class="section">Requirements</div>
 <div><label>SF9 / Report Card</label><input name="ReqSF9"></div><div><label>F137</label><input name="ReqF137"></div>
 <div><label>Birth Certificate</label><input name="ReqBirth"></div><div><label>Good Moral</label><input name="ReqMoral"></div>

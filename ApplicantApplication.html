@@ -112,7 +112,7 @@ function restoreDraft(){
     updatePreviousSchoolRules();
     updateAdmissionCategoryRules();
     var savedPrevSchool=d.data.PrevSchool||'';
-    updateGradeRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updatePreviousClusterRules();updateRequirementRules();
+    updateGradeRules();updateApplicantAge();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updatePreviousClusterRules();updateRequirementRules();
     var prevSchoolEl=document.getElementById('f_PrevSchool');
     if(prevSchoolEl)prevSchoolEl.value=savedPrevSchool;
     if(Number.isInteger(d.step))setStep(Math.max(0,Math.min(3,d.step)));
@@ -128,7 +128,7 @@ function initials(n){var p=String(n||'Moreh Applicant').trim().split(/\s+/);retu
 function field(key,label,type,opts,required,help,full){
  var html='<div class="field'+(full?' full':'')+'"><label for="f_'+key+'">'+esc(label)+(required?' *':'')+'</label>';
  if(type==='select'){html+='<select id="f_'+key+'" data-key="'+key+'" '+(required?'required':'')+'><option value="">Select '+esc(label.toLowerCase())+'</option>'+(opts||[]).map(function(o){return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>'}).join('')+'</select>'}
- else{html+='<input id="f_'+key+'" data-key="'+key+'" type="'+(type||'text')+'" '+(required?'required':'')+(key==='Department'?' readonly':'')+(key==='LRN'?' inputmode="numeric" maxlength="12" pattern="[1-5][0-9]{11}"':'')+(key==='Mobile'||key==='FatherMobile'||key==='MotherMobile'||key==='EmMobile'||key==='GuardMobile'?' inputmode="numeric" maxlength="11" pattern="09[0-9]{9}"':'')+(key==='Birthdate'?' max="'+localToday()+'"':'')+'>'}
+ else{html+='<input id="f_'+key+'" data-key="'+key+'" type="'+(type||'text')+'" '+(required?'required':'')+(key==='Department'?' readonly':'')+(key==='LRN'?' inputmode="numeric" maxlength="12" pattern="[1-5][0-9]{11}"':'')+(/Mobile$/.test(key)?' inputmode="numeric" maxlength="11" minlength="11" pattern="09[0-9]{9}" title="Enter an 11-digit mobile number starting with 09 (e.g. 09123456789)." placeholder="09XXXXXXXXX"':'')+(key==='Birthdate'?' max="'+localToday()+'"':'')+'>'}
  if(help)html+='<small>'+esc(help)+'</small>';return html+'</div>'
 }
 function localToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -191,9 +191,9 @@ function buildFields(){
   field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'')+
   field('Category','Admission Category','select',[],false,'Options depend on the intended grade level and previous school type.');
  document.getElementById('personalFields').innerHTML=
-  field('Birthdate','Date of Birth','date',null,true)+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
+  field('Birthdate','Date of Birth','date',null,true)+'<div class="field"><label for="f_AgeDisplay">Age</label><input id="f_AgeDisplay" type="text" readonly tabindex="-1" placeholder="Automatically computed"><small>Automatically computed from the date of birth.</small></div>'+field('Mobile','Applicant Mobile Number','tel',null,true,'Use an 11-digit Philippine mobile number starting with 09.')+
   field('SexualOrient','Sex','select',opts(['Male','Female']),true)+field('GenderOrient','Gender Identity','select',opts(['Feminine','Masculine','Prefer not to disclose']))+
-  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('BirthPlace','Place of Birth','text')+field('Religion','Religion','select',opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']))+field('ReligionOther','Religion (Other)','text',null,false,'Please specify your religion.')+
   field('Facebook','Facebook Account Link','url',null,false,'Paste the applicant’s Facebook profile link, if available.')+field('AddressLine1','House / Unit / Building / Street','text',null,true)+
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true);
@@ -205,12 +205,12 @@ function buildFields(){
   field('FatherName','Father’s Full Name','text')+field('FatherStatus','Father’s Status','select',status)+
   field('FatherOccupation','Father’s Occupation','text')+field('FatherEducation','Highest Educational Attainment','select',edu)+
   field('FatherMobile','Father’s Mobile Number','tel')+field('FatherEmail','Father’s Email Address','email')+
-  field('FatherReligion','Father’s Religion','select',relOpts)+field('FatherReligionOther','Father’s Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('FatherReligion','Father’s Religion','select',relOpts)+field('FatherReligionOther','Father’s Religion (Other)','text',null,false,'Please specify your religion.')+
   '<div class="subhead">Mother’s information</div>'+
   field('MotherName','Mother’s Full Name','text')+field('MotherStatus','Mother’s Status','select',status)+
   field('MotherOccupation','Mother’s Occupation','text')+field('MotherEducation','Highest Educational Attainment','select',edu)+
   field('MotherMobile','Mother’s Mobile Number','tel')+field('MotherEmail','Mother’s Email Address','email')+
-  field('MotherReligion','Mother’s Religion','select',relOpts)+field('MotherReligionOther','Mother’s Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('MotherReligion','Mother’s Religion','select',relOpts)+field('MotherReligionOther','Mother’s Religion (Other)','text',null,false,'Please specify your religion.')+
   '<div class="subhead">Living arrangement</div>'+
   field('LivingWith','Who does the student currently live with?','select',opts(['Both Father and Mother','Father only','Mother only','Relatives / Legal Guardian','Independent / Boarding / Living alone']),true,'This determines which parent/guardian information can be used for the emergency-contact helper.',true)+
   '<div id="relativeFields" class="field-grid full relative-fields" style="display:none">'+
@@ -218,7 +218,7 @@ function buildFields(){
   field('RelName','Relative / Legal Guardian Full Name','text',null,false)+
   field('RelOccupation','Relative / Guardian Occupation','text')+field('RelEducation','Highest Educational Attainment','select',edu)+
   field('RelMobile','Relative / Guardian Mobile Number','tel')+field('RelEmail','Relative / Guardian Email Address','email')+
-  field('RelReligion','Relative / Guardian Religion','select',relOpts)+field('RelReligionOther','Relative / Guardian Religion (Other)','text',null,false,'Specify only when applicable.')+
+  field('RelReligion','Relative / Guardian Religion','select',relOpts)+field('RelReligionOther','Relative / Guardian Religion (Other)','text',null,false,'Please specify your religion.')+
   field('RelRelation','Relationship to Applicant','text',null,false)+
   field('RelBirthdate','Relative / Guardian Birth Date','date')+field('RelAge','Age','text',null,false,'Automatically determined from birth date.')+
   field('RelSex','Sex Assigned at Birth / Biological Sex','select',opts(['Male','Female']))+field('RelGender','Gender Orientation / Identity','select',opts(['Masculine','Feminine','Others, specify']))+
@@ -293,11 +293,19 @@ function requirementMarkup(record,submitted){
   '<li>Print and bring your <strong>Student Application Form</strong> and <strong>Parental Consent &amp; Data Privacy Undertaking Form</strong>.</li>'+
   '<li>Keep a copy of the printed forms and your Student ID for your records.</li>'+
   '</ul></div>';
- var downloads='<div class="doc-downloads"><button type="button" class="btn secondary" onclick="downloadConsentForm()">Print / Save PDF — Consent Form (8.5 × 11)</button><button type="button" class="btn secondary" onclick="downloadConsentFormA4()">Print / Save PDF — Consent Form (A4)</button><button type="button" class="btn secondary" onclick="downloadApplicationForm()">Print / Save PDF — Student Application Form (8.5 × 13)</button></div>';
+ var downloads='<div class="doc-downloads"><button type="button" class="btn secondary" onclick="downloadConsentForm()">Print / Save PDF — Consent Form, Letter (Applicant + Admission copies)</button><button type="button" class="btn secondary" onclick="downloadConsentFormA4()">Print / Save PDF — Consent Form, A4 (Applicant + Admission copies)</button><button type="button" class="btn secondary" onclick="downloadApplicationForm()">Print / Save PDF — Student Application Form (8.5 × 13)</button></div>';
  return '<div class="subhead">Documentary Requirements to Submit</div><p class="hint">Initial documents are for evaluation. Submit the remaining applicable documents under For Completion to the Admission Office.</p>'+groups+notes+reminder+downloads;
 }
 function buildRequirementFields(){document.getElementById('requirementsFields').innerHTML=requirementMarkup(collect(),false);}
 function renderRequirementChecklist(){var el=document.getElementById('requirementsFields');if(el)el.innerHTML=requirementMarkup(collect(),false);}
+function computeAge(iso){
+ if(!iso||!/^\d{4}-\d{2}-\d{2}$/.test(iso))return '';
+ var d=new Date(iso+'T00:00:00'),n=new Date();if(isNaN(d.getTime()))return '';
+ var age=n.getFullYear()-d.getFullYear();
+ if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))age--;
+ return age>=0&&age<=120?String(age):'';
+}
+function updateApplicantAge(){var el=document.getElementById('f_AgeDisplay');if(el)el.value=computeAge(value('Birthdate'));}
 function updateReligionRules(prefix){
  var pairs=prefix?[[prefix+'Religion',prefix+'ReligionOther']]:[['Religion','ReligionOther'],['FatherReligion','FatherReligionOther'],['MotherReligion','MotherReligionOther'],['RelReligion','RelReligionOther']];
  pairs.forEach(function(pair){
@@ -305,9 +313,11 @@ function updateReligionRules(prefix){
    if(!religion||!other)return;
    var deceased=(prefix==='Father'||prefix==='Mother')&&value(prefix+'Status')==='Deceased';
    var active=religion.value==='Others, specify'&&!deceased;
+   var box=other.closest('.field');
    other.disabled=!active;
-   other.closest('.field').classList.toggle('is-disabled',!active);
-   if(!active){other.value='';other.required=false}
+   box.classList.toggle('is-disabled',!active);
+   box.style.display=active?'':'none';
+   if(!active){other.value='';other.required=false}else{other.required=true}
  });
 }
 function updateAdmissionCategoryRules(){
@@ -430,7 +440,7 @@ function collect(){
  return out;
 }
 function renderReview(){
- var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Mobile',d.Mobile],['Sex',d.SexualOrient],['Gender identity',d.GenderOrient],['Religion',d.Religion],['Facebook',d.Facebook||'Not provided'],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
+ var d=collect(),items=[['Applicant name',[d.Surname,d.FirstName,d.MiddleName,d.Suffix].filter(Boolean).join(' ')],['LRN',d.LRN],['School year',d.SchoolYear],['Grade level',d.GradeLevel],['Department',d.Department],['Birth date',d.Birthdate],['Age',computeAge(d.Birthdate)],['Mobile',d.Mobile],['Sex',d.SexualOrient],['Gender identity',d.GenderOrient],['Religion',d.Religion],['Facebook',d.Facebook||'Not provided'],['Applicant address',[d.AddressLine1,d.AddressLine2,d.Barangay,d.City].filter(Boolean).join(', ')],['Previous school',d.PrevSchool||'Not provided'],['Previous grade completed',d.PrevGrade||'Not provided'],['Previous SHS strand / cluster',d.PrevCluster||'Not applicable'],['Primary Contact Person',d.EmName||'Not provided']];
  document.getElementById('reviewSummary').innerHTML=items.map(function(x){return '<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'—')+'</strong></div>'}).join('');
 }
 function stepHasInput(stepIndex){
@@ -554,11 +564,25 @@ function printWindow(title,body,pageSize){
 function printFields(title,keys,record){
  return '<h2>'+esc(title)+'</h2><div class="grid">'+keys.map(function(pair){var v=record[pair[0]];if(v===true)v='Yes';if(v===false)v='No';return '<div class="item"><b>'+esc(pair[1])+'</b>'+esc(v||'—')+'</div>'}).join('')+'</div>';
 }
+function consentLongDate(){return new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});}
+function consentSheet(r,name,copyLabel){
+ var declarations='<ol><li><b>Accuracy of Information:</b> All information provided in this application and attached documents are true, complete, and correct to the best of my knowledge. I understand that providing false, fraudulent, or misleading information will result in the disqualification of my application or immediate cancellation of admission/enrollment.</li><li><b>Explicit Consent:</b> I have read and understood this Data Privacy Statement and voluntarily give my explicit consent to Moreh Academy and Moreh College to collect, store, process, and share my personal information and sensitive personal information in accordance with RA 10173 for admission and enrollment processing.</li><li><b>Parent / Legal Guardian Consent (For Minors below 18 years old):</b> If the applicant is below 18 years of age, I certify that I am the parent/legal guardian granting authorization on behalf of the minor data subject.</li></ol>';
+ var guardian=r.EmName||'',relation=r.EmRelation||'',contact=r.EmMobile||'';
+ function cell(v,label){return '<div class="sigcell"><div class="fill">'+esc(v)+'&nbsp;</div><div class="cap">'+label+'</div></div>';}
+ return '<section class="page"><div class="copy-tag">'+copyLabel+'</div><div class="school-header"><div class="school-logo">MA</div><div class="school-header-text"><div class="school-name">MOREH ACADEMY</div><div class="school-tagline">School of Righteousness &amp; Excellence</div><div class="school-address">Cor. Ricahuerta St., A. Bonifacio Ave., Brgy. Upper Bicutan, Taguig City, Philippines</div></div></div><h1>PARENTAL CONSENT &amp; DATA PRIVACY UNDERTAKING FORM</h1>'+
+ '<div class="meta"><b>Learner:</b> '+esc(name||r.FullName||'')+' &nbsp; <b>Student ID:</b> '+esc(r.StudentID||'To be assigned')+' &nbsp; <b>LRN:</b> '+esc(r.LRN||'')+' &nbsp; <b>Grade Level:</b> '+esc(r.GradeLevel||'')+'</div>'+
+ '<p><b>Applicant Declaration &amp; Explicit Consent</b><br>By signing below, I hereby declare and agree that:</p>'+declarations+
+ '<p>I have read, understood, and accept the Data Privacy Notice and Consent Terms of the Moreh Academy and Moreh College Admission Portal.</p><p><i>This form must be submitted together with the hardcopy school requirements.</i></p>'+
+ '<div class="sign">'+cell(guardian,'Parent / Legal Guardian (Printed Name and Signature)')+cell(consentLongDate(),'Date')+cell(relation,'Relationship to Learner')+cell(contact,'Contact Number')+cell('','Received by: Admission Personnel (Printed Name and Signature)')+cell('','Date Received')+'</div></section>';
+}
 function downloadConsentForm(record,pageSize){
  var r=record||existingRecord||collect(),name=[r.Surname,r.FirstName,r.MiddleName,r.Suffix].filter(Boolean).join(' ');
- var declarations='<ol><li><b>Accuracy of Information:</b> All information provided in this application and attached documents are true, complete, and correct to the best of my knowledge. I understand that providing false, fraudulent, or misleading information will result in the disqualification of my application or immediate cancellation of admission/enrollment.</li><li><b>Explicit Consent:</b> I have read and understood this Data Privacy Statement and voluntarily give my explicit consent to Moreh Academy and Moreh College to collect, store, process, and share my personal information and sensitive personal information in accordance with RA 10173 for admission and enrollment processing.</li><li><b>Parent / Legal Guardian Consent (For Minors below 18 years old):</b> If the applicant is below 18 years of age, I certify that I am the parent/legal guardian granting authorization on behalf of the minor data subject.</li></ol>';
- var body='<div class="meta"><b>Learner:</b> '+esc(name||r.FullName||'')+' &nbsp; <b>Student ID:</b> '+esc(r.StudentID||'To be assigned')+' &nbsp; <b>LRN:</b> '+esc(r.LRN||'')+' &nbsp; <b>Grade Level:</b> '+esc(r.GradeLevel||'')+'</div><p><b>Applicant Declaration &amp; Explicit Consent</b><br>By signing below, I hereby declare and agree that:</p>'+declarations+'<p>I have read, understood, and accept the Data Privacy Notice and Consent Terms of the Moreh Academy and Moreh College Admission Portal.</p><p><i>This form must be submitted together with the hardcopy school requirements.</i></p><div class="sign"><div class="line">Parent / Legal Guardian (Printed Name and Signature)</div><div class="line">Date</div><div class="line">Relationship to Learner</div><div class="line">Contact Number</div><div class="line">Received by: Admission Personnel (Printed Name and Signature)</div><div class="line">Date Received</div></div>';
- printWindow('PARENTAL CONSENT & DATA PRIVACY UNDERTAKING FORM',body,pageSize||'8.5in 11in');
+ var size=pageSize||'8.5in 11in',a4=size==='A4',h=a4?'297mm':'11in';
+ var w=window.open('','_blank');
+ if(!w){window.alert('Please allow pop-ups for this site to open the printable form.');return}
+ var css='@page{size:'+size+';margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font:12px Arial,sans-serif;color:#111}.page{width:100%;height:'+h+';padding:0.5in 0.6in;overflow:hidden;page-break-after:always;break-after:page;position:relative}.page:last-child{page-break-after:auto;break-after:auto}.copy-tag{position:absolute;top:0.2in;right:0.6in;font:bold 10px Arial,sans-serif;letter-spacing:.8px;color:#062E70;border:1px solid #062E70;padding:3px 8px;border-radius:3px}.school-header{display:flex;align-items:center;justify-content:center;gap:12px;border-bottom:2px solid #062E70;padding-bottom:10px;margin:10px 0 14px}.school-logo{width:54px;height:54px;border-radius:50%;border:3px solid #062E70;color:#062E70;display:grid;place-items:center;font:bold 15px Arial,sans-serif;flex:none}.school-header-text{text-align:center}.school-name{font:bold 20px Arial,sans-serif;letter-spacing:.6px;color:#062E70}.school-tagline{font:600 10px Arial,sans-serif;color:#555;margin-top:2px}.school-address{font:10px Arial,sans-serif;color:#666;margin-top:2px}h1{text-align:center;font-size:16px;margin:0 0 14px}.meta{font-size:11px;margin-bottom:12px}ol{padding-left:20px;line-height:1.5}p{line-height:1.5}.sign{display:grid;grid-template-columns:2fr 1fr;gap:26px 24px;margin-top:34px}.fill{border-bottom:1px solid #111;min-height:22px;padding:0 2px 2px;font-size:12px;font-weight:bold}.cap{font-size:10px;color:#333;padding-top:4px}';
+ var html='<!doctype html><html><head><meta charset="utf-8"><title>'+esc('Consent Form — '+(a4?'A4':'Letter'))+'</title><style>'+css+'</style></head><body>'+consentSheet(r,name,'APPLICANT\u2019S COPY')+consentSheet(r,name,'ADMISSION\u2019S COPY')+'</body></html>';
+ w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(function(){w.print()},400);
 }
 function downloadConsentFormA4(record){downloadConsentForm(record||existingRecord||collect(),'A4');}
 function downloadApplicationForm(record){
@@ -599,7 +623,7 @@ document.querySelectorAll('[data-step-indicator]').forEach(function(el){
 document.getElementById('previousTop').onclick=function(){setStep(currentStep-1);showError('')};
 document.addEventListener('change',function(e){
  if(e.target.id==='f_GradeLevel')updateGradeRules();
- if(e.target.id==='f_Birthdate'){updateLivingRules();updateRelativeRules()}
+ if(e.target.id==='f_Birthdate'){updateApplicantAge();updateLivingRules();updateRelativeRules()}
  if(e.target.id==='f_LivingWith'){updateLivingRules();updateEmergencyRules()}
  if(e.target.id==='f_RelBirthdate'||e.target.id==='f_RelSameAddr')updateRelativeRules();
  if(e.target.id==='f_EmSameAddr')updateEmergencyRules();
@@ -615,11 +639,13 @@ document.addEventListener('change',function(e){
 
 document.addEventListener('input',function(e){
  if(e.target.id==='f_LRN')e.target.value=e.target.value.replace(/\D/g,'').slice(0,12);
+ if(e.target.dataset&&/Mobile$/.test(e.target.dataset.key||''))e.target.value=e.target.value.replace(/\D/g,'').slice(0,11);
+ if(e.target.id==='f_Birthdate')updateApplicantAge();
  updateStepIndicators();
  queueDraftSave();
 });
 document.addEventListener('change',function(e){updateStepIndicators();queueDraftSave()});
-var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateAdmissionCategoryRules();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updateRequirementRules();updateStepIndicators();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
+var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSchoolRules();updateGradeRules();updateAdmissionCategoryRules();updateApplicantAge();updateLivingRules();updateRelativeRules();updateEmergencyRules();updateParentRules('Father');updateParentRules('Mother');updatePreviousClusterRules();updateReligionRules();updateReligionRules('Father');updateReligionRules('Mother');updateRequirementRules();updateStepIndicators();}catch(initError){formInitOk=false;console.error('Applicant form initialization failed:',initError);document.getElementById('loading').style.display='none';document.getElementById('applicationView').hidden=false;showError('The application form could not be initialized. Please reload the page. If the problem continues, contact the Admissions Office.');}
 (function boot(){
  if(!formInitOk)return;
  var loading=document.getElementById('loading');
