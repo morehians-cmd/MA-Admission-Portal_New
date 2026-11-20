@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Application | Moreh Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--ink:#14213d;--muted:#64748b;--line:#d8e3f8;--green:#16834a;--red:#b42318;--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif}
@@ -184,7 +185,7 @@ function buildFields(){
   field('PrevGrade','Last Grade Level Completed','select',opts(GRADES))+
   field('PrevCluster','Previous SHS Strand / Cluster','select',opts(CLUSTERS),false,'Applicable only if the previous grade level was Grade 11 or Grade 12.')+
   field('PrevSection','Previous Section','text')+field('PrevAdviser','Previous Adviser','text')+
-  field('PrevScholarship','Previous Scholarship (if any)','select',opts(['PUB-QVR','TLC','ESC JHS','ESC SHS','QVA PASSER']))+
+  field('PrevScholarship','Previous Scholarship (if any)','select',opts(['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular']))+
   field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'')+
   field('Category','Admission Category','select',[],false,'Options depend on the intended grade level and previous school type.');
  document.getElementById('personalFields').innerHTML=
@@ -262,7 +263,7 @@ function requirementConfig(record){
  }
  if(level==='SHS')completion.push({key:'ReqBirthCompletion',label:REQUIREMENT_LABELS.ReqBirthCompletion,hint:'Original PSA Birth Certificate, upon official admission.'});
  if(grade==='Grade 11')completion.push({key:'ReqJHS',label:REQUIREMENT_LABELS.ReqJHS,hint:'Required for all incoming Grade 11 applicants.'});
- var eligible=(level==='JHS'||level==='SHS')&&['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category||'').toUpperCase())>=0;
+ var eligible=(level==='JHS'||level==='SHS')&&['TLC SCHOLAR','ESC GRANTEE','TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category||'').toUpperCase())>=0;
  if(eligible)completion.push({key:'ReqTransferee',label:REQUIREMENT_LABELS.ReqTransferee,hint:level==='JHS'?'TLC Transfer Form (TLC scholars) or ESC Certification (ESC grantees).':'ESC Certificate, TLC Transfer Form, or Voucher Certificate (SHSVP / PUB-QVR / QVA).'});
  var notes=[];
  if(['Nursery','Kinder 1','Kinder 2'].indexOf(grade)>=0)notes.push('All preschool applicants must undergo assessment and evaluation. Please approach Teacher Christine Teodoro at the LC1 Building.');
@@ -314,19 +315,19 @@ function updateAdmissionCategoryRules(){
  var privateSchool=schoolType==='Private Schools';
  var options=[];
  if(idx>=0&&idx<=8){
-   options=['REGULAR'];
+   options=['Regular'];
  }else if(idx===9){
-   options=!schoolType?[]:publicSchool?['TLC','ESC','REGULAR']:privateSchool?['ESC','REGULAR']:['TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['TLC Scholar','ESC Grantee','Regular']:privateSchool?['ESC Grantee','Regular']:['TLC Scholar','ESC Grantee','Regular'];
  }else if(idx>=10&&idx<=12){
-   options=!schoolType?[]:publicSchool?['REGULAR']:privateSchool?['TLC','ESC','REGULAR']:['TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['Regular']:privateSchool?['TLC Scholar','ESC Grantee','Regular']:['TLC Scholar','ESC Grantee','Regular'];
  }else if(idx===13){
-   options=!schoolType?[]:publicSchool?['PUB-QVR']:privateSchool?['QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['PUB-QVR']:privateSchool?['QVA Passer','TLC Scholar','ESC Grantee','Regular']:['PUB-QVR','QVA Passer','TLC Scholar','ESC Grantee','Regular'];
  }else if(idx===14){
-   options=!schoolType?[]:publicSchool?['REGULAR']:privateSchool?['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['Regular']:privateSchool?['PUB-QVR','QVA Passer','TLC Scholar','ESC Grantee','Regular']:['PUB-QVR','QVA Passer','TLC Scholar','ESC Grantee','Regular'];
  }
  var previous=category.value;
  category.innerHTML='<option value="">'+(idx>=9&&!schoolType?'Select previous school type first':'Select admission category')+'</option>'+options.map(function(v){
-   var label=v==='REGULAR'?'Regular':v==='QVA PASSER'?'QVA Passer':v;
+   var label=v;
    return '<option value="'+esc(v)+'">'+esc(label)+'</option>';
  }).join('');
  category.disabled=options.length===0;
@@ -497,8 +498,40 @@ function validateStep(){
  return true;
 }
 function submitApplication(){
- var form=document.getElementById('applicationForm');
- if(!form.checkValidity()){var bad=form.querySelector(':invalid');if(bad){var section=bad.closest('.section');if(section)setStep(Number(section.dataset.step));bad.reportValidity()}return}
+ // Validate only fields that are actually applicable and visible.
+ // Hidden/disabled conditional fields must not block final submission.
+ for(var step=0;step<3;step++){
+   var section=document.querySelector('.section[data-step="'+step+'"]');
+   if(!section)continue;
+   var fields=section.querySelectorAll('input,select,textarea');
+   for(var i=0;i<fields.length;i++){
+     var el=fields[i];
+     if(el.disabled||el.closest('[style*="display:none"]'))continue;
+     if(el.type==='checkbox'&&!el.required)continue;
+     if(!el.checkValidity()){
+       setStep(step);
+       showError(el.validationMessage||'Please complete the required fields before submitting.');
+       try{el.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+       try{el.reportValidity()}catch(e){}
+       return;
+     }
+   }
+ }
+ var review=document.querySelector('.section[data-step="3"]');
+ if(review){
+   var reviewFields=review.querySelectorAll('input,select,textarea');
+   for(var j=0;j<reviewFields.length;j++){
+     var reviewEl=reviewFields[j];
+     if(reviewEl.disabled||reviewEl.closest('[style*="display:none"]'))continue;
+     if(reviewEl.type==='checkbox'&&!reviewEl.required)continue;
+     if(!reviewEl.checkValidity()){
+       showError(reviewEl.validationMessage||'Please complete the required confirmation before submitting.');
+       try{reviewEl.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+       try{reviewEl.reportValidity()}catch(e){}
+       return;
+     }
+   }
+ }
  var d=collect();d.PrivacyConsent=!!d.PrivacyConsent;
  var btn=document.getElementById('next');btn.disabled=true;btn.textContent='Submitting…';showError('');
  run('admissionCreateApplication',[token(),d],function(r){
@@ -536,7 +569,7 @@ function downloadApplicationForm(record){
  body+='<div class="sign"><div class="line">Applicant / Parent / Legal Guardian Signature</div><div class="line">Date</div></div>';
  printWindow('MOREH ACADEMY - STUDENT APPLICATION FORM',body,'8.5in 13in');
 }
-function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem('ma_boot_portal')}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
 var existingRecord=null;
 function showExisting(record){
  existingRecord=record;
@@ -589,20 +622,17 @@ var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSch
  var loading=document.getElementById('loading');
  loading.textContent='Checking your account…';
  var t=token();if(!t){goHome();return}
- run('authWhoAmI',[t],function(r){
+ run('admissionPortalGetBootstrap',[t],function(r){
   if(!r||r.success!==true){loading.textContent=(r&&r.message)||'Your session could not be verified. Please sign in again.';return}
-  account=r.data||{};if(['Applicant','Student'].indexOf(account.role)<0){loading.textContent='This account does not have applicant access.';return}
+  var d=r.data||{};account=d.account||{};if(['Applicant','Student'].indexOf(account.role)<0){loading.textContent='This account does not have applicant access.';return}
   restoreDraft();
   document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';document.getElementById('userEmail').textContent=account.email||'';document.getElementById('avatar').textContent=initials(account.fullName);
-  loading.textContent='Account verified. Loading your application…';
-  run('admissionGetMyApplication',[t],function(a){
-   loading.style.display='none';
-   if(!a||a.success!==true){document.getElementById('applicationView').hidden=false;showError((a&&a.message)||'Unable to load your application.');return}
-   if(a.data){showExisting(a.data);return}
-   if(account.role!=='Applicant'){document.getElementById('applicationView').hidden=false;document.getElementById('formPanel').innerHTML='<p>Your account does not have an application linked yet. Please contact the Admissions Office for assistance.</p>';return}
-   document.getElementById('applicationView').hidden=false;
-  },function(e){loading.textContent='Application lookup failed: '+e});
- },function(e){loading.textContent='Account check failed: '+e});
+  loading.style.display='none';
+  var rec=d.application||null;
+  if(rec){showExisting(rec);return}
+  if(account.role!=='Applicant'){document.getElementById('applicationView').hidden=false;document.getElementById('formPanel').innerHTML='<p>Your account does not have an application linked yet. Please contact the Admissions Office for assistance.</p>';return}
+  document.getElementById('applicationView').hidden=false;
+ },function(e){loading.textContent='Could not load your account: '+e});
 })();
 </script>
 </body></html>

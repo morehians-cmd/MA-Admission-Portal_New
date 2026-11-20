@@ -1,10 +1,41 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admissions | Moreh Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <?!= include('MAAdmissionStyles') ?>
-</head><body>
-<header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY · ADMISSIONS</div><nav><a href="<?= baseUrl ?>">Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
+<style>.stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.stat{padding:9px;border-radius:8px}.stat span{font-size:10px}.stat strong{font-size:21px}.btn-loading{display:inline-flex;align-items:center;gap:8px}.loading-spinner{width:15px;height:15px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;display:inline-block;animation:maSpin .7s linear infinite}@keyframes maSpin{to{transform:rotate(360deg)}}.dashboard-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.breakdown{border:1px solid #d8e3f8;border-radius:8px;padding:9px;background:#fff}.breakdown h3{margin:0 0 6px;color:var(--navy);font:700 12px var(--head)}.breakdown-row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid #edf1f8;font-size:11px}.breakdown-row:last-child{border-bottom:0}.breakdown-row strong{color:var(--blue)}.muted{color:#71809b;font-size:12px}.needs-action{margin-top:12px;border:1px solid #d8e3f8;border-radius:10px;padding:12px;background:#fff}.needs-action h3{margin:0 0 5px;color:var(--navy);font:700 14px var(--head)}.dashboard-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.dash-panel{border:1px solid #d8e3f8;border-radius:8px;padding:9px;background:#fff;min-width:0}.dash-panel h3{margin:0 0 6px;color:var(--navy);font:700 12px var(--head)}.mini-bars{display:flex;align-items:flex-end;gap:4px;height:82px;padding:5px 2px 0}.mini-bar-wrap{flex:1;min-width:10px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}.mini-bar{width:100%;max-width:22px;min-height:2px;background:var(--blue);border-radius:4px 4px 0 0}.mini-bar-label{font-size:8px;color:#71809b;white-space:nowrap}.mini-bar-value{font-size:8px;color:var(--navy);font-weight:700}.pipeline-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.pipeline-item{padding:6px 3px;border:1px solid #edf1f8;border-radius:7px;text-align:center}.pipeline-item strong{display:block;font-size:14px;color:var(--blue)}.pipeline-item span{font-size:9px;color:#71809b}.recent-row{display:grid;grid-template-columns:minmax(100px,1.5fr) 60px 75px 70px;gap:5px;padding:5px 0;border-bottom:1px solid #edf1f8;font-size:10px;align-items:center}.recent-row:last-child{border-bottom:0}.recent-name{font-weight:600;color:var(--navy)}.analytics-list{max-height:150px;overflow:auto}.analytics-list .breakdown-row{font-size:11px}@media(max-width:900px){.dashboard-breakdown,.dashboard-extra{grid-template-columns:1fr}}@media(max-width:700px){.dashboard-extra{grid-template-columns:1fr}.pipeline-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.recent-row{grid-template-columns:1fr 80px}.recent-row>*:nth-child(3),.recent-row>*:nth-child(4){display:none}}.action-row{display:grid;grid-template-columns:minmax(160px,1.4fr) minmax(120px,1fr) minmax(160px,1.4fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #edf1f8;font-size:12px}.action-row:last-child{border-bottom:0}.action-name{font-weight:600;color:var(--navy)}.action-reason{color:#71809b}.action-tag{display:inline-block;padding:3px 7px;border-radius:999px;background:#f2f5fa;font-size:10px;font-weight:600}.action-tag.review{background:#fff5dc}.action-tag.approved{background:#eaf8ef}.action-tag.submitted{background:#edf4ff}@media(max-width:700px){.dashboard-breakdown{grid-template-columns:1fr}.action-row{grid-template-columns:1fr;gap:6px}}</style><style>
+#staff.card{padding:0;border:0;background:transparent;box-shadow:none;margin-top:22px}
+.adm-shell{display:grid;grid-template-columns:248px minmax(0,1fr);gap:18px;align-items:start}
+.adm-sidebar{background:var(--navy);border:1px solid var(--navy);border-radius:14px;box-shadow:0 8px 24px rgba(6,46,112,.16);padding:14px 12px;position:sticky;top:16px;min-height:calc(100vh - 100px);display:flex;flex-direction:column}
+.adm-side-brand{display:flex;align-items:center;gap:10px;padding:7px 8px 16px;border-bottom:1px solid rgba(255,255,255,.18);margin-bottom:12px}
+.adm-brand-mark{display:grid;place-items:center;width:40px;height:40px;background:var(--orange);color:#fff;border-radius:50%;font:800 14px var(--head)}
+.adm-side-brand strong{display:block;font:700 13px var(--head);color:#fff}.adm-side-brand small{display:block;color:#c6d5f2;font-size:11px}
+.adm-nav-group{margin-bottom:14px}.adm-nav-heading{font:700 10px var(--head);letter-spacing:.09em;color:#b8c9e9;padding:5px 9px 7px}
+.adm-nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;color:#fff;padding:10px 11px;border-radius:9px;font:600 13px var(--body);cursor:pointer;margin:2px 0}
+.adm-nav:hover{background:rgba(255,255,255,.12);color:#fff}.adm-nav.active{background:var(--orange);color:#fff;font-weight:700;box-shadow:inset 3px 0 rgba(255,255,255,.65)}.adm-nav-link{text-decoration:none;color:inherit}
+.adm-ico{width:22px;text-align:center;font-size:16px;color:#d7e3f8}.adm-nav.active .adm-ico{color:#fff}
+.adm-sidebar-footer{margin-top:auto;border-top:1px solid rgba(255,255,255,.18);padding:12px 8px 2px;color:#fff;font:600 11px var(--head)}.adm-sidebar-footer small{display:block;color:#c6d5f2;font:400 10px var(--body);margin-top:2px}
+.adm-content{min-width:0}.adm-view-head{display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid #d8e3f8;border-radius:14px;padding:16px 20px;margin-bottom:14px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
+.adm-eyebrow{font:700 10px var(--head);letter-spacing:.12em;color:#8191ad}.adm-view-head h2{margin:2px 0;color:var(--navy);font:800 22px var(--head)}.adm-view-head p{margin:2px 0 0;color:#71809b;font-size:12px}
+.adm-menu-toggle{display:none;border:1px solid #d8e3f8;background:#fff;color:var(--blue);border-radius:8px;padding:8px 11px;font-size:18px}
+.adm-view{display:none}.adm-view.active{display:block}.adm-view>.card:first-child{margin-top:0}.adm-website-frame{display:block;width:100%;height:calc(100vh - 205px);min-height:850px;border:0;background:#f4f7fd}.adm-panel{background:white;border:1px solid #d8e3f8;border-radius:14px;padding:20px;box-shadow:0 4px 16px rgba(6,46,112,.04)}
+.adm-view #generalReportPanel,.adm-view #specializedReportPanel,.adm-view #detailedReportPanel,.adm-view #matrixReportPanel,.adm-view #adviserReportPanel{margin-top:0}
+.adm-view .card{margin-top:0}
+.top{background:#fff;color:var(--navy);border-bottom:1px solid #d8e3f8}
+.top .wrap{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top .brand{display:flex;align-items:center;gap:12px;color:var(--navy);font:800 18px var(--head)}
+.top .brand:before{content:"MA";display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;font:800 14px var(--head)}
+.top nav{display:flex;align-items:center;gap:8px}
+.top a{display:inline-flex;align-items:center;color:var(--navy);text-decoration:none;margin:0;padding:9px 13px;border-radius:8px;font:600 13px var(--head)}
+.top a:hover{background:var(--light);color:var(--blue)}
+.top a#signout{background:var(--orange);color:#fff;padding:9px 17px}
+body:has(#staff:not(.hidden)){background:#f4f7fd}
+#staff:not(.hidden){margin-top:18px!important}
+@media(max-width:1000px){.adm-shell{grid-template-columns:210px minmax(0,1fr);gap:12px}.adm-sidebar{padding:10px 8px}.adm-nav{padding:9px 8px;font-size:12px}}
+@media(max-width:760px){.adm-shell{grid-template-columns:1fr}.adm-sidebar{position:static;min-height:0;display:none}.adm-sidebar.mobile-open{display:flex}.adm-menu-toggle{display:inline-flex}.adm-view-head{padding:13px 15px}.adm-panel,.adm-view .card{padding:15px}.adm-nav-group{margin-bottom:8px}.top .wrap{min-height:68px}.top .brand{font-size:15px}.top a{font-size:12px;padding:8px}.top .brand:before{width:36px;height:36px}}
+</style></head><body>
+<header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY <span style="font:600 11px var(--body);color:#71809b;display:block">ADMISSIONS MANAGEMENT</span></div><nav><a href="<?= baseUrl ?>?page=home" target="_top">Public Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
 <main><div class="wrap">
 <div class="head"><div><h1>Admissions Portal</h1><p id="welcome">Loading your admission portal…</p></div></div>
 <div id="message" class="status hidden"></div>
@@ -15,7 +46,7 @@
 <div class="section">Academic Information</div>
 <div><label>School Year</label><input name="SchoolYear" placeholder="2026-2027" required></div>
 <div><label>LRN</label><input name="LRN" inputmode="numeric" maxlength="12"></div>
-<div><label>Category</label><select name="Category"><option>Regular</option><option>PUB-QVR</option><option>TLC Scholar</option><option>ESC Grantee</option><option>PEAC Grantee</option><option>TLC-OVAP</option></select></div>
+<div><label>Category</label><select name="Category"><option value="">(none)</option><option value="TLC Scholar">TLC Scholar</option><option value="ESC Grantee">ESC Grantee</option><option value="PUB-QVR">PUB-QVR</option><option value="QVA Passer">QVA Passer</option><option value="TLC-ESC">TLC-ESC</option><option value="TLC-OVAP">TLC-OVAP</option><option value="IS">IS</option><option value="Regular">Regular</option></select></div>
 <div><label>Grade Level</label><input name="GradeLevel" placeholder="Grade 7" required></div>
 <div><label>Department</label><input name="Department"></div><div><label>Cluster</label><input name="Cluster"></div>
 <div class="section">Student Information</div>
@@ -26,12 +57,11 @@
 <div><label>Gender</label><input name="GenderOrient"></div><div><label>Religion</label><input name="Religion"></div><div><label>Religion (Other)</label><input name="ReligionOther"></div>
 <div class="section">Address</div>
 <div><label>Address Line 1</label><input name="AddressLine1"></div><div><label>Address Line 2</label><input name="AddressLine2"></div>
-<div><label>Barangay</label><input name="Barangay"></div><div><label>City</label><input name="City"></div><div><label>Province</label><input name="Province"></div>
-<div class="section">Previous School</div>
+<div><label>Barangay</label><input name="Barangay"></div><div><label>City</label><input name="City"></div><div class="section">Previous School</div>
 <div><label>Previous School</label><input name="PrevSchool"></div><div><label>Previous School Year</label><input name="PrevSY"></div>
 <div><label>Previous Grade</label><input name="PrevGrade"></div><div><label>Previous Cluster</label><input name="PrevCluster"></div>
 <div><label>Previous Section</label><input name="PrevSection"></div><div><label>Previous Adviser</label><input name="PrevAdviser"></div>
-<div><label>Previous Scholarship</label><input name="PrevScholarship"></div><div><label>Previous School ID</label><input name="PrevSchoolID"></div>
+<div><label>Previous Scholarship</label><select name="PrevScholarship"><option value="">(none)</option><option value="TLC Scholar">TLC Scholar</option><option value="ESC Grantee">ESC Grantee</option><option value="PUB-QVR">PUB-QVR</option><option value="QVA Passer">QVA Passer</option><option value="TLC-ESC">TLC-ESC</option><option value="TLC-OVAP">TLC-OVAP</option><option value="IS">IS</option><option value="Regular">Regular</option></select></div><div><label>Previous School ID</label><input name="PrevSchoolID"></div>
 <div class="wide"><label>Previous School Address</label><textarea name="PrevAddress"></textarea></div>
 <div class="section">Parents / Guardian</div>
 <div><label>Father's Name</label><input name="FatherName"></div><div><label>Father's Status</label><input name="FatherStatus"></div>
@@ -56,48 +86,555 @@
 </section>
 
 <section id="staff" class="card hidden">
-<h2>Admissions Records</h2><div id="stats" class="stats"></div>
-<div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><button class="btn blue" id="searchBtn">Search</button></div>
-<div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div>
-</section>
+<div class="adm-shell">
+<aside class="adm-sidebar" aria-label="Admission dashboard navigation">
+<div class="adm-side-brand"><span class="adm-brand-mark">MA</span><div><strong>Admission Office</strong><small>Management Portal</small></div></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">OVERVIEW</div><button class="adm-nav active" data-adm-view="dashboard"><span class="adm-ico">▦</span><span>Dashboard</span></button></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">ADMISSIONS</div><button class="adm-nav" data-adm-view="records"><span class="adm-ico">▤</span><span>Admission Records</span></button></div>
+<div class="adm-nav-group"><div class="adm-nav-heading">REPORTS & ANALYTICS</div>
+<button class="adm-nav" data-adm-view="general"><span class="adm-ico">▥</span><span>General Report</span></button>
+<button class="adm-nav" data-adm-view="specialized"><span class="adm-ico">▧</span><span>Specialized Reports</span></button>
+<button class="adm-nav" data-adm-view="detailed"><span class="adm-ico">☷</span><span>Detailed Student Report</span></button>
+<button class="adm-nav" data-adm-view="matrix"><span class="adm-ico">▦</span><span>Matrix Reports</span></button>
+<button class="adm-nav" data-adm-view="adviser"><span class="adm-ico">♙</span><span>Former Adviser Report</span></button></div>
+<div class="adm-sidebar-footer"><span>Moreh Academy</span><small>Admissions Management</small></div>
+</aside>
+<div class="adm-content">
+<div class="adm-view-head"><div><div class="adm-eyebrow">ADMISSIONS WORKSPACE</div><h2 id="admViewTitle">Admission Dashboard</h2><p id="admViewDescription">Admissions overview and activity.</p></div><button class="adm-menu-toggle" id="admMenuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button></div>
+<div class="adm-view active" id="adm-view-dashboard"><h2>Admission Dashboard</h2><div id="stats" class="stats"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
+</div>
+<div class="adm-view" id="adm-view-records"><div class="adm-panel"><h2>Admission Records</h2><p class="muted">Search, filter, and open admission records.</p><div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
+<div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div></div></div>
+<div class="adm-view" id="adm-view-general"><section class="card" id="generalReportPanel" style="margin-top:16px">
+<h2>Reports & Export</h2>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="reportType">Report Type</label><select id="reportType" style="min-width:220px">
+    <option>Grade Level</option><option>Admission Category</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Classification</option><option>Cluster</option><option>Section</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option>
+  </select></div>
+  <div><label for="reportValue">Filter</label><select id="reportValue" style="min-width:220px"><option value="">All</option></select></div>
+  <button type="button" class="btn blue" id="loadGeneralReport">Generate Report</button>
+  <button type="button" class="btn secondary" id="printGeneralReport">Print</button>
+  <button type="button" class="btn secondary" id="exportGeneralReport">Export CSV</button>
+  <span id="generalReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="generalReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="generalReportTable"><thead><tr>
+<th>Group</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
+</tr></thead><tbody></tbody></table></div>
+</section></div>
+<div class="adm-view" id="adm-view-specialized"><section class="card" id="specializedReportPanel" style="margin-top:16px">
+  <div class="actions" style="justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0">Specialized Reports</h2>
+      <div class="muted">Additional reporting workflows migrated from the previous Admission Portal.</div>
+    </div>
+    <div class="form-grid" style="min-width:min(100%,720px);margin:0">
+      <div><label>Report Type</label><select id="specializedReportType">
+        <option>Admission Daily</option><option>School Overview</option><option>Previous School</option><option>Demographic</option>
+        <option>Requirements Status</option><option>Scholarship Beneficiaries</option><option>Scholarship by Grade</option><option>No Parental Consent</option><option>Advisory Class</option><option>Personal Data</option>
+      </select></div>
+      <div><label>Grade Level (optional)</label><select id="specializedGrade"><option value="">All Grade Levels</option></select></div>
+      <div><label>Section (optional)</label><select id="specializedSection"><option value="">All Sections</option></select></div>
+    </div>
+  </div>
+  <div class="actions" style="margin-top:12px">
+    <button type="button" class="btn blue" id="loadSpecializedReport">Generate Report</button>
+    <button type="button" class="btn secondary" id="printSpecializedReport">Print</button>
+    <button type="button" class="btn secondary" id="exportSpecializedReport">Export CSV</button>
+    <span id="specializedReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+  </div>
+  <div id="specializedReportSummary" style="margin-top:14px"></div>
+  <div class="scroll" style="margin-top:14px">
+    <table class="table" id="specializedReportTable"><thead></thead><tbody><tr><td>Generate a report to view results.</td></tr></tbody></table>
+  </div>
+</section></div>
+<div class="adm-view" id="adm-view-detailed"><section class="card" id="detailedReportPanel" style="margin-top:16px">
+<h2>Detailed Student Report</h2>
+<div class="muted" style="margin-bottom:10px">View the students behind any report group, including previous-school and former-adviser details.</div>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="detailReportType">Report Dimension</label><select id="detailReportType" style="min-width:220px">
+    <option>Grade Level</option><option>Admission Category</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Classification</option><option>Cluster</option><option>Section</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option>
+  </select></div>
+  <div><label for="detailReportValue">Group</label><select id="detailReportValue" style="min-width:260px"><option value="">All</option></select></div>
+  <button type="button" class="btn blue" id="loadDetailedReport">Generate Report</button>
+  <button type="button" class="btn secondary" id="printDetailedReport">Print</button>
+  <button type="button" class="btn secondary" id="exportDetailedReport">Export CSV</button>
+  <span id="detailedReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="detailedReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="detailedReportTable"><thead><tr>
+<th>Student ID</th><th>Student</th><th>Grade</th><th>Cluster</th><th>Section</th><th>Category</th><th>Classification</th><th>Previous School</th><th>Previous Section</th><th>Former Adviser</th><th>Application Status</th><th>Enrollment Status</th>
+</tr></thead><tbody><tr><td colspan="12">Generate a detailed report to view students.</td></tr></tbody></table></div>
+</section></div>
+<div class="adm-view" id="adm-view-matrix"><section class="card" id="matrixReportPanel" style="margin-top:16px">
+<h2>Matrix Reports</h2>
+<div class="muted" style="margin-bottom:10px">Compare two admission dimensions in a cross-tab report.</div>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="matrixRowDimension">Rows</label><select id="matrixRowDimension" style="min-width:220px">
+    <option>Grade Level</option><option>Admission Category</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option><option>Cluster</option><option>Section</option>
+  </select></div>
+  <div><label for="matrixColumnDimension">Columns</label><select id="matrixColumnDimension" style="min-width:220px">
+    <option>Admission Category</option><option>Grade Level</option><option>Enrollment Status</option><option>Application Status</option><option>Previous School</option><option>Sex</option><option>Gender</option><option>Previous Scholarship</option><option>Cluster</option><option>Section</option>
+  </select></div>
+  <button type="button" class="btn blue" id="loadMatrixReport">Generate Matrix</button>
+  <button type="button" class="btn secondary" id="printMatrixReport">Print</button>
+  <button type="button" class="btn secondary" id="exportMatrixReport">Export CSV</button>
+  <span id="matrixReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="matrixReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="matrixReportTable"><thead></thead><tbody><tr><td>Generate a matrix report to view results.</td></tr></tbody></table></div>
+</section></div>
+<div class="adm-view" id="adm-view-adviser"><section class="card" id="adviserReportPanel" style="margin-top:16px">
+<h2>Per Former Adviser Report</h2>
+<div class="actions" style="align-items:flex-end">
+  <div><label for="adviserSelect">Former Adviser</label><select id="adviserSelect" style="min-width:260px"><option value="">All Advisers</option></select></div>
+  <button type="button" class="btn blue" id="loadAdviserReport">Generate Report</button>
+  <button type="button" class="btn secondary" id="printAdviserReport">Print</button>
+  <button type="button" class="btn secondary" id="exportAdviserReport">Export CSV</button>
+  <span id="adviserReportStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span>
+</div>
+<div id="adviserReportSummary" class="dashboard-breakdown" style="margin-top:12px"></div>
+<div class="scroll" style="margin-top:12px"><table class="table" id="adviserReportTable"><thead><tr>
+<th>Former Adviser</th><th>Total</th><th>Enrolled</th><th>Not Enrolled</th><th>Temporary</th><th>Transferred</th><th>Cancelled</th><th>Submitted</th><th>Under Review</th><th>Approved</th><th>Declined</th>
+</tr></thead><tbody></tbody></table></div>
+<div id="adviserStudentList" class="hidden" style="margin-top:14px"></div>
+</section></div>
+</div></div></section>
 </div></main>
 <script>
 var APP_BASE='<?= baseUrl ?>',TOKEN='';
 function $(id){return document.getElementById(id)}
-function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
+/* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
+function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function msg(t,bad){var e=$('message');e.textContent=t;e.className='status '+(bad?'error':'success');e.classList.remove('hidden')}
-function call(fn,args,ok){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
+function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){if(fail)fail(r&&r.message||'Request failed.');else msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){if(fail)fail(e&&e.message||'Request failed.');else msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
-function boot(){TOKEN=getToken();if(!TOKEN){msg('Please sign in from the Moreh Academy Homepage first.',true);return}call('authWhoAmI',[TOKEN],load)}
-function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){var a=r.data.account;$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');drawStats(r.data.stats);search()}})}
+function boot(){TOKEN=getToken();if(!TOKEN){$('welcome').textContent='Your session is missing. Please sign in from the Moreh Academy Homepage.';msg('Please sign in from the Moreh Academy Homepage first.',true);return}load()}   /* one round trip: the bootstrap call already verifies the session */
+function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
 function fill(r){document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
 function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k){o[k]=v});return o}
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
 $('refreshApplicant').onclick=load;
-function drawStats(s){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+Object.keys(s.byStatus).map(function(k){return '<div class="stat"><span>'+esc(k)+'</span><strong>'+s.byStatus[k]+'</strong></div>'}).join('')}
-function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="7">No records found.</td></tr>'})}
+function drawStats(s){
+  var app=s.byApplicationStatus||{}, enroll=s.byStatus||{};
+  $('stats').innerHTML=
+    '<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+
+    '<div class="stat"><span>Submitted</span><strong>'+Number(app.Submitted||0)+'</strong></div>'+
+    '<div class="stat"><span>Under Review</span><strong>'+Number(app['Under Review']||0)+'</strong></div>'+
+    '<div class="stat"><span>Approved</span><strong>'+Number(app.Approved||0)+'</strong></div>'+
+    '<div class="stat"><span>Declined</span><strong>'+Number(app.Declined||0)+'</strong></div>'+
+    '<div class="stat"><span>Enrolled</span><strong>'+Number(enroll.Enrolled||0)+'</strong></div>';
+
+  function list(title,data){
+    var keys=Object.keys(data||{});
+    return '<div class="breakdown"><h3>'+esc(title)+'</h3>'+
+      (keys.length?keys.sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(data[k]||0)+'</strong></div>'}).join(''):'<div class="muted">No records yet.</div>')+
+      '</div>';
+  }
+
+  $('dashboardBreakdown').innerHTML=list('Applications by Grade Level',s.byGrade)+list('Applications by Admission Category',s.byCategory);
+
+  var trend=s.trend||[], maxTrend=Math.max.apply(null,trend.map(function(x){return Number(x.count||0)}).concat([1]));
+  var trendHtml='<div class="dash-panel"><h3>Applications — Last 14 Days</h3><div class="mini-bars">'+
+    trend.map(function(x){var h=Math.max(3,Math.round((Number(x.count||0)/maxTrend)*90));return '<div class="mini-bar-wrap"><span class="mini-bar-value">'+Number(x.count||0)+'</span><div class="mini-bar" style="height:'+h+'px"></div><span class="mini-bar-label">'+esc(x.label)+'</span></div>';}).join('')+
+    '</div></div>';
+
+  var pipe=s.pipeline||{};
+  var pipeHtml='<div class="dash-panel"><h3>Enrollment Pipeline</h3><div class="pipeline-grid">'+
+    ['Not Enrolled','Enrolled','Temporary','Transferred','Cancelled'].map(function(k){return '<div class="pipeline-item"><strong>'+Number(pipe[k]||0)+'</strong><span>'+esc(k)+'</span></div>';}).join('')+
+    '</div></div>';
+
+  var gc=s.byGradeCluster||{}, gcRows=[];
+  Object.keys(gc).sort().forEach(function(g){Object.keys(gc[g]).sort().forEach(function(k){gcRows.push('<div class="breakdown-row"><span>'+esc(g+' · '+k)+'</span><strong>'+Number(gc[g][k]||0)+'</strong></div>')})});
+  var gradeClusterHtml='<div class="dash-panel"><h3>Applications by Grade & Cluster</h3><div class="analytics-list">'+(gcRows.join('')||'<div class="muted">No cluster data yet.</div>')+'</div></div>';
+
+  var sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){var av=Number(s.byPreviousSchool[a]||0),bv=Number(s.byPreviousSchool[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+
+  var recent=s.recent||[];
+  var recentHtml='<div class="dash-panel"><h3>Recent Applications</h3>'+
+    (recent.length?recent.map(function(x){return '<div class="recent-row"><div><div class="recent-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+'</div></div><div>'+esc(x.GradeLevel||'')+'</div><div>'+esc(x.Category||'')+'</div><div>'+esc(x.ApplicationStatus||'Submitted')+'</div></div>'}).join(''):'<div class="muted">No applications yet.</div>')+
+    '</div>';
+
+  var scholarshipHtml='<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){var av=Number(s.byScholarship[a]||0),bv=Number(s.byScholarship[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+
+  $('dashboardBreakdown').insertAdjacentHTML('beforeend','<div class="dashboard-extra">'+trendHtml+pipeHtml+gradeClusterHtml+sexHtml+schoolHtml+recentHtml+scholarshipHtml+'</div>');
+
+  var actions=s.needsAction||[];
+  $('needsAction').innerHTML=
+    '<h3>Needs Action'+(actions.length?' ('+Number(s.needsActionTotal||actions.length)+')':'')+'</h3>'+
+    '<div class="muted" style="margin-bottom:8px">Applications that need review, follow-up, document verification, or enrollment processing.</div>'+
+    (actions.length?actions.map(function(x){
+      var cls=x.ApplicationStatus==='Submitted'?'submitted':x.ApplicationStatus==='Approved'?'approved':'review';
+      return '<div class="action-row">'+
+        '<div><div class="action-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+' · '+esc(x.GradeLevel||'')+'</div></div>'+
+        '<div><span class="action-tag '+cls+'">'+esc(x.ApplicationStatus)+'</span></div>'+
+        '<div class="action-reason">'+esc(x.Reason)+'</div>'+
+        '<div><button type="button" class="btn blue" style="padding:6px 10px" data-view-student="'+esc(encodeURIComponent(x.StudentID))+'">View</button></div>'+
+      '</div>';
+    }).join(''):'<div class="muted">No applications currently need action.</div>');
+
+  $('needsAction').querySelectorAll('[data-view-student]').forEach(function(button){
+    button.onclick=function(){openStudent(decodeURIComponent(button.getAttribute('data-view-student')));};
+  });
+}
+
+
+var currentDetailedReport=null;
+function setDetailedReportStatus(t,bad){localStatus('detailedReportStatus',t,bad);}
+function renderDetailedReport(data){
+  var rows=data.students||[], sel=$('detailReportValue');
+  $('detailedReportTable').querySelector('tbody').innerHTML=rows.length?rows.map(function(s){
+    return '<tr><td>'+esc(s.StudentID)+'</td><td><strong>'+esc(s.FullName)+'</strong></td><td>'+esc(s.GradeLevel)+'</td><td>'+esc(s.Cluster)+'</td><td>'+esc(s.Section)+'</td><td>'+esc(s.Category)+'</td><td>'+esc(s.Classification)+'</td><td>'+esc(s.PreviousSchool)+'</td><td>'+esc(s.PreviousSection)+'</td><td>'+esc(s.PreviousAdviser)+'</td><td>'+esc(s.ApplicationStatus)+'</td><td>'+esc(s.EnrollStatus)+'</td></tr>';
+  }).join(''):'<tr><td colspan="12">No records found.</td></tr>';
+  $('detailedReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.reportType)+(data.selectedValue?' · '+esc(data.selectedValue):'')+'</h3><div class="breakdown-row"><span>Students</span><strong>'+rows.length+'</strong></div></div>';
+}
+function refreshDetailedReportValues(selected){
+  var type=$('detailReportType').value;
+  call('admissionPortalReport',[TOKEN,type,''],function(r){
+    var sel=$('detailReportValue');
+    sel.innerHTML='<option value="">All</option>'+r.data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
+    if(selected)sel.value=selected;
+  },function(e){setDetailedReportStatus(e,true);});
+}
+function loadDetailedReport(){
+  var btn=$('loadDetailedReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalDetailedStudentReport',[TOKEN,$('detailReportType').value,$('detailReportValue').value],function(r){
+    currentDetailedReport=r.data;renderDetailedReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');setDetailedReportStatus('Detailed report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setDetailedReportStatus(e,true);});
+}
+function printDetailedReport(){
+  if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Moreh Academy Detailed Student Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:9px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — Detailed Student Report</h1><p>'+esc(currentDetailedReport.reportType)+(currentDetailedReport.selectedValue?' · '+esc(currentDetailedReport.selectedValue):'')+'<br>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('detailedReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportDetailedReport(){
+  if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
+  var headers=['Student ID','Student','Grade','Cluster','Section','Category','Classification','Previous School','Previous Section','Former Adviser','Application Status','Enrollment Status'];
+  var rows=[headers];
+  (currentDetailedReport.students||[]).forEach(function(s){rows.push([s.StudentID,s.FullName,s.GradeLevel,s.Cluster,s.Section,s.Category,s.Classification,s.PreviousSchool,s.PreviousSection,s.PreviousAdviser,s.ApplicationStatus,s.EnrollStatus]);});
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_Detailed_Student_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+$('detailReportType').onchange=function(){refreshDetailedReportValues('');};
+$('loadDetailedReport').onclick=loadDetailedReport;
+$('printDetailedReport').onclick=printDetailedReport;
+$('exportDetailedReport').onclick=exportDetailedReport;
+refreshDetailedReportValues('');
+
+
+var currentSpecializedReport=null;
+function setSpecializedReportStatus(t,bad){localStatus('specializedReportStatus',t,bad);}
+function refreshSpecializedSections(){
+  var g=$('specializedGrade').value, sel=$('specializedSection');
+  var sections=[];
+  document.querySelectorAll('#results tr').forEach(function(){});
+  call('admissionPortalSearch',[TOKEN,'','','',100,'',''],function(r){
+    sections=r.data.filter(function(x){return !g||x.GradeLevel===g;}).map(function(x){return x.Section||'';});
+    sections=sections.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+    sel.innerHTML='<option value="">All Sections</option>'+sections.map(function(v){return '<option value="'+esc(v)+'">'+esc(v||'Unassigned')+'</option>';}).join('');
+  });
+}
+function loadSpecializedReport(){
+  var btn=$('loadSpecializedReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalSpecializedReport',[TOKEN,$('specializedReportType').value,$('specializedGrade').value,$('specializedSection').value],function(r){
+    currentSpecializedReport=r.data;renderSpecializedReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');setSpecializedReportStatus('Report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setSpecializedReportStatus(e,true);});
+}
+function renderSpecializedReport(data){
+  var cols=data.columns||[], rows=data.rows||[];
+  $('specializedReportTable').querySelector('thead').innerHTML='<tr>'+cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'</tr>';
+  $('specializedReportTable').querySelector('tbody').innerHTML=rows.length?rows.map(function(r){return '<tr>'+r.map(function(v){return '<td>'+esc(v)+'</td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="'+Math.max(1,cols.length)+'">No records found.</td></tr>';
+  var summary=data.summary||{}, bits=Object.keys(summary).map(function(k){return '<div class="breakdown-row"><span>'+esc(k.replace(/([A-Z])/g,' $1'))+'</span><strong>'+esc(summary[k])+'</strong></div>';});
+  $('specializedReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.title||data.reportType)+'</h3>'+bits.join('')+'</div>';
+}
+function printSpecializedReport(){
+  if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>'+esc(currentSpecializedReport.title||'Specialized Report')+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentSpecializedReport.title||'Specialized Report')+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('specializedReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportSpecializedReport(){
+  if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
+  var rows=[currentSpecializedReport.columns||[]].concat(currentSpecializedReport.rows||[]);
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_'+String(currentSpecializedReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+function populateSpecializedGrades(){
+  var grades=['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+  $('specializedGrade').innerHTML='<option value="">All Grade Levels</option>'+grades.map(function(g){return '<option>'+esc(g)+'</option>';}).join('');
+}
+$('specializedGrade').onchange=refreshSpecializedSections;
+$('loadSpecializedReport').onclick=loadSpecializedReport;
+$('printSpecializedReport').onclick=printSpecializedReport;
+$('exportSpecializedReport').onclick=exportSpecializedReport;
+populateSpecializedGrades();
+
+var currentMatrixReport=null;
+function setMatrixReportStatus(t,bad){localStatus('matrixReportStatus',t,bad);}
+function loadMatrixReport(){
+  var btn=$('loadMatrixReport');setButtonLoading(btn,true,'Generate Matrix');
+  call('admissionPortalMatrixReport',[TOKEN,$('matrixRowDimension').value,$('matrixColumnDimension').value],function(r){
+    currentMatrixReport=r.data;renderMatrixReport(r.data);setButtonLoading(btn,false,'Generate Matrix');setMatrixReportStatus('Matrix report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Matrix');setMatrixReportStatus(e,true);});
+}
+function renderMatrixReport(data){
+  var cols=data.columns||[],rows=data.reports||[];
+  $('matrixReportTable').querySelector('thead').innerHTML='<tr><th>'+esc(data.rowDimension)+'</th>'+cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'<th>Total</th></tr>';
+  var body=rows.map(function(r){return '<tr><td><strong>'+esc(r.Group)+'</strong></td>'+cols.map(function(c){return '<td>'+Number(r[c]||0)+'</td>';}).join('')+'<td><strong>'+Number(r.Total||0)+'</strong></td></tr>';});
+  if(data.totals)body.push('<tr><td><strong>Total</strong></td>'+cols.map(function(c){return '<td><strong>'+Number(data.totals[c]||0)+'</strong></td>';}).join('')+'<td><strong>'+Number(data.totals.Total||0)+'</strong></td></tr>');
+  $('matrixReportTable').querySelector('tbody').innerHTML=body.join('')||'<tr><td colspan="'+(cols.length+2)+'">No records found.</td></tr>';
+  $('matrixReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.rowDimension)+' × '+esc(data.columnDimension)+'</h3><div class="breakdown-row"><span>Row Groups</span><strong>'+rows.length+'</strong></div><div class="breakdown-row"><span>Total Students</span><strong>'+Number(data.totals&&data.totals.Total||0)+'</strong></div></div>';
+}
+function printMatrixReport(){
+  if(!currentMatrixReport){setMatrixReportStatus('Generate the matrix report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Moreh Academy Matrix Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #ccc;padding:5px;text-align:center}th:first-child,td:first-child{text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentMatrixReport.rowDimension)+' × '+esc(currentMatrixReport.columnDimension)+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('matrixReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportMatrixReport(){
+  if(!currentMatrixReport){setMatrixReportStatus('Generate the matrix report first.',true);return;}
+  var cols=currentMatrixReport.columns||[],rows=[[currentMatrixReport.rowDimension].concat(cols).concat(['Total'])];
+  (currentMatrixReport.reports||[]).forEach(function(r){rows.push([r.Group].concat(cols.map(function(c){return Number(r[c]||0)})).concat([Number(r.Total||0)]));});
+  var t=currentMatrixReport.totals;if(t)rows.push(['Total'].concat(cols.map(function(c){return Number(t[c]||0)})).concat([Number(t.Total||0)]));
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_Matrix_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+$('loadMatrixReport').onclick=loadMatrixReport;
+$('printMatrixReport').onclick=printMatrixReport;
+$('exportMatrixReport').onclick=exportMatrixReport;
+
+var currentGeneralReport=null;
+function loadGeneralReport(){
+  var btn=$('loadGeneralReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalReport',[TOKEN,$('reportType').value,$('reportValue').value],function(r){
+    currentGeneralReport=r.data;renderGeneralReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');setGeneralReportStatus('Report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setGeneralReportStatus(e,true);});
+}
+function setGeneralReportStatus(t,bad){localStatus('generalReportStatus',t,bad);}
+function renderGeneralReport(data){
+  var sel=$('reportValue');sel.innerHTML='<option value="">All</option>'+data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
+  if(data.selectedValue)sel.value=data.selectedValue;
+  var reports=data.reports||[];
+  $('generalReportTable').querySelector('tbody').innerHTML=reports.length?reports.map(function(g){
+    return '<tr class="general-report-row" data-report-group="'+esc(encodeURIComponent(g.Group))+'" style="cursor:pointer"><td><strong>'+esc(g.Group)+'</strong></td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
+  }).join(''):'<tr><td colspan="11">No records found.</td></tr>';
+  document.querySelectorAll('.general-report-row').forEach(function(row){
+    row.onclick=function(){
+      var group=decodeURIComponent(row.getAttribute('data-report-group')||'');
+      $('detailReportType').value=data.reportType;
+      refreshDetailedReportValues(group);
+      $('detailedReportPanel').scrollIntoView({behavior:'smooth',block:'start'});
+    };
+  });
+  var total=reports.reduce(function(n,g){return n+Number(g.Total||0)},0);
+  $('generalReportSummary').innerHTML='<div class="breakdown"><h3>'+esc(data.reportType)+'</h3><div class="breakdown-row"><span>Groups</span><strong>'+reports.length+'</strong></div><div class="breakdown-row"><span>Total Students</span><strong>'+total+'</strong></div></div>';
+}
+function printGeneralReport(){
+  if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Moreh Academy Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentGeneralReport.reportType)+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('generalReportTable').outerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportGeneralReport(){
+  if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
+  var rows=[['Group','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
+  (currentGeneralReport.reports||[]).forEach(function(g){rows.push([g.Group,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Moreh_'+String(currentGeneralReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+function refreshReportValues(){var type=$('reportType').value;call('admissionPortalReport',[TOKEN,type,''],function(r){var sel=$('reportValue');sel.innerHTML='<option value="">All</option>'+r.data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');});}
+$('reportType').onchange=refreshReportValues;
+$('loadGeneralReport').onclick=loadGeneralReport;
+$('printGeneralReport').onclick=printGeneralReport;
+$('exportGeneralReport').onclick=exportGeneralReport;
+var currentAdviserReport=null;
+function setAdviserReportStatus(t,bad){localStatus('adviserReportStatus',t,bad);}
+function loadAdviserReport(){
+  var btn=$('loadAdviserReport');setButtonLoading(btn,true,'Generate Report');
+  call('admissionPortalFormerAdviserReport',[TOKEN,$('adviserSelect').value],function(r){
+    currentAdviserReport=r.data;
+    renderAdviserReport(r.data);
+    setButtonLoading(btn,false,'Generate Report');
+    setAdviserReportStatus('Report generated.',false);
+  },function(e){setButtonLoading(btn,false,'Generate Report');setAdviserReportStatus(e,true);});
+}
+function renderAdviserReport(data){
+  var reports=data.reports||[], sel=$('adviserSelect'), current=sel.value;
+  sel.innerHTML='<option value="">All Advisers</option>'+data.advisers.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>';}).join('');
+  if(current && data.advisers.indexOf(current)>=0) sel.value=current;
+  $('adviserReportTable').querySelector('tbody').innerHTML=reports.length?reports.map(function(g){
+    return '<tr class="former-adviser-row" data-former-adviser="'+esc(encodeURIComponent(g.FormerAdviser))+'" style="cursor:pointer">'+
+      '<td><strong>'+esc(g.FormerAdviser)+'</strong></td><td>'+g.Total+'</td><td>'+g.Enrolled+'</td><td>'+g.NotEnrolled+'</td><td>'+g.Temporary+'</td><td>'+g.Transferred+'</td><td>'+g.Cancelled+'</td><td>'+g.Submitted+'</td><td>'+g.UnderReview+'</td><td>'+g.Approved+'</td><td>'+g.Declined+'</td></tr>';
+  }).join(''):'<tr><td colspan="11">No former adviser records found.</td></tr>';
+  document.querySelectorAll('.former-adviser-row').forEach(function(row){
+    row.onclick=function(){
+      var name=decodeURIComponent(row.getAttribute('data-former-adviser')||'');
+      var group=reports.filter(function(g){return g.FormerAdviser===name;})[0];
+      renderFormerAdviserStudents(group);
+    };
+  });
+  var total=reports.reduce(function(n,g){return n+Number(g.Total||0)},0);
+  $('adviserReportSummary').innerHTML='<div class="breakdown">'+
+    '<h3>Former Adviser Summary</h3><div class="breakdown-row"><span>Former Adviser Groups</span><strong>'+reports.length+'</strong></div>'+
+    '<div class="breakdown-row"><span>Total Students</span><strong>'+total+'</strong></div></div>';
+}
+function renderFormerAdviserStudents(group){
+  var box=$('adviserStudentList');
+  if(!group){box.classList.add('hidden');box.innerHTML='';return;}
+  var students=group.students||[];
+  box.classList.remove('hidden');
+  box.innerHTML='<div class="dash-panel"><div class="actions" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">Students under '+esc(group.FormerAdviser)+'</h3><div class="muted">'+students.length+' student(s)</div></div><button type="button" class="btn secondary" id="closeFormerAdviserStudents">Close</button></div>'+
+    '<div class="scroll" style="margin-top:12px"><table class="table"><thead><tr><th>Student ID</th><th>Student</th><th>Current Grade</th><th>Previous School</th><th>Previous Section</th><th>Category</th><th>Application Status</th><th>Enrollment Status</th></tr></thead><tbody>'+
+    (students.length?students.map(function(s){
+      return '<tr><td>'+esc(s.StudentID)+'</td><td>'+esc(s.FullName)+'</td><td>'+esc(s.GradeLevel)+'</td><td>'+esc(s.PreviousSchool)+'</td><td>'+esc(s.PreviousSection)+'</td><td>'+esc(s.Category)+'</td><td>'+esc(s.ApplicationStatus)+'</td><td>'+esc(s.EnrollStatus)+'</td></tr>';
+    }).join(''):'<tr><td colspan="8">No students found.</td></tr>')+
+    '</tbody></table></div></div>';
+  $('closeFormerAdviserStudents').onclick=function(){box.classList.add('hidden');box.innerHTML='';};
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function printAdviserReport(){
+  if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>Per Former Adviser Report</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left}h1{margin-bottom:4px}p{color:#555}</style></head><body><h1>Moreh Academy — Per Former Adviser Report</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('adviserReportPanel').innerHTML+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+function exportAdviserReport(){
+  if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
+  var rows=[['Former Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
+  (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.FormerAdviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url;a.download='Moreh_Former_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
+}
+$('loadAdviserReport').onclick=loadAdviserReport;
+$('printAdviserReport').onclick=printAdviserReport;
+$('exportAdviserReport').onclick=exportAdviserReport;
+
+function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
-    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
-    var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>'}).join('')+'</div>'+
-      '<div class="actions"><button class="btn blue" onclick="saveStudent(\''+encodeURIComponent(x.StudentID)+'\')">Save Changes</button></div>'+
+    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
+    var categoryOptions=['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'];
+    var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
+      if(k==='ApplicationStatus'){
+        var currentStatus=String(x[k]||'Submitted');
+        var statusOptions=['Submitted','Under Review','Approved','Declined'];
+        return '<div><label>Application Status</label><select data-edit="ApplicationStatus">'+statusOptions.map(function(v){return '<option value="'+esc(v)+'" '+(v===currentStatus?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>';
+      }
+      if(k==='Category'){
+        var current=String(x[k]||'');
+        var options=categoryOptions.slice();
+        if(current && options.indexOf(current)<0)options.unshift(current);
+        return '<div><label>Category</label><select data-edit="Category">'+options.map(function(v){return '<option value="'+esc(v)+'" '+(v===current?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>';
+      }
+      return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>';
+    }).join('')+'</div>'+
+      '<div class="actions"><button type="button" class="btn blue" data-action="save-student">Save Changes</button><button type="button" class="btn secondary" data-action="open-id-card">ID Card</button><button type="button" class="btn secondary" data-action="re-enroll">Re-enroll</button><span id="studentSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span><span id="lifecycleStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div>'+
       '<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Documentary Requirements</h3><p>Only Admission Personnel can update these document statuses. Each change is recorded in the audit log.</p>'+
       '<div class="form-grid">'+(function(){var groups={};(x.RequirementItems||[]).forEach(function(item){var stage=item.stage||'For Completion';(groups[stage]||(groups[stage]=[])).push(item)});return Object.keys(groups).map(function(stage){return '<div class="section wide">'+esc(stage)+'</div>'+groups[stage].map(function(item){return '<div><label>'+esc(item.label)+'</label><select data-req-status="'+esc(item.statusKey)+'">'+['Pending Submission','Received','Verified','Incomplete'].map(function(v){return '<option value="'+esc(v)+'" '+(v===item.status?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}).join('')}).join('')})()+'</div>'+
-      '<div class="actions"><button class="btn blue" onclick="saveRequirementStatuses(\''+encodeURIComponent(x.StudentID)+'\')">Update Document Statuses</button></div></div>';
+      '<div class="actions"><button type="button" class="btn blue" data-action="save-requirements">Update Document Statuses</button><span id="reqSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div></div>';
     $('staff').insertAdjacentHTML('afterend',h);
+    var detail=$('studentDetail');
+    detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
+    detail.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(x.StudentID)};
   });
 }
+function localStatus(id,text,bad){
+  var e=$(id);if(!e)return;
+  e.textContent=text;e.className='status '+(bad?'error':'success');
+  e.style.display='inline-flex';
+}
+function setButtonLoading(button,loading,label){
+  if(!button)return;
+  if(loading){
+    button.disabled=true;
+    button.innerHTML='<span class="loading-spinner" aria-hidden="true"></span> Processing...';
+  }else{
+    button.disabled=false;
+    button.textContent=label;
+  }
+}
 function saveStudent(id){
+  var button=document.querySelector('#studentDetail [data-action="save-student"]');
+  setButtonLoading(button,true,'Save Changes');
   var o={};document.querySelectorAll('#studentDetail [data-edit]').forEach(function(e){o[e.getAttribute('data-edit')]=e.value});
-  call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){msg(r.message);search()});
+  call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){
+    setButtonLoading(button,false,'Save Changes');
+    localStatus('studentSaveStatus',r.message,false);
+    search();
+  },function(error){
+    setButtonLoading(button,false,'Save Changes');
+    localStatus('studentSaveStatus',error,true);
+  });
 }
 function saveRequirementStatuses(id){
+  var button=document.querySelector('#studentDetail [data-action="save-requirements"]');
+  setButtonLoading(button,true,'Update Document Statuses');
   var o={};document.querySelectorAll('#studentDetail [data-req-status]').forEach(function(e){o[e.getAttribute('data-req-status')]=e.value});
-  call('admissionPortalUpdateRequirementStatuses',[TOKEN,decodeURIComponent(id),o],function(r){msg(r.message);openStudent(id)});
+  call('admissionPortalUpdateRequirementStatuses',[TOKEN,decodeURIComponent(id),o],function(r){
+    setButtonLoading(button,false,'Update Document Statuses');
+    localStatus('reqSaveStatus',r.message,false);
+    openStudent(id);
+  },function(error){
+    setButtonLoading(button,false,'Update Document Statuses');
+    localStatus('reqSaveStatus',error,true);
+  });
 }
 $('signout').onclick=function(e){e.preventDefault();call('authSignOut',[TOKEN],function(){try{sessionStorage.removeItem('ma_token')}catch(x){}location.href=APP_BASE})};
+
+// Post-approval lifecycle controls. These actions are deliberately staff-only and reuse the server-side role gates.
+function runLifecycleAction(fn,args,statusId){
+  var e=$(statusId); if(e){e.className='status';e.textContent='Processing...';e.style.display='inline-flex';}
+  call(fn,args,function(r){if(e){e.className='status success';e.textContent=r.message||'Completed.';e.style.display='inline-flex';}search();},function(m){if(e){e.className='status error';e.textContent=m;e.style.display='inline-flex';}});
+}
+function openIdCard(id){
+  call('admissionIdCardData',[TOKEN,decodeURIComponent(id)],function(r){
+    var x=r.data||{}, existing=document.getElementById('idCardDetail'); if(existing)existing.remove();
+    var html='<div class=\"card\" id=\"idCardDetail\"><h2>ID Card</h2><div class=\"form-grid\">'+
+      '<div><label>Student ID</label><input value=\"'+esc(x.StudentID||'')+'\" disabled></div>'+
+      '<div><label>Category</label><input value=\"'+esc(x.Category||'')+'\" disabled></div>'+
+      '<div><label>Current ID Number</label><input id=\"idCardNumber\" value=\"'+esc(x.IDNumber||'')+'\" placeholder=\"TLC2027-0001\"></div>'+
+      '<div><label>Claimed TLC ID</label><input value=\"'+esc(x.ClaimedIDNumber||'')+'\" disabled></div>'+
+      '</div><div class=\"actions\"><button class=\"btn blue\" type=\"button\" id=\"saveIdCard\">Confirm ID Number</button><span id=\"idCardStatus\" class=\"status hidden\"></span></div></div>';
+    $('studentDetail').insertAdjacentHTML('afterend',html);
+    $('saveIdCard').onclick=function(){var b=this;b.disabled=true;b.textContent='Processing...';call('admissionIdCardSaveNumber',[TOKEN,x.StudentID,$('idCardNumber').value],function(z){b.disabled=false;b.textContent='Confirm ID Number';localStatus('idCardStatus',z.message,false);openStudent(encodeURIComponent(x.StudentID));},function(m){b.disabled=false;b.textContent='Confirm ID Number';localStatus('idCardStatus',m,true);});};
+  });
+}
+
+// Centralized staff navigation. Existing admission/report actions remain bound to their original IDs.
+var ADM_VIEW_META={
+ dashboard:['Admission Dashboard','Admissions overview, pipeline statistics, and items requiring attention.'],
+ records:['Admission Records','Search, filter, and open admission records.'],
+ general:['General Report','Summarized admission and enrollment statistics by selected dimension.'],
+ specialized:['Specialized Reports','Operational, demographic, requirements, scholarship, and school reports.'],
+ detailed:['Detailed Student Report','Detailed student records grouped by selected dimension.'],
+ matrix:['Matrix Reports','Cross-tabulation of admission dimensions.'],
+ adviser:['Former Adviser Report','Reports grouped by former adviser and their students.']
+};
+function setAdmissionStaffView(view){
+ if(!ADM_VIEW_META[view])view='dashboard';
+ document.querySelectorAll('[data-adm-view]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-adm-view')===view)});
+ document.querySelectorAll('.adm-view').forEach(function(v){v.classList.toggle('active',v.id==='adm-view-'+view)});
+ $('admViewTitle').textContent=ADM_VIEW_META[view][0];$('admViewDescription').textContent=ADM_VIEW_META[view][1];
+ try{sessionStorage.setItem('ma_admission_staff_view',view)}catch(e){}
+ var side=document.querySelector('.adm-sidebar');if(side)side.classList.remove('mobile-open');
+ var toggle=$('admMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
+}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-adm-view]');if(b)setAdmissionStaffView(b.getAttribute('data-adm-view'))});
+$('admMenuToggle').onclick=function(){var side=document.querySelector('.adm-sidebar');side.classList.toggle('mobile-open');this.setAttribute('aria-expanded',side.classList.contains('mobile-open')?'true':'false')};
+
 boot();
 </script></body></html>

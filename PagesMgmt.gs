@@ -3,7 +3,7 @@
  * Sheet "PageContent": Route | Draft | Published | DraftUpdatedAt | DraftUpdatedBy | PublishedAt | PublishedBy
  * Sheet "PageHistory": append-only log of every publish (for rollback).
  * Content is a list of structured BLOCKS (never raw HTML): h2, p, ul, img, link, download.
- * Public visitors can call ONLY getPublishedPage(). Every other function calls hpAssertAdmin_(token) (Owner only).
+ * Public visitors can call ONLY getPublishedPage(). Every other function calls hpAssertAdmin_(token) (Owner or Website Administrator).
  * Depends on HomepageMgmt.gs: hpAssertAdmin_, hpAudit_, hpClean_, hpParse_, hpSpreadsheet_.
  * Script Properties: PG_FOLDER_ID is created automatically (separate Drive folder for downloadable files).
  * No new OAuth scopes: uses the same Spreadsheet, Drive, Cache, Lock and Properties services as Phase 2.
@@ -41,7 +41,6 @@ var PG = {
     { route: 'news/upcoming-events', label: 'Upcoming Events', group: 'News & Updates' },
     { route: 'news/enrollment-announcements', label: 'Enrollment Announcements', group: 'News & Updates' },
     { route: 'news/school-achievements', label: 'School Achievements', group: 'News & Updates' },
-    { route: 'contact', label: 'Contact Information', group: 'Contact' },
     { route: 'contact', label: 'Contact Information', group: 'Contact' },
     { route: 'terms', label: 'Terms of Service', group: 'Legal' },
     { route: 'privacy', label: 'Privacy Policy', group: 'Legal' }
@@ -144,7 +143,7 @@ function getPublishedPage(route) {
   return out;
 }
 
-/* ---------- Owner only ---------- */
+/* ---------- Owner / Website Administrator only ---------- */
 /** Draft where one exists, otherwise published. Needs the 10-minute ticket from createHomepagePreviewTicket. */
 function getDraftPage(route, ticket) {
   if (!ticket || !CacheService.getScriptCache().get('hp_pt_' + ticket)) throw new Error('Preview expired. Open it again from Website Pages Management.');

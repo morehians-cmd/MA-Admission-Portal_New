@@ -19,7 +19,7 @@ var AUTH = {
   USERS: 'Users', AUDIT: 'AuthAudit',
   HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt',
             'FullName', 'Mobile', 'TermsAcceptedAt', 'OtpHash', 'OtpExpires', 'OtpTries', 'OtpPurpose', 'StudentID'],
-  ROLES: ['Owner', 'Encoder', 'Student', 'Applicant'],
+  ROLES: ['Owner', 'Website Administrator', 'Encoder', 'Student', 'Applicant'],
   ITER: 20000,                 // default for NEW hashes. Tune with authBenchmark().
   MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
   IDLE_SEC: 7200,             // a session dies after 2 hours without use
@@ -35,7 +35,7 @@ function authSignIn(email, password) {
     email = authEmail_(email);
     if (!email || typeof password !== 'string' || !password || password.length > AUTH.MAX_PW) return authFail_('Enter your email and password.');
     var failKey = 'af_' + authDigest_(email), cache = CacheService.getScriptCache();
-    if (Number(cache.get(failKey) || 0) >= AUTH.MAX_FAILS) return authFail_('Too many attempts. Please wait 15 minutes and try again.');
+    if (Number(cache.get(failKey) || 0) >= AUTH.MAX_FAILS) return authFail_('Too many attempts. Please wait 10 minutes and try again.');
 
     var u = authFindUser_(email), good = false;
     if (u) {
@@ -93,6 +93,7 @@ function authChangePassword(token, oldPassword, newPassword) {
     var min = s.role === 'Owner' ? AUTH.MIN_PW_OWNER : AUTH.MIN_PW;
     if (newPassword.length < min || newPassword.length > AUTH.MAX_PW) return authFail_('New password must be ' + min + ' to ' + AUTH.MAX_PW + ' characters.');
     if (newPassword === oldPassword) return authFail_('Choose a password different from the current one.');
+    var pwMsg = accPasswordProblem_(newPassword, s.email, s.role); if (pwMsg) return authFail_(pwMsg);   // same rules as registration
     var u = authFindUser_(s.email);
     if (!u || !authVerify_(oldPassword, u.hash)) return authFail_('Current password is incorrect.');
     authUpdateRow_(u.row, { PasswordHash: authMakeHash_(newPassword), TokenVersion: u.tv + 1, PasswordChangedAt: new Date().toISOString() });
@@ -116,10 +117,36 @@ function authResolveSession_(token) {
   var s; try { s = JSON.parse(raw); } catch (e) { return null; }
   var age = Math.floor(Date.now() / 1000) - s.iat;
   if (age >= AUTH.MAX_SEC) { cache.remove(key); return null; }
-  var u = authFindUser_(s.e);
+  var u = authSessionUser_(s.e);   // cached lookup (see below); busted by every Users write
   if (!u || u.status !== 'Active' || u.tv !== s.tv) { cache.remove(key); return null; }
   cache.put(key, raw, Math.max(1, Math.min(AUTH.IDLE_SEC, AUTH.MAX_SEC - age)));   // sliding idle window
   return { email: u.email, role: u.role, studentId: u.studentId || '', fullName: u.name || '' };
+}
+
+/* ---- Users lookup cache -------------------------------------------------------------------------
+ * Every page load makes several authenticated calls, and each one used to read the whole Users sheet.
+ * The role/status/token-version of a user is now cached for 2 minutes under a version number. Every write the
+ * app makes to Users (authUpdateRow_, accWrite_, accAppend_, student link, purge, owner setup) bumps the version, so
+ * disabling a user, changing a password or a role through the app still takes effect on the very next request.
+ * Only a hand edit made directly in the Google Sheet can take up to 2 minutes to be noticed.
+ * The cache holds no password hashes or OTP data. */
+var AUTH_UCACHE_SEC = 120;
+function authUserVer_() {
+  var c = CacheService.getScriptCache(), v = c.get('au_ver');
+  if (!v) { v = Utilities.getUuid(); c.put('au_ver', v, 21600); }
+  return v;
+}
+function authUserBump_() {
+  try { CacheService.getScriptCache().put('au_ver', Utilities.getUuid(), 21600); } catch (e) { /* cache is best-effort */ }
+}
+function authSessionUser_(email) {
+  var c = CacheService.getScriptCache(), key = 'au_' + authUserVer_() + '_' + authDigest_(email), raw = c.get(key);
+  if (raw) { try { return JSON.parse(raw); } catch (e) { /* fall through to the sheet */ } }
+  var u = authFindUser_(email);
+  if (!u) return null;
+  var slim = { email: u.email, role: u.role, status: u.status, tv: u.tv, studentId: u.studentId, name: u.name };
+  try { c.put(key, JSON.stringify(slim), AUTH_UCACHE_SEC); } catch (e) { /* ignore */ }
+  return slim;
 }
 
 /** For feature files: returns {email, role} if the session holds one of `roles`, otherwise throws 'Not authorized.' */
@@ -147,6 +174,7 @@ function authLinkStudentLocked_(email, studentId) {
   var sh = authSheet_(), header = String(sh.getRange(1, AUTH.HEADERS.length).getValue() || '');
   if (header !== 'StudentID') throw new Error('Run the approved Users schema migration before linking student records.');
   sh.getRange(u.row, AUTH.HEADERS.length).setNumberFormat('@').setValue(studentId);
+  authUserBump_();
   authAudit_(email, 'student-link', studentId);
   return true;
 }
@@ -178,6 +206,7 @@ function authSetupOwner() {
     if (all.some(function (u) { return u.email === email; })) throw new Error('That email already has an account.');
     var now = new Date().toISOString();
     authSheet_().appendRow([email, 'Owner', 'Active', authMakeHash_(pw), 1, now, '', now]);
+    authUserBump_();
   } finally { lock.releaseLock(); }
   props.deleteProperty('AUTH_OWNER_PASSWORD');
   authAudit_(email, 'owner-setup', 'by script owner');
@@ -224,7 +253,8 @@ function authFail_(msg, err) {
 }
 function authEmail_(v) {
   var e = String(v == null ? '' : v).trim().toLowerCase();
-  return (e.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) ? e : '';
+  // A leading = + - @ would be read as a spreadsheet formula when the address is stored, so such addresses are refused.
+  return (e.length <= 254 && /^[^@\s=+\-][^@\s]*@[^@\s]+\.[^@\s]+$/.test(e)) ? e : '';
 }
 function authValidToken_(t) { return typeof t === 'string' && /^[a-f0-9]{64}$/.test(t); }
 function authIters_(stored) { var p = String(stored || '').split('$'); return parseInt(p[1], 10) || 0; }
@@ -295,14 +325,46 @@ function authUpdateRow_(row, changes) {
   try {
     var sh = authSheet_(), range = sh.getRange(row, 1, 1, AUTH.HEADERS.length), vals = range.getValues();
     Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
-    sh.getRange(row, 9, 1, AUTH.HEADERS.length - 8).setNumberFormat('@');
+    range.setNumberFormat('@');   // whole row as text so no value can become a formula
     range.setValues(vals);
+    authUserBump_();
   } finally { lock.releaseLock(); }
 }
+
+/** Internal status workflow helper. Caller must already hold the script lock. */
+function authPromoteApplicantToStudentLocked_(email, studentId) {
+  email = authEmail_(email);
+  studentId = String(studentId || '').trim();
+  var u = authFindUser_(email);
+  if (!u) throw new Error('The applicant account could not be found.');
+  if (u.status !== 'Active') throw new Error('The applicant account is not active.');
+  if (u.role === 'Student') {
+    if (u.studentId !== studentId) throw new Error('The student account is linked to a different StudentID.');
+    return false;
+  }
+  if (u.role !== 'Applicant') throw new Error('Only an Applicant account can be promoted to Student.');
+  if (u.studentId && u.studentId !== studentId) throw new Error('The applicant account is already linked to another StudentID.');
+
+  var sh = authSheet_();
+  var range = sh.getRange(u.row, 1, 1, AUTH.HEADERS.length);
+  var vals = range.getValues();
+  var roleCol = AUTH.HEADERS.indexOf('Role');
+  var tvCol = AUTH.HEADERS.indexOf('TokenVersion');
+  var idCol = AUTH.HEADERS.indexOf('StudentID');
+  vals[0][roleCol] = 'Student';
+  vals[0][tvCol] = String(Number(u.tv || 0) + 1);
+  vals[0][idCol] = studentId;
+  range.setNumberFormat('@').setValues(vals);
+  authUserBump_();
+  authAudit_(email, 'role-promoted', studentId);
+  return true;
+}
+
 function authAudit_(email, action, detail) {
   try {
     var ss = authSpreadsheet_(), sh = ss.getSheetByName(AUTH.AUDIT);
     if (!sh) { sh = ss.insertSheet(AUTH.AUDIT); sh.appendRow(['At', 'Email', 'Action', 'Detail']); sh.setFrozenRows(1); }
-    sh.appendRow([new Date().toISOString(), email, action, String(detail || '').slice(0, 300)]);
+    var row = [new Date().toISOString(), String(email == null ? '' : email), String(action), String(detail || '').slice(0, 300)];
+    sh.getRange(sh.getLastRow() + 1, 1, 1, row.length).setNumberFormat('@').setValues([row]);   // text, never a formula
   } catch (e) { /* auditing never blocks sign-in */ }
 }

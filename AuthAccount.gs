@@ -131,11 +131,16 @@ function authMigrateUsersSheet() {
 
 /** Optional daily time trigger: deletes unverified (Pending) accounts older than 7 days. Harmless if called by anyone. */
 function authPurgePending() {
+  // Public function (so a trigger can call it): allow one real run per hour so it cannot be used to hog the script lock.
+  var cache = CacheService.getScriptCache();
+  if (cache.get('purge_pending_ran')) return;
+  cache.put('purge_pending_ran', '1', 3600);
   var lock = LockService.getScriptLock(); lock.waitLock(15000);
   try {
     var sh = authSheet_(), v = sh.getDataRange().getValues(), cutoff = Date.now() - 7 * 86400000, del = [];
     for (var i = 1; i < v.length; i++) if (String(v[i][2]) === 'Pending' && new Date(v[i][5]).getTime() < cutoff) del.push(i + 1);
     del.reverse().forEach(function (r) { sh.deleteRow(r); });
+    if (del.length) authUserBump_();
   } finally { lock.releaseLock(); }
 }
 
@@ -201,14 +206,16 @@ function accPasswordProblem_(pw, email, role) {
 function accWrite_(row, changes) {
   var sh = authSheet_(), n = AUTH.HEADERS.length, range = sh.getRange(row, 1, 1, n), vals = range.getValues();
   Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
-  sh.getRange(row, 9, 1, n - 8).setNumberFormat('@');
+  range.setNumberFormat('@');   // whole row as text so no value can become a formula
   range.setValues(vals);
+  authUserBump_();
 }
 function accAppend_(obj) {
   var sh = authSheet_(), n = AUTH.HEADERS.length, row = sh.getLastRow() + 1;
   if (row > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 1);
-  sh.getRange(row, 9, 1, n - 8).setNumberFormat('@');
+  sh.getRange(row, 1, 1, n).setNumberFormat('@');   // Email/Role/... as text too (was columns 9+ only)
   sh.getRange(row, 1, 1, n).setValues([AUTH.HEADERS.map(function (h) { return obj[h] == null ? '' : obj[h]; })]);
+  authUserBump_();
 }
 function accEsc_(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function accSendOtp_(email, name, code, purpose) {

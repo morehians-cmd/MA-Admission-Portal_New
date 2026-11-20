@@ -54,10 +54,10 @@ footer{text-align:center;color:#8793a8;font-size:10px;padding:28px 12px}
       <nav class="nav" aria-label="Applicant navigation">
         <a class="active" href="#" aria-current="page"><span class="ico">▦</span>Dashboard</a>
         <a href="<?= baseUrl ?>?page=applicant-application" target="_top"><span class="ico">📝</span>My Application</a>
-        <a href="<?= baseUrl ?>?page=applicant-corrections" target="_top"><span class="ico">✎</span>Correction Requests</a>
+        <a class="disabled" href="#" aria-disabled="true" title="Coming soon"><span class="ico">✎</span>Correction Requests</a>
         <a class="disabled" href="#" aria-disabled="true" title="Available in Phase 3"><span class="ico">📎</span>Requirements</a>
         <a class="disabled" href="#" aria-disabled="true" title="Available in Phase 4"><span class="ico">◷</span>Application Tracking</a>
-        <a class="disabled" href="#" aria-disabled="true" title="Available in Phase 5"><span class="ico">♙</span>My Profile</a>
+        <a href="<?= baseUrl ?>?page=student-profile" target="_top"><span class="ico">♙</span>My Profile</a>
         <a class="disabled" href="#" aria-disabled="true" title="Available in Phase 6"><span class="ico">♧</span>Notifications</a>
       </nav>
     </div>
@@ -86,10 +86,11 @@ function renderDashboard(account,record){
   document.getElementById('userName').textContent=name;document.getElementById('userEmail').textContent=email;
   document.getElementById('avatar').textContent=initials(name);
   var submitted=!!record,studentId=submitted?(record.OfficialStudentID||'Pending assignment'):'Not generated yet';
-  var status=submitted?'Submitted':'Not submitted';
-  var statusNote=submitted?'Your application has been received. The Admissions Office review status will be shown here as processing begins.':'Your applicant account is active. Complete your application to generate your Student ID and begin the admission process.';
+  var applicationStatus=submitted?(record.ApplicationStatus||'Submitted'):'Not submitted';
+  var status=applicationStatus;
+  var statusNote=submitted?({Submitted:'Your application has been received and is awaiting Admissions Office review.','Under Review':'The Admissions Office is currently reviewing your application and submitted requirements.','Approved':'Your application has been approved. Please follow the Admissions Office instructions for enrollment.','Declined':'Your application was not approved. Please contact the Admissions Office for further information.'}[applicationStatus]||'Your application status has been updated by the Admissions Office.'):'Your applicant account is active. Complete your application to generate your Student ID and begin the admission process.';
   var html='<div class="welcome"><div><div class="eyebrow">Welcome to Moreh Academy</div><h1>Hello, '+esc((name.split(',')[0]||name).trim())+'!</h1><p>This is your personal admission workspace. You can monitor your application and follow the next steps toward joining the Moreh Academy community.</p></div><div class="welcome-mark" aria-hidden="true">✦</div></div><div class="grid">';
-  html+='<section class="card status-card"><div><div class="status-label">Application status</div><div class="status-value">'+(submitted?'Application submitted':'No application yet')+'</div><div class="status-note">'+esc(statusNote)+'</div></div><span class="pill '+(submitted?'':'pending')+'"><span class="dot"></span>'+status+'</span></section>';
+  html+='<section class="card status-card"><div><div class="status-label">Application status</div><div class="status-value">'+(submitted?esc(applicationStatus):'No application yet')+'</div><div class="status-note">'+esc(statusNote)+'</div></div><span class="pill '+(submitted&&applicationStatus==='Approved'?'':'pending')+'"><span class="dot"></span>'+esc(status)+'</span></section>';
   html+='<section class="card stat-id"><div class="status-label">Moreh Student ID</div><div class="value">'+esc(studentId)+'</div><small>'+(submitted?'Your application record is now linked to this account.':'Generated automatically after your first application is submitted.')+'</small></section>';
   html+='<section class="card progress-card"><div class="section-head"><h2>Admission journey</h2><span>'+(submitted?'Step 2 of 5':'Step 1 of 5')+'</span></div><div class="progress-top"><strong>'+(submitted?'Application received':'Account created')+'</strong><span>'+(submitted?'40%':'20%')+'</span></div><div class="track"><div class="fill" style="width:'+(submitted?'40%':'20%')+'"></div></div><div class="steps"><div class="step done"><div class="bubble">✓</div>Account</div><div class="step '+(submitted?'done':'')+'"><div class="bubble">'+(submitted?'✓':'2')+'</div>Application</div><div class="step"><div class="bubble">3</div>Review</div><div class="step"><div class="bubble">4</div>Decision</div><div class="step"><div class="bubble">5</div>Enrollment</div></div></section>';
   html+='<section class="card next-card"><div class="section-head"><h2>What happens next?</h2><span>Admission guide</span></div>';
@@ -97,29 +98,35 @@ function renderDashboard(account,record){
   html+='<div class="next-item"><div class="next-ico">🔎</div><div><strong>Admissions review</strong><small>The school will review your application and requirements.</small></div></div>';
   html+='<div class="next-item"><div class="next-ico">📬</div><div><strong>Watch for updates</strong><small>Important admission updates will be available in Notifications.</small></div></div></section>';
   if(submitted){html+='<section class="card info-card"><div class="section-head"><h2>Application overview</h2><span>Submitted information</span></div><div class="details">';
-    [['Student name',record.FullName],['School year',record.SchoolYear],['Department',record.Department],['Grade level',record.GradeLevel],['Date of birth',record.Birthdate],['Application status','Submitted']].forEach(function(x){html+='<div class="detail"><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'Not provided')+'</strong></div>'});
+    [['Student name',record.FullName],['School year',record.SchoolYear],['Department',record.Department],['Grade level',record.GradeLevel],['Date of birth',record.Birthdate],['Application status',applicationStatus]].forEach(function(x){html+='<div class="detail"><small>'+esc(x[0])+'</small><strong>'+esc(x[1]||'Not provided')+'</strong></div>'});
     html+='</div></section>'}
   else{html+='<section class="empty"><div class="empty-icon">📋</div><div><h2>Your application is not submitted yet</h2><p>Your account is ready. Use My Application to complete your admission form. Your Student ID will be generated only after you submit your first application.</p></div></section>'}
   html+='</div><div class="notice">For your security, your admission information is visible only after your account session is verified. Never share your password or email verification code.</div>';
   document.getElementById('content').innerHTML=html;
 }
-function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],function(){goHome()},function(){goHome()})}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}bootCacheClear();if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],function(){goHome()},function(){goHome()})}
 document.getElementById('logout').addEventListener('click',signOut);
 document.getElementById('backHome').href=APP_BASE||'?page=home';
 document.getElementById('year').textContent=new Date().getFullYear();
+/* One server call (account + application together) instead of two in a row. The last result is kept for this tab
+   so the dashboard paints immediately, then is refreshed from the server. Cleared on sign-out. */
+var BOOT_KEY='ma_boot_portal';
+function bootCacheGet(t){try{var c=JSON.parse(sessionStorage.getItem(BOOT_KEY)||'null');return c&&c.tk===t.slice(0,16)?c.d:null}catch(e){return null}}
+function bootCachePut(t,d){try{sessionStorage.setItem(BOOT_KEY,JSON.stringify({tk:t.slice(0,16),d:d}))}catch(e){}}
+function bootCacheClear(){try{sessionStorage.removeItem(BOOT_KEY)}catch(e){}}
 (function boot(){
   var t=token();if(!t){goHome();return}
-  run('authWhoAmI',[t],function(r){
-    if(!r||r.success!==true){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome();return}
-    var account=r.data||{};
-    if(['Applicant','Student'].indexOf(account.role)<0){goHome();return}
-    document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';
-    document.getElementById('userEmail').textContent=account.email||'';
-    run('admissionGetMyApplication',[t],function(a){
-      if(!a||a.success!==true){showError((a&&a.message)||'Unable to load your application.');return}
-      renderDashboard(account,a.data||null);
-    },showError);
-  },function(){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome()});
+  var cached=bootCacheGet(t);
+  if(cached&&cached.account&&['Applicant','Student'].indexOf(cached.account.role)>=0)renderDashboard(cached.account,cached.application||null);
+  run('admissionPortalGetBootstrap',[t],function(r){
+    if(!r||r.success!==true){
+      if(r&&r.message==='Not authorized.'){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}bootCacheClear();goHome();return}
+      if(!cached)showError((r&&r.message)||'Unable to load your application.');return}
+    var d=r.data||{},account=d.account||{};
+    if(['Applicant','Student'].indexOf(account.role)<0){bootCacheClear();goHome();return}
+    bootCachePut(t,d);
+    renderDashboard(account,d.application||null);
+  },function(m){if(!cached)showError(m)});
 })();
 </script>
 </body>
