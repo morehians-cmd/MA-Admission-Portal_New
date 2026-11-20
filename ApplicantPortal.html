@@ -104,23 +104,29 @@ function renderDashboard(account,record){
   html+='</div><div class="notice">For your security, your admission information is visible only after your account session is verified. Never share your password or email verification code.</div>';
   document.getElementById('content').innerHTML=html;
 }
-function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],function(){goHome()},function(){goHome()})}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}bootCacheClear();if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],function(){goHome()},function(){goHome()})}
 document.getElementById('logout').addEventListener('click',signOut);
 document.getElementById('backHome').href=APP_BASE||'?page=home';
 document.getElementById('year').textContent=new Date().getFullYear();
+/* One server call (account + application together) instead of two in a row. The last result is kept for this tab
+   so the dashboard paints immediately, then is refreshed from the server. Cleared on sign-out. */
+var BOOT_KEY='ma_boot_portal';
+function bootCacheGet(t){try{var c=JSON.parse(sessionStorage.getItem(BOOT_KEY)||'null');return c&&c.tk===t.slice(0,16)?c.d:null}catch(e){return null}}
+function bootCachePut(t,d){try{sessionStorage.setItem(BOOT_KEY,JSON.stringify({tk:t.slice(0,16),d:d}))}catch(e){}}
+function bootCacheClear(){try{sessionStorage.removeItem(BOOT_KEY)}catch(e){}}
 (function boot(){
   var t=token();if(!t){goHome();return}
-  run('authWhoAmI',[t],function(r){
-    if(!r||r.success!==true){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome();return}
-    var account=r.data||{};
-    if(['Applicant','Student'].indexOf(account.role)<0){goHome();return}
-    document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';
-    document.getElementById('userEmail').textContent=account.email||'';
-    run('admissionGetMyApplication',[t],function(a){
-      if(!a||a.success!==true){showError((a&&a.message)||'Unable to load your application.');return}
-      renderDashboard(account,a.data||null);
-    },showError);
-  },function(){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}goHome()});
+  var cached=bootCacheGet(t);
+  if(cached&&cached.account&&['Applicant','Student'].indexOf(cached.account.role)>=0)renderDashboard(cached.account,cached.application||null);
+  run('admissionPortalGetBootstrap',[t],function(r){
+    if(!r||r.success!==true){
+      if(r&&r.message==='Not authorized.'){try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}bootCacheClear();goHome();return}
+      if(!cached)showError((r&&r.message)||'Unable to load your application.');return}
+    var d=r.data||{},account=d.account||{};
+    if(['Applicant','Student'].indexOf(account.role)<0){bootCacheClear();goHome();return}
+    bootCachePut(t,d);
+    renderDashboard(account,d.application||null);
+  },function(m){if(!cached)showError(m)});
 })();
 </script>
 </body>

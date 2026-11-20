@@ -117,10 +117,36 @@ function authResolveSession_(token) {
   var s; try { s = JSON.parse(raw); } catch (e) { return null; }
   var age = Math.floor(Date.now() / 1000) - s.iat;
   if (age >= AUTH.MAX_SEC) { cache.remove(key); return null; }
-  var u = authFindUser_(s.e);
+  var u = authSessionUser_(s.e);   // cached lookup (see below); busted by every Users write
   if (!u || u.status !== 'Active' || u.tv !== s.tv) { cache.remove(key); return null; }
   cache.put(key, raw, Math.max(1, Math.min(AUTH.IDLE_SEC, AUTH.MAX_SEC - age)));   // sliding idle window
   return { email: u.email, role: u.role, studentId: u.studentId || '', fullName: u.name || '' };
+}
+
+/* ---- Users lookup cache -------------------------------------------------------------------------
+ * Every page load makes several authenticated calls, and each one used to read the whole Users sheet.
+ * The role/status/token-version of a user is now cached for 2 minutes under a version number. Every write the
+ * app makes to Users (authUpdateRow_, accWrite_, accAppend_, student link, purge, owner setup) bumps the version, so
+ * disabling a user, changing a password or a role through the app still takes effect on the very next request.
+ * Only a hand edit made directly in the Google Sheet can take up to 2 minutes to be noticed.
+ * The cache holds no password hashes or OTP data. */
+var AUTH_UCACHE_SEC = 120;
+function authUserVer_() {
+  var c = CacheService.getScriptCache(), v = c.get('au_ver');
+  if (!v) { v = Utilities.getUuid(); c.put('au_ver', v, 21600); }
+  return v;
+}
+function authUserBump_() {
+  try { CacheService.getScriptCache().put('au_ver', Utilities.getUuid(), 21600); } catch (e) { /* cache is best-effort */ }
+}
+function authSessionUser_(email) {
+  var c = CacheService.getScriptCache(), key = 'au_' + authUserVer_() + '_' + authDigest_(email), raw = c.get(key);
+  if (raw) { try { return JSON.parse(raw); } catch (e) { /* fall through to the sheet */ } }
+  var u = authFindUser_(email);
+  if (!u) return null;
+  var slim = { email: u.email, role: u.role, status: u.status, tv: u.tv, studentId: u.studentId, name: u.name };
+  try { c.put(key, JSON.stringify(slim), AUTH_UCACHE_SEC); } catch (e) { /* ignore */ }
+  return slim;
 }
 
 /** For feature files: returns {email, role} if the session holds one of `roles`, otherwise throws 'Not authorized.' */
@@ -148,6 +174,7 @@ function authLinkStudentLocked_(email, studentId) {
   var sh = authSheet_(), header = String(sh.getRange(1, AUTH.HEADERS.length).getValue() || '');
   if (header !== 'StudentID') throw new Error('Run the approved Users schema migration before linking student records.');
   sh.getRange(u.row, AUTH.HEADERS.length).setNumberFormat('@').setValue(studentId);
+  authUserBump_();
   authAudit_(email, 'student-link', studentId);
   return true;
 }
@@ -179,6 +206,7 @@ function authSetupOwner() {
     if (all.some(function (u) { return u.email === email; })) throw new Error('That email already has an account.');
     var now = new Date().toISOString();
     authSheet_().appendRow([email, 'Owner', 'Active', authMakeHash_(pw), 1, now, '', now]);
+    authUserBump_();
   } finally { lock.releaseLock(); }
   props.deleteProperty('AUTH_OWNER_PASSWORD');
   authAudit_(email, 'owner-setup', 'by script owner');
@@ -299,6 +327,7 @@ function authUpdateRow_(row, changes) {
     Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
     range.setNumberFormat('@');   // whole row as text so no value can become a formula
     range.setValues(vals);
+    authUserBump_();
   } finally { lock.releaseLock(); }
 }
 function authAudit_(email, action, detail) {

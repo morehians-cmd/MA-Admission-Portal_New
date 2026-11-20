@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Application | Moreh Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#062E70;--blue:#0648AD;--orange:#FF941F;--light:#EEF4FF;--ink:#14213d;--muted:#64748b;--line:#d8e3f8;--green:#16834a;--red:#b42318;--head:'Poppins',system-ui,sans-serif;--body:'Open Sans',system-ui,sans-serif}
@@ -568,7 +569,7 @@ function downloadApplicationForm(record){
  body+='<div class="sign"><div class="line">Applicant / Parent / Legal Guardian Signature</div><div class="line">Date</div></div>';
  printWindow('MOREH ACADEMY - STUDENT APPLICATION FORM',body,'8.5in 13in');
 }
-function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
+function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem('ma_boot_portal')}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
 var existingRecord=null;
 function showExisting(record){
  existingRecord=record;
@@ -621,20 +622,17 @@ var formInitOk=true;try{buildFields();buildRequirementFields();updatePreviousSch
  var loading=document.getElementById('loading');
  loading.textContent='Checking your account…';
  var t=token();if(!t){goHome();return}
- run('authWhoAmI',[t],function(r){
+ run('admissionPortalGetBootstrap',[t],function(r){
   if(!r||r.success!==true){loading.textContent=(r&&r.message)||'Your session could not be verified. Please sign in again.';return}
-  account=r.data||{};if(['Applicant','Student'].indexOf(account.role)<0){loading.textContent='This account does not have applicant access.';return}
+  var d=r.data||{};account=d.account||{};if(['Applicant','Student'].indexOf(account.role)<0){loading.textContent='This account does not have applicant access.';return}
   restoreDraft();
   document.getElementById('userName').textContent=account.fullName||'Moreh Applicant';document.getElementById('userEmail').textContent=account.email||'';document.getElementById('avatar').textContent=initials(account.fullName);
-  loading.textContent='Account verified. Loading your application…';
-  run('admissionGetMyApplication',[t],function(a){
-   loading.style.display='none';
-   if(!a||a.success!==true){document.getElementById('applicationView').hidden=false;showError((a&&a.message)||'Unable to load your application.');return}
-   if(a.data){showExisting(a.data);return}
-   if(account.role!=='Applicant'){document.getElementById('applicationView').hidden=false;document.getElementById('formPanel').innerHTML='<p>Your account does not have an application linked yet. Please contact the Admissions Office for assistance.</p>';return}
-   document.getElementById('applicationView').hidden=false;
-  },function(e){loading.textContent='Application lookup failed: '+e});
- },function(e){loading.textContent='Account check failed: '+e});
+  loading.style.display='none';
+  var rec=d.application||null;
+  if(rec){showExisting(rec);return}
+  if(account.role!=='Applicant'){document.getElementById('applicationView').hidden=false;document.getElementById('formPanel').innerHTML='<p>Your account does not have an application linked yet. Please contact the Admissions Office for assistance.</p>';return}
+  document.getElementById('applicationView').hidden=false;
+ },function(e){loading.textContent='Could not load your account: '+e});
 })();
 </script>
 </body></html>

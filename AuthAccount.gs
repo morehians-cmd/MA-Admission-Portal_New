@@ -140,6 +140,7 @@ function authPurgePending() {
     var sh = authSheet_(), v = sh.getDataRange().getValues(), cutoff = Date.now() - 7 * 86400000, del = [];
     for (var i = 1; i < v.length; i++) if (String(v[i][2]) === 'Pending' && new Date(v[i][5]).getTime() < cutoff) del.push(i + 1);
     del.reverse().forEach(function (r) { sh.deleteRow(r); });
+    if (del.length) authUserBump_();
   } finally { lock.releaseLock(); }
 }
 
@@ -207,12 +208,14 @@ function accWrite_(row, changes) {
   Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
   range.setNumberFormat('@');   // whole row as text so no value can become a formula
   range.setValues(vals);
+  authUserBump_();
 }
 function accAppend_(obj) {
   var sh = authSheet_(), n = AUTH.HEADERS.length, row = sh.getLastRow() + 1;
   if (row > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 1);
   sh.getRange(row, 1, 1, n).setNumberFormat('@');   // Email/Role/... as text too (was columns 9+ only)
   sh.getRange(row, 1, 1, n).setValues([AUTH.HEADERS.map(function (h) { return obj[h] == null ? '' : obj[h]; })]);
+  authUserBump_();
 }
 function accEsc_(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function accSendOtp_(email, name, code, purpose) {

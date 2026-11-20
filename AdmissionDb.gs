@@ -263,13 +263,11 @@ function admissionDbRows_() {
   return out;
 }
 
+/** One StudentID-column read plus one row read. (It used to scan every column of every row whenever the compact cache was cold.) */
 function admissionDbFindById_(studentId) {
-  var fast = maAdmissionSpeedFindStudent_(studentId);
-  if (fast) return fast;
-
-  var found = admissionDbRows_().filter(function (r) { return r.StudentID === String(studentId || ''); });
-  if (found.length > 1) throw new Error('Admission database integrity error: duplicate StudentID.');
-  return found.length ? found[0] : null;
+  studentId = String(studentId || '').trim();
+  if (!studentId) return null;
+  return maAdmissionSpeedReadStudentRow_(studentId);
 }
 
 function admissionDbAge_(isoDate) {
