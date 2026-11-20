@@ -3,6 +3,8 @@
  * Homepage.html needs four templated lines: APP_BASE, APP_PAGE, APP_PREVIEW, APP_TICKET
  * HomepageAdmin.html and PagesAdmin.html need: APP_BASE = '<?= baseUrl ?>'
  * Admin screens: ?page=admin-homepage, ?page=admin-pages
+ * Admissions: ?page=admission (staff), ?page=applicant-portal, ?page=applicant-application (applicants)
+ * Every file in ADMIN_PAGES_ that uses the baseUrl template needs: APP_BASE = '<?= baseUrl ?>'
  */
 var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'MAAdmissionPage', 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication' };
 var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', MAAdmissionPage: 'Admissions Portal', ApplicantPortal: 'Applicant Dashboard | Moreh Academy', ApplicantApplication: 'My Application | Moreh Academy' };
@@ -30,4 +32,9 @@ function doGet(e) {
 function sanitizePage_(p) {
   return /^[a-z0-9-]+(\/[a-z0-9-]+)?$/.test(p) ? p : 'home';
 }
-function include(f) { return HtmlService.createHtmlOutputFromFile(f).getContent(); }
+/** Template partials only. Public (callable from any served page), so it serves a fixed whitelist, never an arbitrary file name. */
+var INCLUDE_ALLOWED_ = ['MAAdmissionStyles'];
+function include(f) {
+  if (INCLUDE_ALLOWED_.indexOf(f) < 0) throw new Error('Unknown template partial.');
+  return HtmlService.createHtmlOutputFromFile(f).getContent();
+}

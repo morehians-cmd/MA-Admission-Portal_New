@@ -184,7 +184,7 @@ function buildFields(){
   field('PrevGrade','Last Grade Level Completed','select',opts(GRADES))+
   field('PrevCluster','Previous SHS Strand / Cluster','select',opts(CLUSTERS),false,'Applicable only if the previous grade level was Grade 11 or Grade 12.')+
   field('PrevSection','Previous Section','text')+field('PrevAdviser','Previous Adviser','text')+
-  field('PrevScholarship','Previous Scholarship (if any)','select',opts(['PUB-QVR','TLC','ESC JHS','ESC SHS','QVA PASSER']))+
+  field('PrevScholarship','Previous Scholarship (if any)','select',opts(['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular']))+
   field('PrevSchoolID','Previous School ID','text')+field('PrevAddress','Previous School Address','text',null,false,'')+
   field('Category','Admission Category','select',[],false,'Options depend on the intended grade level and previous school type.');
  document.getElementById('personalFields').innerHTML=
@@ -262,7 +262,7 @@ function requirementConfig(record){
  }
  if(level==='SHS')completion.push({key:'ReqBirthCompletion',label:REQUIREMENT_LABELS.ReqBirthCompletion,hint:'Original PSA Birth Certificate, upon official admission.'});
  if(grade==='Grade 11')completion.push({key:'ReqJHS',label:REQUIREMENT_LABELS.ReqJHS,hint:'Required for all incoming Grade 11 applicants.'});
- var eligible=(level==='JHS'||level==='SHS')&&['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category||'').toUpperCase())>=0;
+ var eligible=(level==='JHS'||level==='SHS')&&['TLC SCHOLAR','ESC GRANTEE','TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category||'').toUpperCase())>=0;
  if(eligible)completion.push({key:'ReqTransferee',label:REQUIREMENT_LABELS.ReqTransferee,hint:level==='JHS'?'TLC Transfer Form (TLC scholars) or ESC Certification (ESC grantees).':'ESC Certificate, TLC Transfer Form, or Voucher Certificate (SHSVP / PUB-QVR / QVA).'});
  var notes=[];
  if(['Nursery','Kinder 1','Kinder 2'].indexOf(grade)>=0)notes.push('All preschool applicants must undergo assessment and evaluation. Please approach Teacher Christine Teodoro at the LC1 Building.');
@@ -314,19 +314,19 @@ function updateAdmissionCategoryRules(){
  var privateSchool=schoolType==='Private Schools';
  var options=[];
  if(idx>=0&&idx<=8){
-   options=['REGULAR'];
+   options=['Regular'];
  }else if(idx===9){
-   options=!schoolType?[]:publicSchool?['TLC','ESC','REGULAR']:privateSchool?['ESC','REGULAR']:['TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['TLC Scholar','ESC Grantee','Regular']:privateSchool?['ESC Grantee','Regular']:['TLC Scholar','ESC Grantee','Regular'];
  }else if(idx>=10&&idx<=12){
-   options=!schoolType?[]:publicSchool?['REGULAR']:privateSchool?['TLC','ESC','REGULAR']:['TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['Regular']:privateSchool?['TLC Scholar','ESC Grantee','Regular']:['TLC Scholar','ESC Grantee','Regular'];
  }else if(idx===13){
-   options=!schoolType?[]:publicSchool?['PUB-QVR']:privateSchool?['QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['PUB-QVR']:privateSchool?['QVA Passer','TLC Scholar','ESC Grantee','Regular']:['PUB-QVR','QVA Passer','TLC Scholar','ESC Grantee','Regular'];
  }else if(idx===14){
-   options=!schoolType?[]:publicSchool?['REGULAR']:privateSchool?['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR']:['PUB-QVR','QVA PASSER','TLC','ESC','REGULAR'];
+   options=!schoolType?[]:publicSchool?['Regular']:privateSchool?['PUB-QVR','QVA Passer','TLC Scholar','ESC Grantee','Regular']:['PUB-QVR','QVA Passer','TLC Scholar','ESC Grantee','Regular'];
  }
  var previous=category.value;
  category.innerHTML='<option value="">'+(idx>=9&&!schoolType?'Select previous school type first':'Select admission category')+'</option>'+options.map(function(v){
-   var label=v==='REGULAR'?'Regular':v==='QVA PASSER'?'QVA Passer':v;
+   var label=v;
    return '<option value="'+esc(v)+'">'+esc(label)+'</option>';
  }).join('');
  category.disabled=options.length===0;

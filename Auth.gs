@@ -35,7 +35,7 @@ function authSignIn(email, password) {
     email = authEmail_(email);
     if (!email || typeof password !== 'string' || !password || password.length > AUTH.MAX_PW) return authFail_('Enter your email and password.');
     var failKey = 'af_' + authDigest_(email), cache = CacheService.getScriptCache();
-    if (Number(cache.get(failKey) || 0) >= AUTH.MAX_FAILS) return authFail_('Too many attempts. Please wait 15 minutes and try again.');
+    if (Number(cache.get(failKey) || 0) >= AUTH.MAX_FAILS) return authFail_('Too many attempts. Please wait 10 minutes and try again.');
 
     var u = authFindUser_(email), good = false;
     if (u) {
@@ -93,6 +93,7 @@ function authChangePassword(token, oldPassword, newPassword) {
     var min = s.role === 'Owner' ? AUTH.MIN_PW_OWNER : AUTH.MIN_PW;
     if (newPassword.length < min || newPassword.length > AUTH.MAX_PW) return authFail_('New password must be ' + min + ' to ' + AUTH.MAX_PW + ' characters.');
     if (newPassword === oldPassword) return authFail_('Choose a password different from the current one.');
+    var pwMsg = accPasswordProblem_(newPassword, s.email, s.role); if (pwMsg) return authFail_(pwMsg);   // same rules as registration
     var u = authFindUser_(s.email);
     if (!u || !authVerify_(oldPassword, u.hash)) return authFail_('Current password is incorrect.');
     authUpdateRow_(u.row, { PasswordHash: authMakeHash_(newPassword), TokenVersion: u.tv + 1, PasswordChangedAt: new Date().toISOString() });
@@ -224,7 +225,8 @@ function authFail_(msg, err) {
 }
 function authEmail_(v) {
   var e = String(v == null ? '' : v).trim().toLowerCase();
-  return (e.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) ? e : '';
+  // A leading = + - @ would be read as a spreadsheet formula when the address is stored, so such addresses are refused.
+  return (e.length <= 254 && /^[^@\s=+\-][^@\s]*@[^@\s]+\.[^@\s]+$/.test(e)) ? e : '';
 }
 function authValidToken_(t) { return typeof t === 'string' && /^[a-f0-9]{64}$/.test(t); }
 function authIters_(stored) { var p = String(stored || '').split('$'); return parseInt(p[1], 10) || 0; }
@@ -295,7 +297,7 @@ function authUpdateRow_(row, changes) {
   try {
     var sh = authSheet_(), range = sh.getRange(row, 1, 1, AUTH.HEADERS.length), vals = range.getValues();
     Object.keys(changes).forEach(function (k) { var c = AUTH.HEADERS.indexOf(k); if (c >= 0) vals[0][c] = changes[k]; });
-    sh.getRange(row, 9, 1, AUTH.HEADERS.length - 8).setNumberFormat('@');
+    range.setNumberFormat('@');   // whole row as text so no value can become a formula
     range.setValues(vals);
   } finally { lock.releaseLock(); }
 }
@@ -303,6 +305,7 @@ function authAudit_(email, action, detail) {
   try {
     var ss = authSpreadsheet_(), sh = ss.getSheetByName(AUTH.AUDIT);
     if (!sh) { sh = ss.insertSheet(AUTH.AUDIT); sh.appendRow(['At', 'Email', 'Action', 'Detail']); sh.setFrozenRows(1); }
-    sh.appendRow([new Date().toISOString(), email, action, String(detail || '').slice(0, 300)]);
+    var row = [new Date().toISOString(), String(email == null ? '' : email), String(action), String(detail || '').slice(0, 300)];
+    sh.getRange(sh.getLastRow() + 1, 1, 1, row.length).setNumberFormat('@').setValues([row]);   // text, never a formula
   } catch (e) { /* auditing never blocks sign-in */ }
 }

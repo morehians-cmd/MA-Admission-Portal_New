@@ -45,7 +45,7 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <div class="section">Academic Information</div>
 <div><label>School Year</label><input name="SchoolYear" placeholder="2026-2027" required></div>
 <div><label>LRN</label><input name="LRN" inputmode="numeric" maxlength="12"></div>
-<div><label>Category</label><select name="Category"><option>Regular</option><option>PUB-QVR</option><option>TLC Scholar</option><option>ESC Grantee</option><option>PEAC Grantee</option><option>TLC-OVAP</option></select></div>
+<div><label>Category</label><select name="Category"><option value="">(none)</option><option value="TLC Scholar">TLC Scholar</option><option value="ESC Grantee">ESC Grantee</option><option value="PUB-QVR">PUB-QVR</option><option value="QVA Passer">QVA Passer</option><option value="TLC-ESC">TLC-ESC</option><option value="TLC-OVAP">TLC-OVAP</option><option value="IS">IS</option><option value="Regular">Regular</option></select></div>
 <div><label>Grade Level</label><input name="GradeLevel" placeholder="Grade 7" required></div>
 <div><label>Department</label><input name="Department"></div><div><label>Cluster</label><input name="Cluster"></div>
 <div class="section">Student Information</div>
@@ -60,7 +60,7 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <div><label>Previous School</label><input name="PrevSchool"></div><div><label>Previous School Year</label><input name="PrevSY"></div>
 <div><label>Previous Grade</label><input name="PrevGrade"></div><div><label>Previous Cluster</label><input name="PrevCluster"></div>
 <div><label>Previous Section</label><input name="PrevSection"></div><div><label>Previous Adviser</label><input name="PrevAdviser"></div>
-<div><label>Previous Scholarship</label><input name="PrevScholarship"></div><div><label>Previous School ID</label><input name="PrevSchoolID"></div>
+<div><label>Previous Scholarship</label><select name="PrevScholarship"><option value="">(none)</option><option value="TLC Scholar">TLC Scholar</option><option value="ESC Grantee">ESC Grantee</option><option value="PUB-QVR">PUB-QVR</option><option value="QVA Passer">QVA Passer</option><option value="TLC-ESC">TLC-ESC</option><option value="TLC-OVAP">TLC-OVAP</option><option value="IS">IS</option><option value="Regular">Regular</option></select></div><div><label>Previous School ID</label><input name="PrevSchoolID"></div>
 <div class="wide"><label>Previous School Address</label><textarea name="PrevAddress"></textarea></div>
 <div class="section">Parents / Guardian</div>
 <div><label>Father's Name</label><input name="FatherName"></div><div><label>Father's Status</label><input name="FatherStatus"></div>
@@ -203,7 +203,9 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 <script>
 var APP_BASE='<?= baseUrl ?>',TOKEN='';
 function $(id){return document.getElementById(id)}
-function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML}
+/* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
+function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function msg(t,bad){var e=$('message');e.textContent=t;e.className='status '+(bad?'error':'success');e.classList.remove('hidden')}
 function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){if(fail)fail(r&&r.message||'Request failed.');else msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){if(fail)fail(e&&e.message||'Request failed.');else msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
@@ -314,7 +316,7 @@ function exportDetailedReport(){
   var headers=['Student ID','Student','Grade','Cluster','Section','Category','Classification','Previous School','Previous Section','Former Adviser','Application Status','Enrollment Status'];
   var rows=[headers];
   (currentDetailedReport.students||[]).forEach(function(s){rows.push([s.StudentID,s.FullName,s.GradeLevel,s.Cluster,s.Section,s.Category,s.Classification,s.PreviousSchool,s.PreviousSection,s.PreviousAdviser,s.ApplicationStatus,s.EnrollStatus]);});
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='Moreh_Detailed_Student_Report.csv';a.click();URL.revokeObjectURL(url);
 }
@@ -360,7 +362,7 @@ function printSpecializedReport(){
 function exportSpecializedReport(){
   if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
   var rows=[currentSpecializedReport.columns||[]].concat(currentSpecializedReport.rows||[]);
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='Moreh_'+String(currentSpecializedReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
 }
@@ -401,7 +403,7 @@ function exportMatrixReport(){
   var cols=currentMatrixReport.columns||[],rows=[[currentMatrixReport.rowDimension].concat(cols).concat(['Total'])];
   (currentMatrixReport.reports||[]).forEach(function(r){rows.push([r.Group].concat(cols.map(function(c){return Number(r[c]||0)})).concat([Number(r.Total||0)]));});
   var t=currentMatrixReport.totals;if(t)rows.push(['Total'].concat(cols.map(function(c){return Number(t[c]||0)})).concat([Number(t.Total||0)]));
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='Moreh_Matrix_Report.csv';a.click();URL.revokeObjectURL(url);
 }
@@ -446,7 +448,7 @@ function exportGeneralReport(){
   if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
   var rows=[['Group','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentGeneralReport.reports||[]).forEach(function(g){rows.push([g.Group,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='Moreh_'+String(currentGeneralReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
 }
@@ -510,7 +512,7 @@ function exportAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
   var rows=[['Former Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.FormerAdviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',')}).join('\r\n');
+  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url;a.download='Moreh_Former_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
 }
@@ -524,7 +526,7 @@ function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
     var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
-    var categoryOptions=['Regular','PUB-QVR','QVA PASSER','TLC','ESC','PEAC Grantee','TLC-OVAP'];
+    var categoryOptions=['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'];
     var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
       if(k==='ApplicationStatus'){
         var currentStatus=String(x[k]||'Submitted');
@@ -535,7 +537,7 @@ function openStudent(id){
         var current=String(x[k]||'');
         var options=categoryOptions.slice();
         if(current && options.indexOf(current)<0)options.unshift(current);
-        return '<div><label>Category</label><select data-edit="Category">'+options.map(function(v){return '<option value="'+esc(v)+'" '+(v===current?'selected':'')+'>'+esc(v==='QVA PASSER'?'QVA Passer':v)+'</option>'}).join('')+'</select></div>';
+        return '<div><label>Category</label><select data-edit="Category">'+options.map(function(v){return '<option value="'+esc(v)+'" '+(v===current?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>';
       }
       return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>';
     }).join('')+'</div>'+

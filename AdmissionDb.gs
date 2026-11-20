@@ -43,6 +43,15 @@ var ADM_DB = {
     'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus'
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
+  GRADES: ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'],
+  // The official admission / scholarship categories, exactly as they are stored. Matching elsewhere ignores letter case.
+  CATEGORIES: ['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'],
+  CATEGORY_ALIASES: { 'TLC': 'TLC Scholar', 'ESC': 'ESC Grantee', 'ESC JHS': 'ESC Grantee', 'ESC SHS': 'ESC Grantee' },   // short forms used by older records
+  ENROLL_STATUSES: ['Not Enrolled','Enrolled','Temporary','Transferred','Transferred Out','Cancelled'],
+  APPLICATION_STATUSES: ['Submitted','Under Review','Approved','Declined'],
+  // Staff-only columns that an applicant/student must never receive back from the server.
+  APPLICANT_HIDDEN: ['ReqRemarks','CancelDate','CancelReason','CancelReasonOther','CertNo','VoucherCertNo','EscCertNo','EscSchoolNo',
+                     'ProcessedBy','ProcessedDate','ProcessedTime','TempBy','TempUntil','StatusChangedAt','IDNumber','IDPhotoID'],
   REQUIREMENTS: [
     { key: 'ReqSF9Initial', label: 'Report Card — Photocopy', statusKey: 'ReqSF9InitialStatus' },
     { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy', statusKey: 'ReqBirthInitialStatus' },
@@ -271,6 +280,25 @@ function admissionDbAge_(isoDate) {
   return age >= 0 && age <= 120 ? String(age) : '';
 }
 
+/** Returns the canonical category (e.g. 'REGULAR' / 'TLC' -> 'Regular' / 'TLC Scholar'), '' for blank, or throws. */
+function admissionDbCategory_(v) {
+  v = String(v == null ? '' : v).trim();
+  if (!v) return '';
+  var u = v.toUpperCase();
+  if (ADM_DB.CATEGORY_ALIASES[u]) return ADM_DB.CATEGORY_ALIASES[u];
+  for (var i = 0; i < ADM_DB.CATEGORIES.length; i++) if (ADM_DB.CATEGORIES[i].toUpperCase() === u) return ADM_DB.CATEGORIES[i];
+  throw new Error('Unsupported admission category: ' + v);
+}
+/** Never throws: canonical name when recognised, otherwise the trimmed original. Use when READING possibly-legacy rows. */
+function admissionDbCategoryLoose_(v) {
+  try { return admissionDbCategory_(v); } catch (e) { return String(v == null ? '' : v).trim(); }
+}
+function admissionDbOneOf_(v, list, label) {
+  v = String(v == null ? '' : v).trim();
+  if (v && list.indexOf(v) < 0) throw new Error('Unsupported ' + label + ': ' + v);
+  return v;
+}
+
 function admissionDbCleanText_(value, max) {
   var s = String(value == null ? '' : value).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim();
   if (s.length > max) throw new Error('One of the submitted fields is too long.');
@@ -294,7 +322,9 @@ function admissionDbNormalizeApplicant_(input, account) {
   if (!out.Surname || !out.FirstName) throw new Error('Surname and first name are required.');
   if (!out.Birthdate || !/^\d{4}-\d{2}-\d{2}$/.test(out.Birthdate) || !admissionDbAge_(out.Birthdate)) throw new Error('Enter a valid birth date.');
   if (!out.SchoolYear || !/^20\d{2}-20\d{2}$/.test(out.SchoolYear)) throw new Error('Select a valid school year.');
-  if (!out.GradeLevel) throw new Error('Select an intended grade level.');
+  if (!out.GradeLevel || ADM_DB.GRADES.indexOf(out.GradeLevel) < 0) throw new Error('Select an intended grade level.');
+  out.Category = admissionDbCategory_(out.Category);
+  out.PrevScholarship = admissionDbCategory_(out.PrevScholarship);   // Previous Scholarship uses the same official names
   if (out.LRN && !/^\d{12}$/.test(out.LRN)) throw new Error('LRN must contain exactly 12 digits.');
   if (out.Mobile && !/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit mobile number.');
   out.FullName = out.Surname + ', ' + out.FirstName + (out.MiddleName ? ' ' + out.MiddleName : '') + (out.Suffix ? ' ' + out.Suffix : '');
@@ -309,10 +339,10 @@ function admissionDbNormalizeApplicant_(input, account) {
 }
 
 function admissionDbRequirementItems_(record) {
-  var grades = ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+  var grades = ADM_DB.GRADES;
   var index = grades.indexOf(String(record.GradeLevel || ''));
   if (index < 0) return [];
-  var level = index < 2 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
+  var level = index < 3 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
   var applicable = [];
   if (index >= 3) applicable.push('ReqSF9Initial', 'ReqSF9Completion');
   applicable.push('ReqBirthInitial', 'ReqPhoto', 'ReqEnvelope');
@@ -320,7 +350,7 @@ function admissionDbRequirementItems_(record) {
   if (level === 'SHS') applicable.push('ReqBirthCompletion');
   if (String(record.GradeLevel) === 'Grade 11') applicable.push('ReqJHS');
   var eligible = (level === 'JHS' || level === 'SHS') &&
-    ['TLC','ESC','PUB-QVR','QVA PASSER'].indexOf(String(record.Category || '').toUpperCase()) >= 0;
+    ['TLC SCHOLAR','ESC GRANTEE','PUB-QVR','QVA PASSER'].indexOf(admissionDbCategoryLoose_(record.Category).toUpperCase()) >= 0;
   if (eligible) applicable.push('ReqTransferee');
   applicable.push('ReqConsent');
   var items = [];
@@ -397,6 +427,7 @@ function admissionGetMyApplication(token) {
     if (!record) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
     record.RequirementItems = admissionDbRequirementItems_(record);
     delete record._row;
+    ADM_DB.APPLICANT_HIDDEN.forEach(function (k) { delete record[k]; });   // staff-only notes and processing fields
     return { success: true, message: 'Application loaded.', data: record };
   } catch (err) {
     return authFail_(err.message || 'Could not load your application.');
@@ -419,6 +450,36 @@ function admissionDbAudit_(actorEmail, action, studentId, detail) {
  * Public Apps Script menu/dropdown wrapper for database setup.
  * Do not use the trailing-underscore function directly from the Run dropdown.
  */
+/**
+ * Run ONCE from the editor after deploying: rewrites old category names in the Category and Previous Scholarship columns
+ * ('TLC' -> 'TLC Scholar', 'ESC' -> 'ESC Grantee', 'REGULAR' -> 'Regular', 'QVA PASSER' -> 'QVA Passer'). Only the Category column is touched.
+ * Unrecognised values are left exactly as they are and listed in the log.
+ */
+function admissionNormalizeCategories() {
+  authRequireEditor_();
+  var lock = LockService.getScriptLock(); lock.waitLock(30000);
+  try {
+    var sh = admissionDbSheet_(), last = sh.getLastRow();
+    if (last < 2) { Logger.log('No records.'); return; }
+    var total = 0, unknown = {};
+    ['Category', 'PrevScholarship'].forEach(function (name) {
+      var col = ADM_DB.HEADERS.indexOf(name) + 1, range = sh.getRange(2, col, last - 1, 1);
+      var vals = range.getValues(), changed = 0;
+      vals.forEach(function (r) {
+        var v = String(r[0] == null ? '' : r[0]).trim();
+        if (!v) return;
+        var n;
+        try { n = admissionDbCategory_(v); } catch (e) { unknown[name + ': ' + v] = true; return; }
+        if (n !== r[0]) { r[0] = n; changed++; }
+      });
+      if (changed) range.setNumberFormat('@').setValues(vals);
+      total += changed;
+    });
+    if (total) { maAdmissionSpeedBump_(); admissionDbAudit_('script-owner', 'categories-normalized', '', total + ' value(s)'); }
+    Logger.log('Normalized ' + total + ' value(s) in Category / PrevScholarship. Unrecognised values left as-is: ' + (Object.keys(unknown).join('; ') || 'none'));
+  } finally { lock.releaseLock(); }
+}
+
 function setupAdmissionDatabase() {
   admissionDbSetup_();
 }

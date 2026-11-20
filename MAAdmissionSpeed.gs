@@ -15,30 +15,30 @@
  */
 
 var MA_ADM_SPEED = {
-  VERSION: 2,
+  VERSION: 3,
   FIELDS: [
     'StudentID', 'FullName', 'LRN', 'GradeLevel', 'Section',
     'EnrollStatus', 'SchoolYear', 'Category', 'Department', 'Cluster', 'PrevSchool', 'PrevSchoolType', 'PrevScholarship', 'SexualOrient', 'GenderOrient',
-    'Email', 'CreatedAt', 'ApplicationStatus', 'ReqConsent', 'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus', 'ReqPhotoStatus', 'ReqEnvelopeStatus', 'ReqF137Status', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'TempUntil'
+    'Email', 'CreatedAt', 'ApplicationStatus', 'ReqConsent', 'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus', 'ReqPhotoStatus', 'ReqEnvelopeStatus', 'ReqF137Status', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'TempUntil', 'CertNo', 'VoucherCertNo', 'EscCertNo'
   ],
-  CHUNK: 60000,
+  CHUNK: 30000,   // characters; CacheService's 100 KB limit is in bytes and accented names take 2+ bytes each
   TTL: 600,
   VERSION_TTL: 21600
 };
 
 function maAdmissionSpeedVersion_() {
   var c = CacheService.getScriptCache();
-  var v = c.get('ma_adm_stv');
+  var v = c.get('ma_adm_stv_' + MA_ADM_SPEED.VERSION);
   if (!v) {
     v = Utilities.getUuid();
-    c.put('ma_adm_stv', v, MA_ADM_SPEED.VERSION_TTL);
+    c.put('ma_adm_stv_' + MA_ADM_SPEED.VERSION, v, MA_ADM_SPEED.VERSION_TTL);
   }
   return v;
 }
 
 function maAdmissionSpeedBump_() {
   try {
-    CacheService.getScriptCache().put('ma_adm_stv', Utilities.getUuid(), MA_ADM_SPEED.VERSION_TTL);
+    CacheService.getScriptCache().put('ma_adm_stv_' + MA_ADM_SPEED.VERSION, Utilities.getUuid(), MA_ADM_SPEED.VERSION_TTL);
   } catch (e) {
     console.error('Admission cache version bump failed: ' + e.message);
   }
