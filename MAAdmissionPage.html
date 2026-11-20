@@ -542,13 +542,13 @@ function openStudent(id){
       }
       return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>';
     }).join('')+'</div>'+
-      '<div class="actions"><button type="button" class="btn blue" data-action="save-student">Save Changes</button><span id="studentSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div>'+
+      '<div class="actions"><button type="button" class="btn blue" data-action="save-student">Save Changes</button><button type="button" class="btn secondary" data-action="open-id-card">ID Card</button><button type="button" class="btn secondary" data-action="re-enroll">Re-enroll</button><span id="studentSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span><span id="lifecycleStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div>'+
       '<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Documentary Requirements</h3><p>Only Admission Personnel can update these document statuses. Each change is recorded in the audit log.</p>'+
       '<div class="form-grid">'+(function(){var groups={};(x.RequirementItems||[]).forEach(function(item){var stage=item.stage||'For Completion';(groups[stage]||(groups[stage]=[])).push(item)});return Object.keys(groups).map(function(stage){return '<div class="section wide">'+esc(stage)+'</div>'+groups[stage].map(function(item){return '<div><label>'+esc(item.label)+'</label><select data-req-status="'+esc(item.statusKey)+'">'+['Pending Submission','Received','Verified','Incomplete'].map(function(v){return '<option value="'+esc(v)+'" '+(v===item.status?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}).join('')}).join('')})()+'</div>'+
       '<div class="actions"><button type="button" class="btn blue" data-action="save-requirements">Update Document Statuses</button><span id="reqSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div></div>';
     $('staff').insertAdjacentHTML('afterend',h);
     var detail=$('studentDetail');
-    detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)};
+    detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
     detail.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(x.StudentID)};
   });
 }
@@ -594,6 +594,25 @@ function saveRequirementStatuses(id){
   });
 }
 $('signout').onclick=function(e){e.preventDefault();call('authSignOut',[TOKEN],function(){try{sessionStorage.removeItem('ma_token')}catch(x){}location.href=APP_BASE})};
+
+// Post-approval lifecycle controls. These actions are deliberately staff-only and reuse the server-side role gates.
+function runLifecycleAction(fn,args,statusId){
+  var e=$(statusId); if(e){e.className='status';e.textContent='Processing...';e.style.display='inline-flex';}
+  call(fn,args,function(r){if(e){e.className='status success';e.textContent=r.message||'Completed.';e.style.display='inline-flex';}search();},function(m){if(e){e.className='status error';e.textContent=m;e.style.display='inline-flex';}});
+}
+function openIdCard(id){
+  call('admissionIdCardData',[TOKEN,decodeURIComponent(id)],function(r){
+    var x=r.data||{}, existing=document.getElementById('idCardDetail'); if(existing)existing.remove();
+    var html='<div class=\"card\" id=\"idCardDetail\"><h2>ID Card</h2><div class=\"form-grid\">'+
+      '<div><label>Student ID</label><input value=\"'+esc(x.StudentID||'')+'\" disabled></div>'+
+      '<div><label>Category</label><input value=\"'+esc(x.Category||'')+'\" disabled></div>'+
+      '<div><label>Current ID Number</label><input id=\"idCardNumber\" value=\"'+esc(x.IDNumber||'')+'\" placeholder=\"TLC2027-0001\"></div>'+
+      '<div><label>Claimed TLC ID</label><input value=\"'+esc(x.ClaimedIDNumber||'')+'\" disabled></div>'+
+      '</div><div class=\"actions\"><button class=\"btn blue\" type=\"button\" id=\"saveIdCard\">Confirm ID Number</button><span id=\"idCardStatus\" class=\"status hidden\"></span></div></div>';
+    $('studentDetail').insertAdjacentHTML('afterend',html);
+    $('saveIdCard').onclick=function(){var b=this;b.disabled=true;b.textContent='Processing...';call('admissionIdCardSaveNumber',[TOKEN,x.StudentID,$('idCardNumber').value],function(z){b.disabled=false;b.textContent='Confirm ID Number';localStatus('idCardStatus',z.message,false);openStudent(encodeURIComponent(x.StudentID));},function(m){b.disabled=false;b.textContent='Confirm ID Number';localStatus('idCardStatus',m,true);});};
+  });
+}
 
 // Centralized staff navigation. Existing admission/report actions remain bound to their original IDs.
 var ADM_VIEW_META={

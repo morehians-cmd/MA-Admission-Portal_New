@@ -12,7 +12,7 @@
  */
 
 var ADM_DB = {
-  VERSION: 6,
+  VERSION: 7,
   STUDENTS: 'AdmissionStudents',
   AUDIT: 'AdmissionAudit',
   HEADERS: [
@@ -40,7 +40,8 @@ var ADM_DB = {
     'ReqEnvelope', 'ReqEnvelopeDate',
     'StatusChangedAt', 'TempUntil', 'TempBy', 'IDNumber', 'IDPhotoID',
     'ReqSF9Status', 'ReqF137Status', 'ReqBirthStatus', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqPhotoStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'ReqEnvelopeStatus',
-    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus'
+    'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus',
+    'TempReason', 'ClaimedIDNumber'
   ],
   AUDIT_HEADERS: ['At', 'ActorEmail', 'Action', 'StudentID', 'Detail'],
   GRADES: ['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'],
@@ -48,10 +49,13 @@ var ADM_DB = {
   CATEGORIES: ['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'],
   CATEGORY_ALIASES: { 'TLC': 'TLC Scholar', 'ESC': 'ESC Grantee', 'ESC JHS': 'ESC Grantee', 'ESC SHS': 'ESC Grantee' },   // short forms used by older records
   ENROLL_STATUSES: ['Not Enrolled','Enrolled','Temporary','Transferred','Transferred Out','Cancelled'],
+  TEMP_MAX_DAYS: 120,
+  STATUS_LOG: 'AdmissionStatusLog',
+  STATUS_LOG_HEADERS: ['At','ActorEmail','StudentID','OldApplicationStatus','NewApplicationStatus','OldEnrollStatus','NewEnrollStatus','Reason'],
   APPLICATION_STATUSES: ['Submitted','Under Review','Approved','Declined'],
   // Staff-only columns that an applicant/student must never receive back from the server.
   APPLICANT_HIDDEN: ['ReqRemarks','CancelDate','CancelReason','CancelReasonOther','CertNo','VoucherCertNo','EscCertNo','EscSchoolNo',
-                     'ProcessedBy','ProcessedDate','ProcessedTime','TempBy','TempUntil','StatusChangedAt','IDNumber','IDPhotoID'],
+                     'ProcessedBy','ProcessedDate','ProcessedTime','TempBy','TempUntil','StatusChangedAt','IDNumber','IDPhotoID','TempReason','ClaimedIDNumber'],
   REQUIREMENTS: [
     { key: 'ReqSF9Initial', label: 'Report Card — Photocopy', statusKey: 'ReqSF9InitialStatus' },
     { key: 'ReqBirthInitial', label: 'PSA Birth Certificate — Photocopy', statusKey: 'ReqBirthInitialStatus' },
@@ -96,6 +100,7 @@ function admissionDbSetup_() {
   var ss = authSpreadsheet_();
   admissionDbEnsureSchemaSheet_(ss, ADM_DB.STUDENTS, ADM_DB.HEADERS);
   admissionDbEnsureSchemaSheet_(ss, ADM_DB.AUDIT, ADM_DB.AUDIT_HEADERS);
+  admissionDbEnsureSchemaSheet_(ss, ADM_DB.STATUS_LOG, ADM_DB.STATUS_LOG_HEADERS);
 
   // Verify (never overwrite) the final header row; throws if anything is out of place.
   admissionDbSheet_();
@@ -225,9 +230,20 @@ function admissionDbEnsureSchemaSheet_(ss, name, headers) {
   return sh;
 }
 
+/** The ONE place that knows the active school year (Script Property ADM_SY_ACTIVE) and its fallback. Update the fallback here once a year. */
+function admissionDbActiveYear_() {
+  return PropertiesService.getScriptProperties().getProperty('ADM_SY_ACTIVE') || '2026-2027';
+}
+/** Department label for a grade index in ADM_DB.GRADES. Single definition used by sign-up, profile edits and re-enrollment. */
+function admissionDbDepartment_(gi) {
+  return gi < 3 ? 'Preschool' : gi < 9 ? 'Elementary' : gi < 13 ? 'Junior High School' : 'Senior High School';
+}
+
+var ADM_SCHEMA_OK_ = false;   // header row verified during this execution (each web request is a fresh execution)
 function admissionDbSheet_() {
   var ss = authSpreadsheet_(), sh = ss.getSheetByName(ADM_DB.STUDENTS);
   if (!sh) throw new Error('Admission database is not initialized. Ask the system owner to run admissionDbSetup_().');
+  if (ADM_SCHEMA_OK_) return sh;
 
   var actualCount = sh.getLastColumn();
   var expectedCount = ADM_DB.HEADERS.length;
@@ -246,6 +262,7 @@ function admissionDbSheet_() {
         '". Database: ' + ss.getName() + '. Run admissionDbSetup_() to repair the schema.');
     }
   }
+  ADM_SCHEMA_OK_ = true;
   return sh;
 }
 
@@ -322,8 +339,8 @@ function admissionDbNormalizeApplicant_(input, account) {
   if (!out.SchoolYear || !/^20\d{2}-20\d{2}$/.test(out.SchoolYear)) throw new Error('Select a valid school year.');
   if (!out.GradeLevel || ADM_DB.GRADES.indexOf(out.GradeLevel) < 0) throw new Error('Select an intended grade level.');
   out.Category = admissionDbCategory_(out.Category);
-  out.PrevScholarship = admissionDbCategory_(out.PrevScholarship);   // Previous Scholarship uses the same official names
-  if (out.LRN && !/^\d{12}$/.test(out.LRN)) throw new Error('LRN must contain exactly 12 digits.');
+  out.PrevScholarship = out.PrevScholarship ? admissionDbCategory_(out.PrevScholarship) : '';   // Previous Scholarship uses the same official names
+  if (!out.LRN || !/^[1-5]\d{11}$/.test(out.LRN)) throw new Error('LRN must be 12 digits and start with 1, 2, 3, 4 or 5.');
   if (out.Mobile && !/^09\d{9}$/.test(out.Mobile)) throw new Error('Enter a valid 11-digit mobile number.');
   out.FullName = out.Surname + ', ' + out.FirstName + (out.MiddleName ? ' ' + out.MiddleName : '') + (out.Suffix ? ' ' + out.Suffix : '');
   out.Email = account.email;
@@ -342,7 +359,7 @@ function admissionDbRequirementItems_(record) {
   if (index < 0) return [];
   var level = index < 3 ? 'PRE' : index < 9 ? 'ELEM' : index < 13 ? 'JHS' : 'SHS';
   var applicable = [];
-  if (index >= 3) applicable.push('ReqSF9Initial', 'ReqSF9Completion');
+  if (index >= 2) applicable.push('ReqSF9Initial', 'ReqSF9Completion');
   applicable.push('ReqBirthInitial', 'ReqPhoto', 'ReqEnvelope');
   if (level !== 'PRE') applicable.push('ReqF137', 'ReqMoral');
   if (level === 'SHS') applicable.push('ReqBirthCompletion');
@@ -366,8 +383,9 @@ function admissionDbRequirementItems_(record) {
   return items;
 }
 
-function admissionDbNewStudentId_() {
-  var year = Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy');
+function admissionDbNewStudentId_(schoolYear) {
+  var match = String(schoolYear || '').match(/^20\d{2}/);
+  var year = match ? match[0] : Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy');
   return 'MA-' + year + '-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase();
 }
 
@@ -392,7 +410,7 @@ function admissionCreateApplication(token, input) {
       var existing = admissionDbRows_();
       if (existing.some(function (r) { return r.Email.toLowerCase() === account.email.toLowerCase(); })) throw new Error('An admission record already exists for this account.');
       if (record.LRN && existing.some(function (r) { return r.LRN === record.LRN; })) throw new Error('An application with this LRN already exists. Please contact the Admissions Office if you believe this is an error.');
-      studentId = admissionDbNewStudentId_();
+      studentId = admissionDbNewStudentId_(record.SchoolYear);
       var row = {};
       ADM_DB.HEADERS.forEach(function (h) { row[h] = ''; });
       row.StudentID = studentId;

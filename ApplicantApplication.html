@@ -103,6 +103,8 @@ function restoreDraft(){
   try{
     var raw=localStorage.getItem(draftKey());if(!raw)return;
     var d=JSON.parse(raw);if(!d||!d.data)return;
+    // Drafts hold personal data, so they expire after 7 days instead of living in the browser forever.
+    if(!d.savedAt||Date.now()-new Date(d.savedAt).getTime()>7*86400000){localStorage.removeItem(draftKey());return}
     Object.keys(d.data).forEach(function(k){
       var el=document.querySelector('[data-key="'+k+'"]');if(!el)return;
       if(el.type==='checkbox')el.checked=!!d.data[k];else el.value=d.data[k]==null?'':String(d.data[k]);
@@ -569,7 +571,8 @@ function downloadApplicationForm(record){
  body+='<div class="sign"><div class="line">Applicant / Parent / Legal Guardian Signature</div><div class="line">Date</div></div>';
  printWindow('MOREH ACADEMY - STUDENT APPLICATION FORM',body,'8.5in 13in');
 }
-function signOut(){var t=token();try{sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem('ma_boot_portal')}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
+function signOut(){var t=token();try{if(account&&account.email)localStorage.removeItem(draftKey())}catch(e){}   /* explicit sign-out wipes the saved draft: this may be a shared computer */
+try{sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem('ma_boot_portal')}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
 var existingRecord=null;
 function showExisting(record){
  existingRecord=record;

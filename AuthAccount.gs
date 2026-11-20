@@ -5,7 +5,7 @@
  * Depends on Auth.gs: AUTH, authFail_, authEmail_, authDigest_, authSheet_, authAllUsers_, authMakeHash_,
  *                     authIssueSession_, authAudit_, authRequireEditor_
  */
-var ACC = { OTP_TTL_MS: 10 * 60 * 1000, OTP_MAX_TRIES: 5, RESEND_SEC: 60, REG_PER_HOUR: 30, TERMS_VERSION: '2026-11' };
+var ACC = { OTP_TTL_MS: 10 * 60 * 1000, OTP_MAX_TRIES: 5, RESEND_SEC: 60, REG_PER_HOUR: 150, REG_PER_EMAIL_DAY: 5, TERMS_VERSION: '2026-11' };
 
 /* ====================== PUBLIC ====================== */
 
@@ -23,6 +23,11 @@ function authRegister(p) {
 
     var cache = CacheService.getScriptCache(), cd = 'oc_verify_' + authDigest_(email);
     if (cache.get(cd)) return authFail_('Please wait a minute before requesting another code.');
+    // Per-email daily cap (counts every attempt, whether or not the email is registered) so nobody can mail-bomb an address.
+    // The global hourly cap below is only a circuit breaker now; it used to be 30, which let one script block every real registration.
+    var dayKey = 'reg_e_' + authDigest_(email) + '_' + Math.floor(Date.now() / 86400000), dayN = Number(cache.get(dayKey) || 0);
+    if (dayN >= ACC.REG_PER_EMAIL_DAY) return authFail_('Too many attempts for this email today. Please try again tomorrow.');
+    cache.put(dayKey, String(dayN + 1), 86400);
     var hash = authMakeHash_(p.password), code = accNewCode_(), now = new Date().toISOString();   // hash BEFORE locking (slow)
     var hourKey = 'reg_h_' + Math.floor(Date.now() / 3600000), busy = false, taken = false;
 
@@ -44,7 +49,14 @@ function authRegister(p) {
       }
     } finally { lock.releaseLock(); }
     if (busy) return authFail_('Registration is busy right now. Please try again later.');
-    if (taken) return authFail_('An account with this email already exists. Please sign in, or use Forgot password.');
+    if (taken) {
+      // Same answer as a fresh registration, so the form cannot be used to find out which emails have accounts.
+      // The real owner of the address is told by email instead.
+      try { accSendExistsNotice_(email); } catch (mailErr) { console.error('Notice email failed: ' + mailErr.message); }
+      cache.put(cd, '1', ACC.RESEND_SEC);
+      authAudit_(email, 'register-existing', '');
+      return { success: true, message: 'We sent a 6-digit code to ' + email + '.', data: { email: email } };
+    }
 
     cache.put(cd, '1', ACC.RESEND_SEC);
     accSendOtp_(email, name, code, 'verify');
@@ -218,7 +230,17 @@ function accAppend_(obj) {
   authUserBump_();
 }
 function accEsc_(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function accSendExistsNotice_(email) {
+  if (MailApp.getRemainingDailyQuota() < 1) return;
+  var html = '<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#14213d">'
+    + '<h2 style="color:#062E70;margin:0 0 12px">Moreh Academy</h2>'
+    + '<p>Someone tried to create a portal account with this email address, but an account already exists.</p>'
+    + '<p>If it was you, please sign in, or choose <b>Forgot password</b> on the sign-in page. If it was not you, you can ignore this email.</p></div>';
+  MailApp.sendEmail({ to: email, subject: 'You already have an account - Moreh Academy', htmlBody: html,
+    body: 'An account already exists for this email. Please sign in or use Forgot password. If this was not you, ignore this email.', name: 'Moreh Academy' });
+}
 function accSendOtp_(email, name, code, purpose) {
+  if (MailApp.getRemainingDailyQuota() < 1) throw new Error('Daily email quota reached.');
   var reset = purpose === 'reset';
   var html = '<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#14213d">'
     + '<h2 style="color:#062E70;margin:0 0 12px">Moreh Academy</h2><p>Hello ' + accEsc_(name || 'there') + ',</p>'
