@@ -31,7 +31,7 @@ function admissionPortalGetBootstrap(token) {
           enrolledByGrade: {}, enrolledByCluster: {}, pipeline: {}, trend: [], trendSummary: {},
           recent: [], needsAction: [], needsActionTotal: 0, bySex: {}, byGender: {},
           byPreviousSchoolTop: [], byScholarship: {}, role: account.role,
-          grades: ADM_DB.GRADES.slice(), activeSchoolYear: admissionDbActiveYear_(), holdsCount: 0,
+          grades: ADM_DB.GRADES.slice(), categories: account.role === 'Owner' ? ADM_DB.CATEGORIES.slice() : [], activeSchoolYear: admissionDbActiveYear_(), holdsCount: 0,
           dashboardWarning: 'Detailed dashboard analytics are temporarily unavailable.'
         };
       }
@@ -975,7 +975,7 @@ function admissionPortalDashboard_(role) {
   });
 
   return {
-    total: rows.length, activeSchoolYear: activeYear, grades: ADM_DB.GRADES.slice(),
+    total: rows.length, activeSchoolYear: activeYear, grades: ADM_DB.GRADES.slice(), categories: isOwner ? ADM_DB.CATEGORIES.slice() : [],
     byStatus: byStatus, byApplicationStatus: byApplicationStatus, byGrade: byGrade,
     byCategory: byCategory, enrolledByGrade: enrolledByGrade, enrolledByCluster: enrolledByCluster,
     pipeline: pipeline, trend: trend,
