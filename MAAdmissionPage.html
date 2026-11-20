@@ -254,17 +254,42 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 </div></div></section>
 </div></main>
 <script>
-var APP_BASE='<?= baseUrl ?>',TOKEN='';
+var APP_BASE='<?= baseUrl ?>',TOKEN='',CURRENT_ROLE='';
 function $(id){return document.getElementById(id)}
 /* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
 function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
+function exportReportCsv(rows,filename){
+  var csv=rows.map(function(row){return row.map(csvCell).join(',')}).join('\\r\\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+}
+function printReportContent(title,subtitle,content,fontSize){
+  var w=window.open('','_blank');if(!w)return;
+  w.document.write('<html><head><title>'+esc(title)+'</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;font-size:'+(fontSize||10)+'px}th,td{border:1px solid #ccc;padding:5px;text-align:left}h1{margin-bottom:4px}p{color:#555}</style></head><body><h1>'+esc(title)+'</h1><p>'+esc(subtitle||'')+'</p>'+content+'</body></html>');
+  w.document.close();w.focus();w.print();
+}
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function msg(t,bad){var e=$('message');e.textContent=t;e.className='status '+(bad?'error':'success');e.classList.remove('hidden')}
 function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){if(fail)fail(r&&r.message||'Request failed.');else msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){if(fail)fail(e&&e.message||'Request failed.');else msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){$('welcome').textContent='Your session is missing. Please sign in from the Moreh Academy Homepage.';msg('Please sign in from the Moreh Academy Homepage first.',true);return}load()}   /* one round trip: the bootstrap call already verifies the session */
-function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
+function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');CURRENT_ROLE=a.role||'';$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;applyRoleRestrictions(a.role);if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{});populateSpecializedGrades((r.data.stats||{}).grades||[])}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
+function applyRoleRestrictions(role){
+  if(role!=='Encoder')return;
+  var restricted=['Admission Category','Sex','Gender','Previous Scholarship','Demographic','Scholarship Beneficiaries','Scholarship by Grade','No Parental Consent','Personal Data'];
+  ['reportType','specializedReportType','detailReportType','matrixRowDimension','matrixColumnDimension'].forEach(function(id){
+    var el=$(id);if(!el)return;
+    Array.prototype.slice.call(el.options).forEach(function(opt){if(restricted.indexOf(opt.text.trim())>=0){opt.disabled=true;opt.hidden=true;}});
+    if(el.selectedOptions.length&&el.selectedOptions[0].disabled)el.value=id==='matrixColumnDimension'?'Enrollment Status':'Grade Level';
+  });
+  var recordsTable=document.querySelector('#adm-view-records table');
+  if(recordsTable)Array.prototype.forEach.call(recordsTable.querySelectorAll('tr'),function(row){if(row.children[3])row.children[3].style.display='none'});
+  var detailTable=$('detailedReportTable');
+  if(detailTable)Array.prototype.forEach.call(detailTable.querySelectorAll('tr'),function(row){if(row.children[5])row.children[5].style.display='none'});
+}
+
 function fill(r){try{showHolds(r.Holds)}catch(e){}document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
 function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k){o[k]=v});return o}
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
@@ -286,10 +311,15 @@ function drawStats(s){try{drawHero(s)}catch(e){}
       '</div>';
   }
 
-  $('dashboardBreakdown').innerHTML=list('Applications by Grade Level',s.byGrade)+list('Applications by Admission Category',s.byCategory);
+  var enrolledHtml=list('Enrolled by Grade — '+esc(s.activeSchoolYear||''),s.enrolledByGrade);
+  var clusterRows=Object.keys(s.enrolledByCluster||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.enrolledByCluster[k]||0)+'</strong></div>'}).join('');
+  var clusterHtml='<div class="breakdown"><h3>Senior High Enrolled by Cluster</h3>'+(clusterRows||'<div class="muted">No enrolled Senior High learners yet.</div>')+'</div>';
+  var categoryHtml=s.role==='Owner'?list('Applications by Admission Category',s.byCategory):'';
+  $('dashboardBreakdown').innerHTML=enrolledHtml+clusterHtml+categoryHtml;
 
   var trend=s.trend||[], maxTrend=Math.max.apply(null,trend.map(function(x){return Number(x.count||0)}).concat([1]));
-  var trendHtml='<div class="dash-panel"><h3>Applications — Last 14 Days</h3><div class="mini-bars">'+
+  var ts=s.trendSummary||{};
+  var trendHtml='<div class="dash-panel"><h3>Applications — Last 14 Days</h3><div class="muted" style="margin-bottom:8px">Week over week: '+(Number(ts.weekDelta||0)>=0?'+':'')+Number(ts.weekDelta||0)+' · Today vs yesterday: '+(Number(ts.dayDelta||0)>=0?'+':'')+Number(ts.dayDelta||0)+'</div><div class="mini-bars">'+
     trend.map(function(x){var h=Math.max(3,Math.round((Number(x.count||0)/maxTrend)*90));return '<div class="mini-bar-wrap"><span class="mini-bar-value">'+Number(x.count||0)+'</span><div class="mini-bar" style="height:'+h+'px"></div><span class="mini-bar-label">'+esc(x.label)+'</span></div>';}).join('')+
     '</div></div>';
 
@@ -298,21 +328,23 @@ function drawStats(s){try{drawHero(s)}catch(e){}
     ['Not Enrolled','Enrolled','Temporary','Transferred','Cancelled'].map(function(k){return '<div class="pipeline-item"><strong>'+Number(pipe[k]||0)+'</strong><span>'+esc(k)+'</span></div>';}).join('')+
     '</div></div>';
 
-  var gc=s.byGradeCluster||{}, gcRows=[];
-  Object.keys(gc).sort().forEach(function(g){Object.keys(gc[g]).sort().forEach(function(k){gcRows.push('<div class="breakdown-row"><span>'+esc(g+' · '+k)+'</span><strong>'+Number(gc[g][k]||0)+'</strong></div>')})});
-  var gradeClusterHtml='<div class="dash-panel"><h3>Applications by Grade & Cluster</h3><div class="analytics-list">'+(gcRows.join('')||'<div class="muted">No cluster data yet.</div>')+'</div></div>';
-
-  var sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('')+'</div></div>';
-  var schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+Object.keys(s.byPreviousSchool||{}).sort(function(a,b){var av=Number(s.byPreviousSchool[a]||0),bv=Number(s.byPreviousSchool[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byPreviousSchool[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var sexHtml='';
+  var schoolHtml='';
+  if(s.role==='Owner'){
+    var sexRows=Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('');
+    var genderRows=Object.keys(s.byGender||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byGender[k]||0)+'</strong></div>'}).join('');
+    sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+(sexRows||'<div class="muted">No data.</div>')+'</div></div><div class="dash-panel"><h3>Gender Distribution</h3><div class="analytics-list">'+(genderRows||'<div class="muted">No data.</div>')+'</div></div>';
+    schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+(s.byPreviousSchoolTop||[]).map(function(x){return '<div class="breakdown-row"><span>'+esc(x.name)+'</span><strong>'+Number(x.count||0)+'</strong></div>'}).join('')+'</div></div>';
+  }
 
   var recent=s.recent||[];
   var recentHtml='<div class="dash-panel"><h3>Recent Applications</h3>'+
     (recent.length?recent.map(function(x){return '<div class="recent-row"><div><div class="recent-name">'+esc(x.FullName)+'</div><div class="muted">'+esc(x.StudentID)+'</div></div><div>'+esc(x.GradeLevel||'')+'</div><div>'+esc(x.Category||'')+'</div><div>'+esc(x.ApplicationStatus||'Submitted')+'</div></div>'}).join(''):'<div class="muted">No applications yet.</div>')+
     '</div>';
 
-  var scholarshipHtml='<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){var av=Number(s.byScholarship[a]||0),bv=Number(s.byScholarship[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>';
+  var scholarshipHtml=s.role==='Owner'?'<div class="dash-panel"><h3>Scholarship / Category History</h3><div class="analytics-list">'+Object.keys(s.byScholarship||{}).sort(function(a,b){var av=Number(s.byScholarship[a]||0),bv=Number(s.byScholarship[b]||0);return bv-av;}).slice(0,10).map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byScholarship[k]||0)+'</strong></div>'}).join('')+'</div></div>':'';
 
-  $('dashboardBreakdown').insertAdjacentHTML('beforeend','<div class="dashboard-extra">'+trendHtml+pipeHtml+gradeClusterHtml+sexHtml+schoolHtml+recentHtml+scholarshipHtml+'</div>');
+  $('dashboardBreakdown').insertAdjacentHTML('beforeend','<div class="dashboard-extra">'+trendHtml+pipeHtml+sexHtml+schoolHtml+recentHtml+scholarshipHtml+'</div>');
 
   var actions=s.needsAction||[];
   $('needsAction').innerHTML=
@@ -360,20 +392,17 @@ function loadDetailedReport(){
 }
 function printDetailedReport(){
   if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
-  var w=window.open('','_blank');if(!w)return;
-  w.document.write('<html><head><title>Moreh Academy Detailed Student Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:9px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — Detailed Student Report</h1><p>'+esc(currentDetailedReport.reportType)+(currentDetailedReport.selectedValue?' · '+esc(currentDetailedReport.selectedValue):'')+'<br>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('detailedReportTable').outerHTML+'</body></html>');
-  w.document.close();w.focus();w.print();
+  printReportContent('Moreh Academy Detailed Student Report',currentDetailedReport.reportType+(currentDetailedReport.selectedValue?' · '+currentDetailedReport.selectedValue:'')+' · Generated '+new Date().toLocaleString(),$('detailedReportTable').outerHTML,9);
 }
 function exportDetailedReport(){
   if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
   var headers=['Student ID','Student','Grade','Cluster','Section','Category','Classification','Previous School','Previous Section','Former Adviser','Application Status','Enrollment Status'];
+  if(CURRENT_ROLE==='Encoder')headers.splice(5,1);
   var rows=[headers];
-  (currentDetailedReport.students||[]).forEach(function(s){rows.push([s.StudentID,s.FullName,s.GradeLevel,s.Cluster,s.Section,s.Category,s.Classification,s.PreviousSchool,s.PreviousSection,s.PreviousAdviser,s.ApplicationStatus,s.EnrollStatus]);});
-  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='Moreh_Detailed_Student_Report.csv';a.click();URL.revokeObjectURL(url);
+  (currentDetailedReport.students||[]).forEach(function(x){var row=[x.StudentID,x.FullName,x.GradeLevel,x.Cluster,x.Section,x.Category,x.Classification,x.PreviousSchool,x.PreviousSection,x.PreviousAdviser,x.ApplicationStatus,x.EnrollStatus];if(CURRENT_ROLE==='Encoder')row.splice(5,1);rows.push(row);});
+  exportReportCsv(rows,'Moreh_Detailed_Student_Report.csv');
 }
-$('detailReportType').onchange=function(){refreshDetailedReportValues('');};
+$('detailReportType').onchange=function(){// Detail-group values load on demand after staff selects a report dimension.};
 $('loadDetailedReport').onclick=loadDetailedReport;
 $('printDetailedReport').onclick=printDetailedReport;
 $('exportDetailedReport').onclick=exportDetailedReport;
@@ -408,19 +437,15 @@ function renderSpecializedReport(data){
 }
 function printSpecializedReport(){
   if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
-  var w=window.open('','_blank');if(!w)return;
-  w.document.write('<html><head><title>'+esc(currentSpecializedReport.title||'Specialized Report')+'</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentSpecializedReport.title||'Specialized Report')+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('specializedReportTable').outerHTML+'</body></html>');
-  w.document.close();w.focus();w.print();
+  printReportContent('Moreh Academy — '+(currentSpecializedReport.title||'Specialized Report'),'Generated '+new Date().toLocaleString(),$('specializedReportTable').outerHTML,10);
 }
 function exportSpecializedReport(){
   if(!currentSpecializedReport){setSpecializedReportStatus('Generate the report first.',true);return;}
   var rows=[currentSpecializedReport.columns||[]].concat(currentSpecializedReport.rows||[]);
-  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='Moreh_'+String(currentSpecializedReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
+  exportReportCsv(rows,'Moreh_'+String(currentSpecializedReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv');
 }
-function populateSpecializedGrades(){
-  var grades=['Nursery','Kinder 1','Kinder 2','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+function populateSpecializedGrades(grades){
+  grades=Array.isArray(grades)?grades:[];
   $('specializedGrade').innerHTML='<option value="">All Grade Levels</option>'+grades.map(function(g){return '<option>'+esc(g)+'</option>';}).join('');
 }
 $('specializedGrade').onchange=refreshSpecializedSections;
@@ -447,18 +472,14 @@ function renderMatrixReport(data){
 }
 function printMatrixReport(){
   if(!currentMatrixReport){setMatrixReportStatus('Generate the matrix report first.',true);return;}
-  var w=window.open('','_blank');if(!w)return;
-  w.document.write('<html><head><title>Moreh Academy Matrix Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #ccc;padding:5px;text-align:center}th:first-child,td:first-child{text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentMatrixReport.rowDimension)+' × '+esc(currentMatrixReport.columnDimension)+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('matrixReportTable').outerHTML+'</body></html>');
-  w.document.close();w.focus();w.print();
+  printReportContent('Moreh Academy — '+currentMatrixReport.rowDimension+' × '+currentMatrixReport.columnDimension,'Generated '+new Date().toLocaleString(),$('matrixReportTable').outerHTML,10);
 }
 function exportMatrixReport(){
   if(!currentMatrixReport){setMatrixReportStatus('Generate the matrix report first.',true);return;}
   var cols=currentMatrixReport.columns||[],rows=[[currentMatrixReport.rowDimension].concat(cols).concat(['Total'])];
-  (currentMatrixReport.reports||[]).forEach(function(r){rows.push([r.Group].concat(cols.map(function(c){return Number(r[c]||0)})).concat([Number(r.Total||0)]));});
-  var t=currentMatrixReport.totals;if(t)rows.push(['Total'].concat(cols.map(function(c){return Number(t[c]||0)})).concat([Number(t.Total||0)]));
-  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='Moreh_Matrix_Report.csv';a.click();URL.revokeObjectURL(url);
+  (currentMatrixReport.reports||[]).forEach(function(x){rows.push([x.Group].concat(cols.map(function(c){return Number(x[c]||0)})).concat([Number(x.Total||0)]));});
+  var totals=currentMatrixReport.totals;if(totals)rows.push(['Total'].concat(cols.map(function(c){return Number(totals[c]||0)})).concat([Number(totals.Total||0)]));
+  exportReportCsv(rows,'Moreh_Matrix_Report.csv');
 }
 $('loadMatrixReport').onclick=loadMatrixReport;
 $('printMatrixReport').onclick=printMatrixReport;
@@ -493,17 +514,13 @@ function renderGeneralReport(data){
 }
 function printGeneralReport(){
   if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
-  var w=window.open('','_blank');if(!w)return;
-  w.document.write('<html><head><title>Moreh Academy Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body><h1>Moreh Academy — '+esc(currentGeneralReport.reportType)+'</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('generalReportTable').outerHTML+'</body></html>');
-  w.document.close();w.focus();w.print();
+  printReportContent('Moreh Academy — '+currentGeneralReport.reportType,'Generated '+new Date().toLocaleString(),$('generalReportTable').outerHTML,11);
 }
 function exportGeneralReport(){
   if(!currentGeneralReport){setGeneralReportStatus('Generate the report first.',true);return;}
   var rows=[['Group','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentGeneralReport.reports||[]).forEach(function(g){rows.push([g.Group,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='Moreh_'+String(currentGeneralReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv';a.click();URL.revokeObjectURL(url);
+  exportReportCsv(rows,'Moreh_'+String(currentGeneralReport.reportType).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.csv');
 }
 function refreshReportValues(){var type=$('reportType').value;call('admissionPortalReport',[TOKEN,type,''],function(r){var sel=$('reportValue');sel.innerHTML='<option value="">All</option>'+r.data.values.map(function(v){return '<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');});}
 $('reportType').onchange=refreshReportValues;
@@ -557,23 +574,19 @@ function renderFormerAdviserStudents(group){
 }
 function printAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
-  var w=window.open('','_blank');if(!w)return;
-  w.document.write('<html><head><title>Per Former Adviser Report</title><style>body{font-family:Arial,sans-serif;padding:24px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left}h1{margin-bottom:4px}p{color:#555}</style></head><body><h1>Moreh Academy — Per Former Adviser Report</h1><p>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('adviserReportPanel').innerHTML+'</body></html>');
-  w.document.close();w.focus();w.print();
+  printReportContent('Moreh Academy — Per Former Adviser Report','Generated '+new Date().toLocaleString(),$('adviserReportPanel').innerHTML,11);
 }
 function exportAdviserReport(){
   if(!currentAdviserReport){setAdviserReportStatus('Generate the report first.',true);return;}
   var rows=[['Former Adviser','Total','Enrolled','Not Enrolled','Temporary','Transferred','Cancelled','Submitted','Under Review','Approved','Declined']];
   (currentAdviserReport.reports||[]).forEach(function(g){rows.push([g.FormerAdviser,g.Total,g.Enrolled,g.NotEnrolled,g.Temporary,g.Transferred,g.Cancelled,g.Submitted,g.UnderReview,g.Approved,g.Declined]);});
-  var csv=rows.map(function(r){return r.map(function(v){return csvCell(v);}).join(',')}).join('\r\n');
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url;a.download='Moreh_Former_Adviser_Report.csv';a.click();URL.revokeObjectURL(url);
+  exportReportCsv(rows,'Moreh_Former_Adviser_Report.csv');
 }
 $('loadAdviserReport').onclick=loadAdviserReport;
 $('printAdviserReport').onclick=printAdviserReport;
 $('exportAdviserReport').onclick=exportAdviserReport;
 
-function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
+function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>';if(CURRENT_ROLE==='Encoder')Array.prototype.forEach.call($('results').querySelectorAll('tr'),function(row){if(row.children[3])row.children[3].style.display='none'});})}
 $('searchBtn').onclick=search;
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
@@ -698,7 +711,13 @@ function drawHero(s){
   var t=Math.max(Number(s.total||0),1),a=s.byApplicationStatus||{},e=s.byStatus||{},need=Number(s.needsActionTotal||0);
   var items=[['Reviewed',Math.round((t-Number(a.Submitted||0))/t*100),'past initial review','#1f5fe0'],['Approved',Math.round(Number(a.Approved||0)/t*100),Number(a.Approved||0)+' applications','#1f9d55'],['Enrolled',Math.round(Number(e.Enrolled||0)/t*100),Number(e.Enrolled||0)+' learners','#7a5fdb'],['Needs action',Math.round(need/t*100),need+' to follow up','#d64545']];
   $('ringStrip').innerHTML=items.map(function(x){return '<div class="sc"><div><small>'+esc(x[0])+'</small><b>'+esc(x[2])+'</b></div>'+ringSvg(x[1],x[3])+'</div>'}).join('');
-  holdsLoad(true);
+  setHoldsCount(Number(s.holdsCount || 0));
+}
+function setHoldsCount(count){
+  count=Math.max(0,Number(count||0));
+  var c=$('holdsCount'),b=$('holdsBadge');
+  if(c)c.textContent=count;
+  if(b){b.textContent=count;b.classList.toggle('hidden',!count)}
 }
 function showHolds(list){var el=$('appHolds');if(!el)return;if(!list||!list.length){el.classList.add('hidden');el.innerHTML='';return}
   el.innerHTML=list.map(function(h){return '<div class="hold-note"><b>'+esc(h.Office)+':</b> '+esc(h.Instruction)+'</div>'}).join('');el.classList.remove('hidden')}
