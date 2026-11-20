@@ -441,20 +441,10 @@ function admissionPortalReport(token, reportType, reportValue) {
     reportValue = String(reportValue || '').trim();
     var rows = admissionDbRows_();
     var groups = {};
-    function keyFor(r) {
-      if (reportType === 'Grade Level') return String(r.GradeLevel || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Admission Category') return String(r.Category || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Enrollment Status') return String(r.EnrollStatus || 'Not Enrolled').trim() || 'Not Enrolled';
-      if (reportType === 'Application Status') return String(r.ApplicationStatus || 'Submitted').trim() || 'Submitted';
-      if (reportType === 'Previous School') return String(r.PrevSchool || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Sex') return String(r.SexualOrient || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Gender') return String(r.GenderOrient || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Previous Scholarship') return String(r.PrevScholarship || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Classification') return String(r.Classification || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Cluster') return String(r.Cluster || 'Unspecified').trim() || 'Unspecified';
-      if (reportType === 'Section') return String(r.Section || 'Unspecified').trim() || 'Unspecified';
-      return 'Unspecified';
-    }
+    var reportDimensions = ['Grade Level','Admission Category','Enrollment Status','Application Status','Previous School',
+      'Sex','Gender','Previous Scholarship','Classification','Cluster','Section'];
+    if (reportDimensions.indexOf(reportType) < 0) throw new Error('Invalid report dimension.');
+    function keyFor(r) { return admissionDimension_(r, reportType); }
     if (reportValue) rows = rows.filter(function(r){ return keyFor(r).toLowerCase() === reportValue.toLowerCase(); });
     rows.forEach(function(r){
       var key=keyFor(r);
