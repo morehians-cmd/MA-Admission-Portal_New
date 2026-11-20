@@ -229,7 +229,7 @@ function load(mode){return rpc('getPagesAdminState').then(function(r){
 function lockOut(msg){
  var na=/Not authorized/i.test(msg);
  $('lay').style.display='none';$('pub').disabled=true;$('out').style.display='none';$('st').textContent='Locked';$('lock').style.display='block';
- $('lockMsg').textContent=na?'Sign in with the Owner account to manage website pages.':msg;$('siBox').style.display=na?'block':'none'}
+ $('lockMsg').textContent=na?'Sign in with an Owner or Website Administrator account to manage website pages.':msg;$('siBox').style.display=na?'block':'none'}
 function signInOwner(){
  var e=$('siE').value.trim(),p=$('siP').value,b=$('siGo');
  if(!e||!p){$('siErr').textContent='Enter your email and password.';return}
@@ -238,7 +238,7 @@ function signInOwner(){
  function done(){b.disabled=false;b.textContent='Sign in'}
  google.script.run.withSuccessHandler(function(r){
   if(!r||r.success!==true){done();$('siErr').textContent=(r&&r.message)||'Sign-in failed.';return}
-  if(r.data.role!=='Owner'){google.script.run.authSignOut(r.data.token);done();$('siErr').textContent='This account does not have Owner access.';return}
+  if(['Owner','Website Administrator'].indexOf(r.data.role)<0){google.script.run.authSignOut(r.data.token);done();$('siErr').textContent='This account does not have website management access.';return}
   setToken(r.data.token);$('siP').value='';$('siErr').textContent='';done();$('out').style.display='';$('pub').disabled=false;
   load().catch(function(x){lockOut(x.message)})
  }).withFailureHandler(function(x){done();$('siErr').textContent=(x&&x.message)||'Sign-in failed. Try again.'}).authSignIn(e,p)}

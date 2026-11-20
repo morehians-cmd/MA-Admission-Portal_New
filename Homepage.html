@@ -455,7 +455,7 @@ function resetLoginBtn(){$('outBtn').style.display='none';var b=$('loginBtn');b.
 function showSignedIn(u,quiet){
  var b=$('loginBtn');
  var menu=$('menu');
- if(u.role==='Owner'){
+ if(u.role==='Owner'||u.role==='Website Administrator'){
   b.textContent='Homepage Management';b.onclick=null;
   if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
  }else{

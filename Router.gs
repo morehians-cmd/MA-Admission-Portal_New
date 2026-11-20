@@ -20,7 +20,11 @@ function doGet(e) {
   var out = t.evaluate()
     .setTitle(ADMIN_TITLES_[file] || 'Moreh Academy')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
-  // Website management pages are standalone and not iframe-embedded.\n  out.setXFrameOptionsMode(ADMIN_PAGES_.hasOwnProperty(page)\n    ? HtmlService.XFrameOptionsMode.DEFAULT\n    : HtmlService.XFrameOptionsMode.ALLOWALL);\n  return out;
+  // Website management pages are standalone and not iframe-embedded.
+  out.setXFrameOptionsMode(ADMIN_PAGES_.hasOwnProperty(page)
+    ? HtmlService.XFrameOptionsMode.DEFAULT
+    : HtmlService.XFrameOptionsMode.ALLOWALL);
+  return out;
 }
 
 function sanitizePage_(p) {
