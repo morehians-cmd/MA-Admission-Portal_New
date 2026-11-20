@@ -407,12 +407,11 @@ function exportDetailedReport(){
   (currentDetailedReport.students||[]).forEach(function(x){var row=[x.StudentID,x.FullName,x.GradeLevel,x.Cluster,x.Section,x.Category,x.Classification,x.PreviousSchool,x.PreviousSection,x.PreviousAdviser,x.ApplicationStatus,x.EnrollStatus];if(CURRENT_ROLE==='Encoder')row.splice(5,1);rows.push(row);});
   exportReportCsv(rows,'Moreh_Detailed_Student_Report.csv');
 }
-$('detailReportType').onchange=function(){// Detail-group values load on demand after staff selects a report dimension.};
+$('detailReportType').onchange=function(){refreshDetailedReportValues('');};
 $('loadDetailedReport').onclick=loadDetailedReport;
 $('printDetailedReport').onclick=printDetailedReport;
 $('exportDetailedReport').onclick=exportDetailedReport;
-refreshDetailedReportValues('');
-
+// Detail-group values are fetched only after the user changes the report dimension.
 
 var currentSpecializedReport=null;
 function setSpecializedReportStatus(t,bad){localStatus('specializedReportStatus',t,bad);}
@@ -457,8 +456,6 @@ $('specializedGrade').onchange=refreshSpecializedSections;
 $('loadSpecializedReport').onclick=loadSpecializedReport;
 $('printSpecializedReport').onclick=printSpecializedReport;
 $('exportSpecializedReport').onclick=exportSpecializedReport;
-populateSpecializedGrades();
-
 var currentMatrixReport=null;
 function setMatrixReportStatus(t,bad){localStatus('matrixReportStatus',t,bad);}
 function loadMatrixReport(){
