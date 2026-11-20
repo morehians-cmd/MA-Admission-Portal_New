@@ -892,10 +892,13 @@ function admissionPortalDashboard_(role) {
 
     if (isOwner) {
       inc(byCategory, admissionDimension_(r, 'category'));
-      inc(bySex, admissionDimension_(r, 'sex'));
-      inc(byGender, admissionDimension_(r, 'gender'));
-      inc(byPrevSchool, admissionDimension_(r, 'previousSchool'));
-      if (r.PrevScholarship) inc(byScholarship, admissionDimension_(r, 'scholarship'));
+      // Match the legacy demographic dashboard population: exclude cancelled and transferred-out learners.
+      if (status !== 'Cancelled' && status !== 'Transferred Out') {
+        inc(bySex, admissionDimension_(r, 'sex'));
+        inc(byGender, admissionDimension_(r, 'gender'));
+        if (String(r.PrevSchool || '').trim()) inc(byPrevSchool, admissionDimension_(r, 'previousSchool'));
+        if (r.PrevScholarship) inc(byScholarship, admissionDimension_(r, 'scholarship'));
+      }
     }
 
     if (status === 'Enrolled') {
