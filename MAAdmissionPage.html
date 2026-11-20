@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admissions | Moreh Academy</title>
+<script>(function(){var t='';try{t=localStorage.getItem('ma_theme')||''}catch(e){}if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t)})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <?!= include('MAAdmissionStyles') ?>
@@ -36,47 +37,100 @@ body:has(#staff:not(.hidden)){background:#f4f7fd}
 @media(max-width:760px){.adm-shell{grid-template-columns:1fr}.adm-sidebar{position:static;min-height:0;display:none}.adm-sidebar.mobile-open{display:flex}.adm-menu-toggle{display:inline-flex}.adm-view-head{padding:13px 15px}.adm-panel,.adm-view .card{padding:15px}.adm-nav-group{margin-bottom:8px}.top .wrap{min-height:68px}.top .brand{font-size:15px}.top a{font-size:12px;padding:8px}.top .brand:before{width:36px;height:36px}}
 </style>
 <style id="ma-redesign">
-/* ===== Redesign layer: overrides only; every ID and handler below is unchanged ===== */
-:root{--rd-bg:#eef2fb;--rd-side:#e8eefb;--rd-line:#e3e9f6}
-body:has(#staff:not(.hidden)){background:var(--rd-bg)}
-.adm-sidebar{background:var(--rd-side);border:0;box-shadow:none;border-radius:20px;color:#16213d}
-.adm-side-brand{border-bottom:1px solid var(--rd-line)}.adm-brand-mark{background:#1f5fe0}
-.adm-side-brand strong{color:#16213d}.adm-side-brand small{color:#66738f}
-.adm-nav-heading{color:#66738f;letter-spacing:.13em}
-.adm-nav{color:#16213d;font-weight:600;padding:7px 10px;border-radius:12px}
-.adm-nav:hover{background:rgba(31,95,224,.08);color:#16213d}
-.adm-nav.active{background:#c9dafc;color:#0f3f9e;box-shadow:none}
-.adm-nav .adm-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:#dfe9ff;color:#0648AD}
-.adm-nav.active .adm-ico{background:#fff;color:#0648AD}
-.adm-nav[data-adm-view=holds] .adm-ico{background:#fbdada;color:#b5413f}
-.adm-nav em{margin-left:auto;font-style:normal;background:#d64545;color:#fff;border-radius:99px;font-size:11px;padding:0 7px;font-weight:700}
-.adm-sidebar-footer{color:#16213d;border-top:1px solid var(--rd-line)}.adm-sidebar-footer small{color:#66738f}
-.adm-view-head{border-radius:18px;border-color:var(--rd-line);box-shadow:none;background:#fff}
-.adm-view-head h2{color:#16213d}
-.adm-panel,.adm-view .card,.dash-panel,.breakdown{border-radius:16px;border-color:var(--rd-line)}
-.hero{background:linear-gradient(110deg,#1f5fe0,#2f6ff0 60%,#4b86f5);color:#fff;border-radius:18px;padding:22px 26px;position:relative;overflow:hidden;margin-bottom:14px}
+/* ===== Redesign layer: tokens + overrides. Every ID and handler below is unchanged unless noted ===== */
+:root{--rd-bg:#eef2fb;--rd-side:#e8eefb;--rd-line:#e3e9f6;--rd-card:#fff;--rd-ink:#16213d;--rd-mut:#66738f;--rd-soft:#eaf1ff;--rd-blue:#1f5fe0;--rd-ok:#1f9d55;--rd-bad:#d64545;--rd-warn:#b86e00;--rd-field:#fff;--rd-fline:#b9c8e6;--rd-act:#c9dafc;--rd-actink:#0f3f9e;--rd-ico:#dfe9ff;--rd-icoink:#0648AD;--rd-hold:#fff7ec;--rd-holdink:#6b4300;--rd-holdline:#f08a1c;--rd-thead:#062E70;--rd-shadow:rgba(20,40,100,.07);color-scheme:light}
+:root[data-theme=dark]{--rd-bg:#0b1222;--rd-side:#101a31;--rd-line:#263352;--rd-card:#16213a;--rd-ink:#e8eefc;--rd-mut:#9aa8c7;--rd-soft:#1d2d52;--rd-blue:#6b9cf5;--rd-ok:#4cc27f;--rd-bad:#f07575;--rd-warn:#ffb04d;--rd-field:#101a31;--rd-fline:#34456b;--rd-act:#25417a;--rd-actink:#fff;--rd-ico:#1d2d52;--rd-icoink:#9ec0ff;--rd-hold:#2a2112;--rd-holdink:#ffd9a3;--rd-holdline:#b8731a;--rd-thead:#1d2d52;--rd-shadow:rgba(0,0,0,.35);color-scheme:dark}
+body,body:has(#staff:not(.hidden)){background:var(--rd-bg);color:var(--rd-ink)}
+.top{background:var(--rd-card);border-bottom-color:var(--rd-line)}.top .brand,.top a{color:var(--rd-ink)}.top a:hover{background:var(--rd-soft);color:var(--rd-blue)}.top a#signout{color:#fff}
+.head h1,.adm-view-head h2,.adm-panel h2,.card h2,.card h3,.adm-panel h3{color:var(--rd-ink)}.head p,.muted,.adm-view-head p,.action-reason,.mini-bar-label,.pipeline-item span{color:var(--rd-mut)}
+label{color:var(--rd-ink)}input,select,textarea{background:var(--rd-field);color:var(--rd-ink);border-color:var(--rd-fline)}input:disabled{opacity:.7}input::placeholder,textarea::placeholder{color:var(--rd-mut)}
+.section{color:var(--rd-blue);border-bottom-color:var(--rd-line)}
+.btn.secondary{background:var(--rd-card);color:var(--rd-ink);border-color:var(--rd-fline)}.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn:focus-visible,.adm-nav:focus-visible,.qb:focus-visible,.top a:focus-visible,.rd-kc:focus-visible,.rd-row:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--rd-blue);outline-offset:2px}
+.status{background:var(--rd-soft);color:var(--rd-ink)}.status.error{background:rgba(214,69,69,.14);color:var(--rd-bad);border:1px solid rgba(214,69,69,.4)}.status.success{background:rgba(31,157,85,.14);color:var(--rd-ok);border:1px solid rgba(31,157,85,.4)}
+.card,.adm-panel,.adm-view-head,.dash-panel,.breakdown,.needs-action,.strip,.pipeline-item{background:var(--rd-card);border-color:var(--rd-line);color:var(--rd-ink)}
+.adm-panel,.adm-view .card,.dash-panel,.breakdown{border-radius:16px}
+.breakdown h3,.dash-panel h3,.needs-action h3,.action-name,.recent-name,.mini-bar-value{color:var(--rd-ink)}.breakdown-row,.recent-row,.action-row{border-bottom-color:var(--rd-line)}.breakdown-row strong,.pipeline-item strong{color:var(--rd-blue)}
+.mini-bar{background:var(--rd-blue)}.action-tag{background:var(--rd-soft);color:var(--rd-ink)}.action-tag.review{background:rgba(240,138,28,.2);color:var(--rd-warn)}.action-tag.approved{background:rgba(31,157,85,.2);color:var(--rd-ok)}.action-tag.submitted{background:rgba(60,111,208,.2);color:var(--rd-blue)}
+.table th{background:var(--rd-thead);color:#fff}.table td{border-bottom-color:var(--rd-line);color:var(--rd-ink)}.table tr:hover td{background:var(--rd-soft)}
+.adm-sidebar{background:var(--rd-side);border:0;box-shadow:none;border-radius:20px;color:var(--rd-ink)}
+.adm-side-brand{border-bottom:1px solid var(--rd-line)}.adm-brand-mark{background:#1f5fe0}.adm-side-brand strong{color:var(--rd-ink)}.adm-side-brand small{color:var(--rd-mut)}
+.adm-nav-heading{color:var(--rd-mut);letter-spacing:.13em}
+.adm-nav{color:var(--rd-ink);font-weight:600;padding:7px 10px;border-radius:12px}.adm-nav:hover{background:rgba(31,95,224,.1);color:var(--rd-ink)}
+.adm-nav.active{background:var(--rd-act);color:var(--rd-actink);box-shadow:none}
+.adm-nav .adm-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:var(--rd-ico);color:var(--rd-icoink)}
+.adm-nav.active .adm-ico{background:#fff;color:#0648AD}:root[data-theme=dark] .adm-nav.active .adm-ico{background:rgba(255,255,255,.16);color:#fff}
+.adm-nav[data-adm-view=pipeline] .adm-ico{background:#efe0fb;color:#5b49c4}.adm-nav[data-adm-view=records] .adm-ico{background:#fde6d2;color:#9a5a10}.adm-nav[data-adm-view=holds] .adm-ico{background:#fbdada;color:#b5413f}
+:root[data-theme=dark] .adm-nav[data-adm-view=pipeline] .adm-ico{background:#2d2552;color:#c4b5ff}:root[data-theme=dark] .adm-nav[data-adm-view=records] .adm-ico{background:#4a3318;color:#ffc27a}:root[data-theme=dark] .adm-nav[data-adm-view=holds] .adm-ico{background:#4a2330;color:#ff9a9a}
+.adm-nav em{margin-left:auto;font-style:normal;background:#d64545;color:#fff;border-radius:99px;font-size:11px;padding:0 7px;font-weight:700}.adm-nav em.soft{background:var(--rd-blue);color:#fff}:root[data-theme=dark] .adm-nav em.soft{color:#0b1222}
+.adm-sidebar-footer{color:var(--rd-ink);border-top:1px solid var(--rd-line)}.adm-sidebar-footer small{color:var(--rd-mut)}
+.adm-view-head{border-radius:18px;box-shadow:none}.adm-eyebrow{color:var(--rd-mut)}.adm-menu-toggle{background:var(--rd-card);border-color:var(--rd-line);color:var(--rd-blue)}
+.hero{background:linear-gradient(110deg,#1f5fe0,#2f6ff0 60%,#4b86f5);color:#fff;border-radius:18px;padding:22px 26px;position:relative;overflow:hidden;margin-bottom:14px}:root[data-theme=dark] .hero{background:linear-gradient(110deg,#17368a,#1f4cb8 60%,#2f63d6)}
 .hero:after{content:"";position:absolute;right:-40px;top:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.1)}
 .hero small{opacity:.92;font-size:13px}.hero h1{margin:4px 0;font:800 26px var(--head);color:#fff}
 .qa{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 12px;margin-bottom:6px}
-.qb{display:flex;align-items:center;gap:9px;white-space:nowrap;background:#fff;border:1px solid var(--rd-line);border-radius:99px;padding:7px 16px 7px 8px;font:600 13px var(--head);cursor:pointer;color:#16213d;box-shadow:0 2px 6px rgba(20,40,100,.07)}
+.qb{display:flex;align-items:center;gap:9px;white-space:nowrap;background:var(--rd-card);border:1px solid var(--rd-line);border-radius:99px;padding:7px 16px 7px 8px;font:600 13px var(--head);cursor:pointer;color:var(--rd-ink);box-shadow:0 2px 6px var(--rd-shadow)}
 .qb i{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:14px}
 .stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
-.stats .stat{border-radius:16px;padding:16px;color:#fff;min-height:96px}
-.stats .stat span{color:#fff;opacity:.92;font-size:12px}.stats .stat strong{color:#fff;font-size:28px;margin-top:4px}
+.stats .stat{border-radius:16px;padding:16px;color:#fff;min-height:96px}.stats .stat span{color:#fff;opacity:.92;font-size:12px}.stats .stat strong{color:#fff;font-size:28px;margin-top:4px}
 .stats .stat:nth-child(1){background:linear-gradient(135deg,#3c6fd0,#2d5cbc)}.stats .stat:nth-child(2){background:linear-gradient(135deg,#7a5fdb,#5b49c4)}
 .stats .stat:nth-child(3){background:linear-gradient(135deg,#e59a2e,#cf7f12)}.stats .stat:nth-child(4){background:linear-gradient(135deg,#2f9d63,#1f8a54)}
 .stats .stat:nth-child(5){background:linear-gradient(135deg,#c9524f,#b5413f)}.stats .stat:nth-child(6){background:linear-gradient(135deg,#1f9aa8,#157f8c)}
-.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));border:1px solid var(--rd-line);border-radius:16px;margin-bottom:14px;background:#fff}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));border:1px solid var(--rd-line);border-radius:16px;margin-bottom:14px}
 .sc{display:flex;align-items:center;gap:12px;padding:14px 16px;border-right:1px solid var(--rd-line)}.sc:last-child{border:0}.sc div{flex:1;min-width:0}
-.sc small{color:#66738f;font-size:12px;display:block}.sc b{font:700 19px var(--head);display:block;line-height:1.2;color:#16213d}
-.hold-note{border:1px solid #f08a1c;background:#fff7ec;border-radius:12px;padding:12px 14px;margin:12px 0;color:#6b4300;font-size:13px}
+.sc small{color:var(--rd-mut);font-size:12px;display:block}.sc b{font:700 19px var(--head);display:block;line-height:1.2;color:var(--rd-ink)}
+.rg-track{fill:none;stroke:var(--rd-soft);stroke-width:5}.rg-txt{fill:var(--rd-ink);font-size:10px;font-weight:700}
+.hold-note{border:1px solid var(--rd-holdline);background:var(--rd-hold);border-radius:12px;padding:12px 14px;margin:12px 0;color:var(--rd-holdink);font-size:13px}
 .hold-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--rd-line)}.hold-row:last-child{border:0}
-.hold-row .grow{flex:1;min-width:0}.hold-row b{display:block;font-size:13px}.hold-row span{font-size:12px;color:#66738f}
+.hold-row .grow{flex:1;min-width:0}.hold-row b{display:block;font-size:13px}.hold-row span{font-size:12px;color:var(--rd-mut)}
 .hold-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}
+/* tags + progress */
+.rd-tag{font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--rd-soft);color:var(--rd-blue);white-space:nowrap;display:inline-block}
+.rd-tag.ok{background:rgba(31,157,85,.16);color:var(--rd-ok)}.rd-tag.warn{background:rgba(240,138,28,.18);color:var(--rd-warn)}.rd-tag.bad{background:rgba(214,69,69,.16);color:var(--rd-bad)}
+.rd-pb{height:8px;border-radius:9px;background:var(--rd-soft);overflow:hidden}.rd-pb i{display:block;height:100%;border-radius:9px;background:var(--rd-blue)}
+/* records rows */
+.rd-row{cursor:pointer}
+/* pipeline board */
+.rd-pipehead{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.rd-pipehead input{flex:1;min-width:180px;max-width:360px}.rd-pipehead select{width:auto;min-width:150px}
+.rd-kan{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow-x:auto;padding-bottom:6px}
+.rd-col{background:var(--rd-soft);border-radius:14px;padding:10px;min-height:260px}
+.rd-col h4{margin:2px 4px 10px;font:700 12px var(--head);display:flex;justify-content:space-between;color:var(--rd-mut);text-transform:uppercase;letter-spacing:.6px}
+.rd-kc{display:block;width:100%;text-align:left;font:inherit;color:var(--rd-ink);background:var(--rd-card);border:1px solid var(--rd-line);border-radius:12px;padding:11px;margin-bottom:9px;cursor:pointer}.rd-kc:hover{border-color:var(--rd-blue)}
+.rd-kc b{font-size:13px;display:block}.rd-kc p{margin:2px 0 8px;color:var(--rd-mut);font-size:12px}.rd-kc .rd-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}.rd-kc .cap{margin:5px 0 0}
+.rd-empty{color:var(--rd-mut);font-size:12px;padding:8px 4px}
+/* detail drawer */
+.rd-scrim{position:fixed;inset:0;background:rgba(8,16,40,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:49}.rd-scrim.on{opacity:1;pointer-events:auto}
+.rd-drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--rd-card);color:var(--rd-ink);border-left:1px solid var(--rd-line);box-shadow:-10px 0 30px rgba(0,0,0,.25);transform:translateX(105%);transition:transform .25s;padding:20px;overflow:auto;z-index:50;visibility:hidden}
+.rd-drawer.on{transform:none;visibility:visible}.rd-drawer:focus{outline:0}
+.rd-dh{display:flex;justify-content:space-between;align-items:center}.rd-av{width:46px;height:46px;border-radius:50%;background:var(--rd-soft);color:var(--rd-blue);display:grid;place-items:center;font:700 15px var(--head)}
+.rd-drawer h2{margin:12px 0 2px;font:800 20px var(--head);color:var(--rd-ink)}.rd-drawer h3{margin:18px 0 8px;font:700 14px var(--head);color:var(--rd-ink)}
+.rd-sub{color:var(--rd-mut);font-size:12.5px}.rd-tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.rd-holdbox{border:1px solid var(--rd-bad);border-radius:12px;padding:12px;margin:12px 0}.rd-holdbox>b{color:var(--rd-bad)}
+.rd-hline{margin-top:8px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.rd-hline span{color:var(--rd-mut)}
+.rd-req{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rd-line);font-size:13px}.rd-req>span{flex:1;min-width:0}.rd-req select{width:auto;max-width:170px;padding:5px 7px;font-size:12px;border-radius:8px}
+.rd-stage{font:700 11px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--rd-mut);margin:14px 0 2px}
+.rd-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.rd-acts .btn{padding:8px 13px;font-size:13px}
+.rd-note{margin-top:14px}.rd-inline{border:1px dashed var(--rd-fline);border-radius:12px;padding:12px;margin-top:12px;display:grid;gap:8px}
+.rd-more{margin-top:18px;border:1px solid var(--rd-line);border-radius:12px;padding:0 12px}.rd-more>summary{cursor:pointer;font:700 14px var(--head);padding:12px 0}.rd-more[open]>summary{border-bottom:1px solid var(--rd-line);margin-bottom:12px}.rd-more .form-grid{grid-template-columns:1fr 1fr;padding-bottom:6px}
+/* toast */
+.rd-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,40px);opacity:0;background:#0f2a66;color:#fff;padding:10px 16px;border-radius:10px;transition:.25s;z-index:60;max-width:min(92vw,520px);pointer-events:none;font-size:13px}.rd-toast.on{transform:translate(-50%,0);opacity:1}.rd-toast.bad{background:#a32f2f}
 @media(max-width:900px){.hold-grid{grid-template-columns:1fr}.sc{border-right:0;border-bottom:1px solid var(--rd-line)}}
+@media(max-width:560px){.rd-more .form-grid{grid-template-columns:1fr}.rd-drawer{padding:16px}}
+/* full-width layout, pinned header + sidebar */
+.top{position:sticky;top:0;z-index:40}
+.top .wrap,main>.wrap{max-width:none;width:100%;padding-left:clamp(14px,2vw,32px);padding-right:clamp(14px,2vw,32px)}
+.top .wrap{min-height:64px}.top nav{margin-left:auto}
+main{padding:20px 0 48px}.head h1{font-size:clamp(22px,2.4vw,30px)}.head p{margin:2px 0 0}
+#staff.card,body:has(#staff:not(.hidden)) #staff:not(.hidden){margin-top:12px!important}
+#applicant{max-width:1100px;margin-left:auto;margin-right:auto}
+.adm-shell{grid-template-columns:240px minmax(0,1fr);gap:16px}
+@media(min-width:761px){.adm-sidebar{position:sticky;top:76px;min-height:0;height:calc(100vh - 92px);overflow-y:auto}}
+.rd-kan{grid-template-columns:repeat(4,minmax(230px,1fr))}
+.dashboard-extra{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.dashboard-breakdown{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+@media(prefers-reduced-motion:reduce){.rd-drawer,.rd-scrim,.rd-toast{transition:none}}
 </style>
 </head><body>
-<header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY <span style="font:600 11px var(--body);color:#71809b;display:block">ADMISSIONS MANAGEMENT</span></div><nav><a href="<?= baseUrl ?>?page=home" target="_top">Public Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
+<header class="top"><div class="wrap"><div class="brand">MOREH ACADEMY <span style="font:600 11px var(--body);color:#71809b;display:block">ADMISSIONS MANAGEMENT</span></div><nav><a href="#" id="themeBtn" role="button" aria-label="Switch to dark mode" title="Light / dark mode"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" style="margin-right:6px"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.5a6.5 6.5 0 0 0 0 13z" fill="currentColor"/></svg><span>Dark</span></a><a href="<?= baseUrl ?>?page=home" target="_top">Public Homepage</a><a href="#" id="signout">Sign out</a></nav></div></header>
 <main><div class="wrap">
 <div class="head"><div><h1>Admissions Portal</h1><p id="welcome">Loading your admission portal…</p></div></div>
 <div id="message" class="status hidden"></div>
@@ -131,7 +185,8 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 <aside class="adm-sidebar" aria-label="Admission dashboard navigation">
 <div class="adm-side-brand"><span class="adm-brand-mark">MA</span><div><strong>Admission Office</strong><small>Management Portal</small></div></div>
 <div class="adm-nav-group"><div class="adm-nav-heading">OVERVIEW</div><button class="adm-nav active" data-adm-view="dashboard"><span class="adm-ico">▦</span><span>Dashboard</span></button></div>
-<div class="adm-nav-group"><div class="adm-nav-heading">ADMISSIONS</div><button class="adm-nav" data-adm-view="records"><span class="adm-ico">▤</span><span>Admission Records</span></button>
+<div class="adm-nav-group"><div class="adm-nav-heading">ADMISSIONS</div><button class="adm-nav" data-adm-view="pipeline"><span class="adm-ico">⇄</span><span>Pipeline</span><em id="pipeBadge" class="soft hidden">0</em></button>
+<button class="adm-nav" data-adm-view="records"><span class="adm-ico">▤</span><span>Admission Records</span></button>
 <button class="adm-nav" data-adm-view="holds"><span class="adm-ico">⚑</span><span>Enrollment Holds</span><em id="holdsBadge" class="hidden">0</em></button></div>
 <div class="adm-nav-group"><div class="adm-nav-heading">REPORTS & ANALYTICS</div>
 <button class="adm-nav" data-adm-view="general"><span class="adm-ico">▥</span><span>General Report</span></button>
@@ -143,8 +198,9 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 </aside>
 <div class="adm-content">
 <div class="adm-view-head"><div><div class="adm-eyebrow">ADMISSIONS WORKSPACE</div><h2 id="admViewTitle">Admission Dashboard</h2><p id="admViewDescription">Admissions overview and activity.</p></div><button class="adm-menu-toggle" id="admMenuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button></div>
-<div class="adm-view active" id="adm-view-dashboard"><div class="hero"><small id="heroDate"></small><h1 id="heroHi">Welcome</h1><small>Here is what is happening with admissions today.</small></div><div class="qa"><button class="qb" data-adm-view="records"><i style="background:#1f5fe0">▤</i>Admission Records</button><button class="qb" data-adm-view="holds"><i style="background:#c9524f">⚑</i>Enrollment Holds</button><button class="qb" data-adm-view="general"><i style="background:#2f9d63">▥</i>General Report</button><button class="qb" data-adm-view="detailed"><i style="background:#7a5fdb">☷</i>Detailed Report</button></div><div id="stats" class="stats"></div><div id="ringStrip" class="strip"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
+<div class="adm-view active" id="adm-view-dashboard"><div class="hero"><small id="heroDate"></small><h1 id="heroHi">Welcome</h1><small>Here is what is happening with admissions today.</small></div><div class="qa"><button class="qb" data-adm-view="pipeline"><i style="background:#7a5fdb">⇄</i>Review Pipeline</button><button class="qb" data-adm-view="records"><i style="background:#1f5fe0">▤</i>Admission Records</button><button class="qb" data-adm-view="holds"><i style="background:#c9524f">⚑</i>Enrollment Holds</button><button class="qb" data-adm-view="general"><i style="background:#2f9d63">▥</i>General Report</button><button class="qb" data-adm-view="detailed"><i style="background:#5b57d6">☷</i>Detailed Report</button></div><div id="stats" class="stats"></div><div id="ringStrip" class="strip"></div><div id="dashboardBreakdown" class="dashboard-breakdown"></div><div id="needsAction" class="needs-action"></div>
 </div>
+<div class="adm-view" id="adm-view-pipeline"><div class="rd-pipehead"><input id="pipeQ" type="search" placeholder="Filter board by name, ID or grade…" aria-label="Filter board"><select id="pipeGrade" aria-label="Filter by grade"><option value="">All grades</option></select><button type="button" class="btn secondary" id="pipeRefresh">Refresh</button></div><div class="rd-kan" id="kan"><div class="rd-empty">Loading applications…</div></div><p class="muted" id="pipeNote"></p></div>
 <div class="adm-view" id="adm-view-holds"><div class="hold-grid">
 <div class="adm-panel"><h2>Active holds <span class="action-tag submitted" id="holdsCount">0</span></h2><p class="muted">A hold blocks "Enrolled". Use Temporary enrollment (reason, end date, 120 days max) to allow an exception.</p><div id="holdsList"><div class="muted">Loading…</div></div></div>
 <div class="adm-panel"><h2>Raise a hold</h2><div class="form-grid" style="grid-template-columns:1fr">
@@ -253,24 +309,28 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 </section></div>
 </div></div></section>
 </div></main>
+<div class="rd-scrim" id="drScrim"></div>
+<aside class="rd-drawer" id="studentDetail" role="dialog" aria-modal="true" aria-label="Student record" tabindex="-1"></aside>
+<div class="rd-toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 var APP_BASE='<?= baseUrl ?>',TOKEN='';
 function $(id){return document.getElementById(id)}
 /* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
 function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function msg(t,bad){var e=$('message');e.textContent=t;e.className='status '+(bad?'error':'success');e.classList.remove('hidden')}
+function msg(t,bad){if(typeof toast==='function')toast(t,bad);var e=$('message');if(bad){e.textContent=t;e.className='status error'}else{e.className='status hidden'}}
 function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){if(!r||r.success!==true){if(fail)fail(r&&r.message||'Request failed.');else msg(r&&r.message||'Request failed.',true);return}ok(r)}).withFailureHandler(function(e){if(fail)fail(e&&e.message||'Request failed.');else msg(e&&e.message||'Request failed.',true)})[fn].apply(null,args)}
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){$('welcome').textContent='Your session is missing. Please sign in from the Moreh Academy Homepage.';msg('Please sign in from the Moreh Academy Homepage first.',true);return}load()}   /* one round trip: the bootstrap call already verifies the session */
-function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
+function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search();if(!PIPE)pipeLoad()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
 function fill(r){try{showHolds(r.Holds)}catch(e){}document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
 function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k){o[k]=v});return o}
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
 $('refreshApplicant').onclick=load;
 function drawStats(s){try{drawHero(s)}catch(e){}
   var app=s.byApplicationStatus||{}, enroll=s.byStatus||{};
+  var pn=Number(app.Submitted||0)+Number(app['Under Review']||0),pb=$('pipeBadge');if(pb){pb.textContent=pn;pb.classList.toggle('hidden',!pn)}
   $('stats').innerHTML=
     '<div class="stat"><span>Total Applications</span><strong>'+s.total+'</strong></div>'+
     '<div class="stat"><span>Submitted</span><strong>'+Number(app.Submitted||0)+'</strong></div>'+
@@ -573,37 +633,8 @@ $('loadAdviserReport').onclick=loadAdviserReport;
 $('printAdviserReport').onclick=printAdviserReport;
 $('exportAdviserReport').onclick=exportAdviserReport;
 
-function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
+function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){var as=x.ApplicationStatus||'Submitted',k=esc(encodeURIComponent(x.StudentID));return '<tr class="rd-row" tabindex="0" data-open="'+k+'"><td>'+esc(x.StudentID)+'</td><td><strong>'+esc(x.FullName)+'</strong></td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+rdTag(as,appTone(as))+'</td><td>'+rdTag(x.EnrollStatus||'Not Enrolled',enrTone(x.EnrollStatus))+'</td><td><button type="button" class="btn blue" style="padding:6px 10px" data-open="'+k+'">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
-function openStudent(id){
-  call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
-    var x=r.data,old=$('studentDetail');if(old)old.remove();
-    var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','ApplicationStatus','EnrollStatus','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
-    var categoryOptions=['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'];
-    var h='<div class="card" id="studentDetail"><h2>'+esc(x.FullName)+'</h2><div class="form-grid">'+keys.map(function(k){
-      if(k==='ApplicationStatus'){
-        var currentStatus=String(x[k]||'Submitted');
-        var statusOptions=['Submitted','Under Review','Approved','Declined'];
-        return '<div><label>Application Status</label><select data-edit="ApplicationStatus">'+statusOptions.map(function(v){return '<option value="'+esc(v)+'" '+(v===currentStatus?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>';
-      }
-      if(k==='Category'){
-        var current=String(x[k]||'');
-        var options=categoryOptions.slice();
-        if(current && options.indexOf(current)<0)options.unshift(current);
-        return '<div><label>Category</label><select data-edit="Category">'+options.map(function(v){return '<option value="'+esc(v)+'" '+(v===current?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>';
-      }
-      return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"></div>';
-    }).join('')+'</div>'+
-      '<div class="actions"><button type="button" class="btn blue" data-action="save-student">Save Changes</button><button type="button" class="btn secondary" data-action="open-id-card">ID Card</button><button type="button" class="btn secondary" data-action="re-enroll">Re-enroll</button><span id="studentSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span><span id="lifecycleStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div>'+
-      '<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Documentary Requirements</h3><p>Only Admission Personnel can update these document statuses. Each change is recorded in the audit log.</p>'+
-      '<div class="form-grid">'+(function(){var groups={};(x.RequirementItems||[]).forEach(function(item){var stage=item.stage||'For Completion';(groups[stage]||(groups[stage]=[])).push(item)});return Object.keys(groups).map(function(stage){return '<div class="section wide">'+esc(stage)+'</div>'+groups[stage].map(function(item){return '<div><label>'+esc(item.label)+'</label><select data-req-status="'+esc(item.statusKey)+'">'+['Pending Submission','Received','Verified','Incomplete'].map(function(v){return '<option value="'+esc(v)+'" '+(v===item.status?'selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}).join('')}).join('')})()+'</div>'+
-      '<div class="actions"><button type="button" class="btn blue" data-action="save-requirements">Update Document Statuses</button><span id="reqSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div></div>';
-    $('staff').insertAdjacentHTML('afterend',h);
-    var detail=$('studentDetail');
-    detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
-    detail.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(x.StudentID)};
-  });
-}
 function localStatus(id,text,bad){
   var e=$(id);if(!e)return;
   e.textContent=text;e.className='status '+(bad?'error':'success');
@@ -626,7 +657,7 @@ function saveStudent(id){
   call('admissionPortalSaveStudent',[TOKEN,decodeURIComponent(id),o],function(r){
     setButtonLoading(button,false,'Save Changes');
     localStatus('studentSaveStatus',r.message,false);
-    search();
+    search();pipeLoad();
   },function(error){
     setButtonLoading(button,false,'Save Changes');
     localStatus('studentSaveStatus',error,true);
@@ -661,7 +692,7 @@ function openIdCard(id){
       '<div><label>Current ID Number</label><input id=\"idCardNumber\" value=\"'+esc(x.IDNumber||'')+'\" placeholder=\"TLC2027-0001\"></div>'+
       '<div><label>Claimed TLC ID</label><input value=\"'+esc(x.ClaimedIDNumber||'')+'\" disabled></div>'+
       '</div><div class=\"actions\"><button class=\"btn blue\" type=\"button\" id=\"saveIdCard\">Confirm ID Number</button><span id=\"idCardStatus\" class=\"status hidden\"></span></div></div>';
-    $('studentDetail').insertAdjacentHTML('afterend',html);
+    $('idSlot').innerHTML=html;
     $('saveIdCard').onclick=function(){var b=this;b.disabled=true;b.textContent='Processing...';call('admissionIdCardSaveNumber',[TOKEN,x.StudentID,$('idCardNumber').value],function(z){b.disabled=false;b.textContent='Confirm ID Number';localStatus('idCardStatus',z.message,false);openStudent(encodeURIComponent(x.StudentID));},function(m){b.disabled=false;b.textContent='Confirm ID Number';localStatus('idCardStatus',m,true);});};
   });
 }
@@ -669,6 +700,7 @@ function openIdCard(id){
 // Centralized staff navigation. Existing admission/report actions remain bound to their original IDs.
 var ADM_VIEW_META={
  dashboard:['Admission Dashboard','Admissions overview, pipeline statistics, and items requiring attention.'],
+ pipeline:['Admissions Pipeline','Move applications from submitted to approved. Click a card to open the record.'],
  holds:['Enrollment Holds','Office holds that block enrollment until cleared.'],
  records:['Admission Records','Search, filter, and open admission records.'],
  general:['General Report','Summarized admission and enrollment statistics by selected dimension.'],
@@ -686,11 +718,11 @@ function setAdmissionStaffView(view){
  var side=document.querySelector('.adm-sidebar');if(side)side.classList.remove('mobile-open');
  var toggle=$('admMenuToggle');if(toggle)toggle.setAttribute('aria-expanded','false');
 }
-document.addEventListener('click',function(e){var b=e.target.closest('[data-adm-view]');if(b)setAdmissionStaffView(b.getAttribute('data-adm-view'))});
+document.addEventListener('click',function(e){var b=e.target.closest('[data-adm-view]');if(b){var v=b.getAttribute('data-adm-view');setAdmissionStaffView(v);if(v==='pipeline')pipeLoad()}});
 $('admMenuToggle').onclick=function(){var side=document.querySelector('.adm-sidebar');side.classList.toggle('mobile-open');this.setAttribute('aria-expanded',side.classList.contains('mobile-open')?'true':'false')};
 
 /* ===== Redesign: hero, rings, holds ===== */
-function ringSvg(p,c){p=Math.max(0,Math.min(100,p));var C=2*Math.PI*17;return '<svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="17" fill="none" stroke="#eaf1ff" stroke-width="5"/><circle cx="23" cy="23" r="17" fill="none" stroke="'+c+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(p/100*C)+' '+C+'" transform="rotate(-90 23 23)"/><text x="23" y="26" text-anchor="middle" font-size="10" font-weight="700" fill="#16213d">'+Math.round(p)+'%</text></svg>'}
+function ringSvg(p,c){p=Math.max(0,Math.min(100,p));var C=2*Math.PI*17;return '<svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle class="rg-track" cx="23" cy="23" r="17"/><circle cx="23" cy="23" r="17" fill="none" stroke="'+c+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(p/100*C)+' '+C+'" transform="rotate(-90 23 23)"/><text x="23" y="26" text-anchor="middle" class="rg-txt">'+Math.round(p)+'%</text></svg>'}
 function drawHero(s){
   var n=($('welcome').textContent||'').split(' · ')[0]||'there',h=new Date().getHours();
   $('heroHi').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+n;
@@ -704,10 +736,10 @@ function showHolds(list){var el=$('appHolds');if(!el)return;if(!list||!list.leng
   el.innerHTML=list.map(function(h){return '<div class="hold-note"><b>'+esc(h.Office)+':</b> '+esc(h.Instruction)+'</div>'}).join('');el.classList.remove('hidden')}
 function holdsLoad(quiet){
   call('admissionHoldsOverview',[TOKEN],function(r){
-    var L=(r.data&&r.data.holds)||[];$('holdsCount').textContent=L.length;
+    var L=(r.data&&r.data.holds)||[];HOLDS=L;$('holdsCount').textContent=L.length;if(typeof pipeRender==='function')pipeRender();if(typeof drawerHolds==='function')drawerHolds();
     var b=$('holdsBadge');b.textContent=L.length;b.classList.toggle('hidden',!L.length);
     $('holdsList').innerHTML=L.length?L.map(function(h){return '<div class="hold-row"><div class="grow"><b>'+esc(h.FullName||h.StudentID)+' · '+esc(h.Office)+'</b><span>'+esc(h.StudentID)+(h.GradeLevel?' · '+esc(h.GradeLevel):'')+' — '+esc(h.Reason)+'</span></div><button type="button" class="btn secondary" data-clear-hold="'+esc(h.HoldID)+'">Clear</button></div>'}).join(''):'<div class="muted">No active holds.</div>';
-  },function(e){if(!quiet)msg(e,true);$('holdsList').innerHTML='<div class="muted">Holds are not available yet.</div>'});
+  },function(e){if(HOLDS===null)HOLDS=[];if(!quiet)msg(e,true);$('holdsList').innerHTML='<div class="muted">Holds are not available yet.</div>'});
 }
 document.addEventListener('click',function(e){
   if(e.target.closest('[data-adm-view="holds"]'))holdsLoad();
@@ -720,6 +752,139 @@ $('holdRaiseBtn').onclick=function(){
     b.disabled=false;msg(r.message);$('holdReason').value='';$('holdInstr').value='';holdsLoad(true)
   },function(m){b.disabled=false;msg(m,true)});
 };
+
+/* ===== Redesign: theme, toast, pipeline board, detail drawer ===== */
+var PIPE=null,HOLDS=null,CUR=null,LAST_FOCUS=null,toastT=0;
+var APP_COLS=['Submitted','Under Review','Approved','Declined'];
+function dec(s){try{return decodeURIComponent(s)}catch(e){return s}}
+function initials(n){var p=String(n||'').split(','),a=(p[0]||'').trim().charAt(0),b=(p[1]||'').trim().charAt(0);return (b+a).toUpperCase()||'?'}
+function appTone(s){return s==='Approved'?'ok':s==='Declined'?'bad':s==='Under Review'?'warn':''}
+function enrTone(s){return s==='Enrolled'?'ok':s==='Temporary'?'warn':(s==='Cancelled'||s==='Transferred'||s==='Transferred Out')?'bad':''}
+function rdTag(t,tone){return '<span class="rd-tag '+(tone||'')+'">'+esc(t)+'</span>'}
+function holdsFor(id){return (HOLDS||[]).filter(function(h){return h.StudentID===id})}
+function toast(t,bad){var e=$('toast');if(!e)return;e.textContent=t;e.className='rd-toast on'+(bad?' bad':'');clearTimeout(toastT);toastT=setTimeout(function(){e.className='rd-toast'},bad?5000:2600)}
+
+/* theme */
+function applyTheme(t,keep){document.documentElement.setAttribute('data-theme',t);if(keep){try{localStorage.setItem('ma_theme',t)}catch(e){}}
+  var b=$('themeBtn');if(b){b.setAttribute('aria-label',t==='dark'?'Switch to light mode':'Switch to dark mode');b.lastElementChild.textContent=t==='dark'?'Light':'Dark'}}
+$('themeBtn').onclick=function(e){e.preventDefault();applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark',true)};
+applyTheme(document.documentElement.getAttribute('data-theme')||'light',false);
+try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){var s='';try{s=localStorage.getItem('ma_theme')||''}catch(x){}if(!s)applyTheme(e.matches?'dark':'light',false)})}catch(e){}
+
+/* pipeline board */
+function pipeLoad(){
+  call('admissionPortalSearch',[TOKEN,'','','',100,'',''],function(r){PIPE=r.data||[];pipeRender()},function(m){$('kan').innerHTML='<div class="rd-empty">'+esc(m)+'</div>'});
+}
+function pipeRender(){
+  if(!PIPE)return;
+  var q=$('pipeQ').value.trim().toLowerCase(),g=$('pipeGrade').value;
+  var grades=PIPE.map(function(x){return x.GradeLevel}).filter(function(v,i,a){return v&&a.indexOf(v)===i});
+  var sel=$('pipeGrade'),keep=sel.value;
+  sel.innerHTML='<option value="">All grades</option>'+grades.map(function(v){return '<option'+(v===keep?' selected':'')+'>'+esc(v)+'</option>'}).join('');
+  var L=PIPE.filter(function(x){return(!g||x.GradeLevel===g)&&(!q||[x.FullName,x.StudentID,x.GradeLevel,x.Category].join(' ').toLowerCase().indexOf(q)>=0)});
+  $('kan').innerHTML=APP_COLS.map(function(s){
+    var C=L.filter(function(x){return (x.ApplicationStatus||'Submitted')===s});
+    return '<div class="rd-col"><h4>'+esc(s)+'<span>'+C.length+'</span></h4>'+(C.length?C.map(function(x){
+      var p=Math.max(0,Math.min(100,Number(x.DocsPct||0))),hn=holdsFor(x.StudentID).length,tags='';
+      if(hn)tags+=rdTag('⚑ '+hn+(hn>1?' holds':' hold'),'bad');
+      if(x.EnrollStatus&&x.EnrollStatus!=='Not Enrolled')tags+=rdTag(x.EnrollStatus,enrTone(x.EnrollStatus));
+      return '<button type="button" class="rd-kc" data-open="'+esc(encodeURIComponent(x.StudentID))+'"><b>'+esc(x.FullName)+'</b><p>'+esc(x.GradeLevel||'')+(x.Category?' · '+esc(x.Category):'')+'</p>'+(tags?'<div class="rd-tags">'+tags+'</div>':'')+'<div class="rd-pb"><i style="width:'+p+'%;background:'+(p>70?'var(--rd-ok)':'var(--rd-warn)')+'"></i></div><p class="cap">'+p+'% docs ready</p></button>'
+    }).join(''):'<div class="rd-empty">Nothing here</div>')+'</div>'}).join('');
+  $('pipeNote').textContent=PIPE.length>=100?'Showing the 100 most recent applications. Use Admission Records to search older ones.':'';
+}
+$('pipeQ').oninput=pipeRender;$('pipeGrade').onchange=pipeRender;$('pipeRefresh').onclick=function(){pipeLoad();holdsLoad(true)};
+
+/* refresh everything after a change */
+function afterChange(id,keepOpen){load();pipeLoad();if(keepOpen&&id)openStudent(encodeURIComponent(id))}
+
+/* drawer */
+function drawerOpen(){return $('studentDetail').classList.contains('on')}
+function showDrawer(){if(drawerOpen())return;LAST_FOCUS=document.activeElement;$('studentDetail').classList.add('on');$('drScrim').classList.add('on');$('studentDetail').focus()}
+function closeDrawer(){$('studentDetail').classList.remove('on');$('drScrim').classList.remove('on');CUR=null;if(LAST_FOCUS&&LAST_FOCUS.focus){try{LAST_FOCUS.focus()}catch(e){}}}
+$('drScrim').onclick=closeDrawer;
+document.addEventListener('keydown',function(e){
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'&&!$('staff').classList.contains('hidden')){e.preventDefault();setAdmissionStaffView('records');$('q').focus();return}
+  if(!drawerOpen())return;
+  if(e.key==='Escape'){closeDrawer();return}
+  if(e.key==='Tab'){var f=[].filter.call($('studentDetail').querySelectorAll('button,input,select,textarea,summary,[href]'),function(n){return !n.disabled&&n.offsetParent!==null});if(!f.length)return;var a=f[0],z=f[f.length-1];if(e.shiftKey&&(document.activeElement===a||document.activeElement===$('studentDetail'))){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
+});
+document.addEventListener('click',function(e){var o=e.target.closest('[data-open]');if(o)openStudent(o.getAttribute('data-open'))});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('tr[data-open]')){e.preventDefault();openStudent(e.target.getAttribute('data-open'))}});
+
+function openStudent(id){
+  id=dec(id);var d=$('studentDetail');
+  if(!drawerOpen()){d.innerHTML='<div class="rd-dh"><div class="rd-sub">Loading record…</div><button type="button" class="btn secondary" data-close>✕ Close</button></div>'}
+  showDrawer();
+  if(HOLDS===null)holdsLoad(true);
+  call('admissionPortalGetStudent',[TOKEN,id],function(r){CUR=r.data;drawDrawer(r.data)},function(m){closeDrawer();msg(m,true)});
+}
+function drawDrawer(x){
+  var d=$('studentDetail'),st=String(x.ApplicationStatus||'Submitted'),en=String(x.EnrollStatus||'Not Enrolled'),id=x.StudentID;
+  var keys=['Surname','FirstName','MiddleName','Suffix','GradeLevel','Category','Department','Cluster','Section','LRN','Mobile','Birthdate','AddressLine1','Barangay','City','PrevSchool'];
+  var cats=['TLC Scholar','ESC Grantee','PUB-QVR','QVA Passer','TLC-ESC','TLC-OVAP','IS','Regular'];
+  var fields=keys.map(function(k){
+    if(k==='Category'){var c=String(x[k]||''),o=cats.slice();if(c&&o.indexOf(c)<0)o.unshift(c);return '<div><label>Category</label><select data-edit="Category">'+o.map(function(v){return '<option value="'+esc(v)+'"'+(v===c?' selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}
+    return '<div><label>'+esc(k)+'</label><input data-edit="'+esc(k)+'" value="'+esc(x[k]||'')+'"'+(k==='Birthdate'?' type="date"':'')+'></div>'}).join('');
+  var groups={};(x.RequirementItems||[]).forEach(function(i){var g=i.stage||'For Completion';(groups[g]||(groups[g]=[])).push(i)});
+  var reqs=Object.keys(groups).map(function(g){return '<div class="rd-stage">'+esc(g)+'</div>'+groups[g].map(function(i){return '<div class="rd-req"><span>'+esc(i.label)+'</span><select data-req-status="'+esc(i.statusKey)+'" aria-label="'+esc(i.label)+'">'+['Pending Submission','Received','Verified','Incomplete'].map(function(v){return '<option value="'+esc(v)+'"'+(v===i.status?' selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></div>'}).join('')}).join('')||'<div class="rd-sub">No requirements apply to this grade level yet.</div>';
+  var tempLine=en==='Temporary'?'<div class="rd-sub">Temporary until <b>'+esc(x.TempUntil||'—')+'</b>'+(x.TempReason?' · '+esc(x.TempReason):'')+'</div>':'';
+  d.innerHTML='<div class="rd-dh"><div class="rd-av">'+esc(initials(x.FullName))+'</div><button type="button" class="btn secondary" data-close>✕ Close</button></div>'+
+   '<h2>'+esc(x.FullName)+'</h2><div class="rd-sub">'+esc(id)+' · '+esc(x.GradeLevel||'')+(x.Category?' · '+esc(x.Category):'')+'</div>'+
+   '<div class="rd-tags">'+rdTag(st,appTone(st))+rdTag(en,enrTone(en))+'</div>'+tempLine+
+   '<div id="drHold"></div>'+
+   '<div class="rd-note"><label for="drReason">Note for the status log (optional)</label><input id="drReason" maxlength="200" placeholder="e.g. Documents complete"></div>'+
+   '<div class="rd-acts"><button type="button" class="btn blue" data-act="review"'+(st!=='Submitted'?' disabled':'')+'>Start review</button><button type="button" class="btn" data-act="approve"'+(st==='Approved'?' disabled':'')+'>Approve</button><button type="button" class="btn secondary" data-act="decline"'+(st==='Declined'?' disabled':'')+'>Decline</button></div>'+
+   '<div class="rd-acts"><button type="button" class="btn blue" data-act="enroll"'+((st!=='Approved'||en==='Enrolled')?' disabled':'')+'>Mark enrolled</button><button type="button" class="btn secondary" data-act="temp-open"'+((st!=='Approved'||en==='Enrolled')?' disabled':'')+'>Allow temporary</button></div>'+
+   '<div class="rd-inline hidden" id="tempBox"><div><label for="tempUntil">End date (max 120 days)</label><input type="date" id="tempUntil"></div><div><label for="tempWhy">Reason</label><input id="tempWhy" maxlength="200" value="'+esc(x.TempReason||'')+'"></div><div class="actions" style="margin:0"><button type="button" class="btn blue" data-act="temp-save">Confirm temporary</button><button type="button" class="btn secondary" data-act="temp-cancel">Cancel</button></div></div>'+
+   '<div id="statusMsg" class="status hidden" style="margin-top:12px"></div>'+
+   '<h3>Requirements</h3>'+reqs+
+   '<div class="actions"><button type="button" class="btn blue" data-action="save-requirements">Update document statuses</button><span id="reqSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div>'+
+   '<details class="rd-more"><summary>Edit student details</summary><div class="form-grid">'+fields+'</div><div class="actions" style="margin:0 0 14px"><button type="button" class="btn blue" data-action="save-student">Save changes</button><span id="studentSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div></details>'+
+   '<div class="rd-acts"><button type="button" class="btn secondary" data-action="open-id-card">ID Card</button><button type="button" class="btn secondary" data-action="re-enroll">Re-enroll</button><span id="lifecycleStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div><div id="idSlot" style="margin-top:12px"></div>'+
+   '<p class="rd-sub" style="margin-top:16px">Every status change is written to the status log with the actor and reason.</p>';
+  drawerHolds();
+  d.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(id)};
+  d.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(id))};
+  d.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[id]}],'lifecycleStatus')};
+  d.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(id)};
+}
+function drawerHolds(){
+  var h=$('drHold');if(!h||!CUR)return;var L=holdsFor(CUR.StudentID);
+  h.innerHTML=L.length?'<div class="rd-holdbox"><b>⚑ Enrollment hold</b>'+L.map(function(x){return '<div class="rd-hline"><div><b>'+esc(x.Office)+'</b>: '+esc(x.Instruction)+'<br><span>Reason (staff only): '+esc(x.Reason)+'</span></div><button type="button" class="btn secondary" data-clear-hold="'+esc(x.HoldID)+'">Clear</button></div>'}).join('')+'<div class="rd-sub" style="margin-top:8px">A hold blocks “Enrolled”. “Allow temporary” is still possible.</div></div>':'';
+}
+function drawerStatus(t,bad){var e=$('statusMsg');if(!e)return;e.textContent=t;e.className='status '+(bad?'error':'success');e.style.display='block'}
+function setStatus(btn,patch,doneMsg){
+  var id=CUR.StudentID,label=btn.textContent;patch.StudentID=id;
+  var why=($('drReason')&&$('drReason').value.trim())||'';if(why)patch.Reason=why;
+  btn.disabled=true;btn.textContent='Processing…';
+  call('admissionPortalSetStatus',[TOKEN,[patch]],function(r){toast(doneMsg);afterChange(id,true)},function(m){btn.disabled=false;btn.textContent=label;drawerStatus(m,true);toast(m,true)});
+}
+var confirmT=0;
+document.addEventListener('click',function(e){
+  if(e.target.closest('[data-close]')){closeDrawer();return}
+  var b=e.target.closest('[data-act]');if(!b||!CUR)return;var a=b.getAttribute('data-act');
+  if(a==='review')setStatus(b,{ApplicationStatus:'Under Review'},'Moved to Under Review');
+  else if(a==='approve')setStatus(b,{ApplicationStatus:'Approved'},'Application approved');
+  else if(a==='decline'){
+    if(b.getAttribute('data-armed')!=='1'){b.setAttribute('data-armed','1');b.textContent='Tap again to decline';clearTimeout(confirmT);confirmT=setTimeout(function(){b.removeAttribute('data-armed');b.textContent='Decline'},4000);return}
+    clearTimeout(confirmT);setStatus(b,{ApplicationStatus:'Declined'},'Application declined');
+  }
+  else if(a==='enroll'){
+    var hn=holdsFor(CUR.StudentID);if(hn.length){var m='Blocked by hold: '+hn.map(function(h){return h.Office}).join(', ')+'. Clear it, or use Allow temporary.';drawerStatus(m,true);toast(m,true);return}
+    setStatus(b,{EnrollStatus:'Enrolled'},'Marked enrolled');
+  }
+  else if(a==='temp-open'){
+    var t=new Date(),pad=function(n){return ('0'+n).slice(-2)},f=function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+    var mn=new Date(t.getTime()+864e5),mx=new Date(t.getTime()+120*864e5),u=$('tempUntil');u.min=f(mn);u.max=f(mx);if(!u.value)u.value=f(new Date(t.getTime()+30*864e5));
+    $('tempBox').classList.remove('hidden');u.focus();
+  }
+  else if(a==='temp-cancel')$('tempBox').classList.add('hidden');
+  else if(a==='temp-save'){
+    var u2=$('tempUntil').value,w=$('tempWhy').value.trim();
+    if(!u2||!w){drawerStatus('Add an end date and a reason for the temporary enrollment.',true);return}
+    setStatus(b,{EnrollStatus:'Temporary',TempUntil:u2,TempReason:w},'Temporary enrollment saved');
+  }
+});
 
 boot();
 </script></body></html>

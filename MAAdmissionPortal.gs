@@ -247,6 +247,7 @@ function admissionPortalSetStatus(token, updates) {
     if (!lock.tryLock(15000)) throw new Error('The service is busy. Please try again.');
 
     var today = Utilities.formatDate(new Date(), 'Asia/Manila', 'yyyy-MM-dd');
+    var holdMap = admissionHoldsMap_();
     var plan = [], seen = {};
 
     // PASS 1 - validate EVERYTHING (records, status rules, linked accounts) and write NOTHING.
@@ -261,6 +262,10 @@ function admissionPortalSetStatus(token, updates) {
       var oldEnroll = String(r.EnrollStatus || 'Not Enrolled');
       var newApp = item.ApplicationStatus || oldApp;
       var newEnroll = item.EnrollStatus || oldEnroll;
+      if (newEnroll === 'Enrolled' && oldEnroll !== 'Enrolled' && holdMap[item.StudentID]) {
+        throw new Error('Learner ' + item.StudentID + ' has an active hold (' + holdMap[item.StudentID].join(', ') +
+                        '). Clear it first, or use Temporary enrollment.');
+      }
 
       if (newEnroll === 'Enrolled' || newEnroll === 'Temporary') {
         if (newApp !== 'Approved') throw new Error('Learner ' + item.StudentID + ' must be Approved before being marked ' + newEnroll + '.');
@@ -960,6 +965,7 @@ function admissionPortalPublicRecord_(r) {
     GradeLevel: r.GradeLevel, Department: r.Department, Cluster: r.Cluster,
     Section: r.Section, Email: r.Email, EnrollStatus: r.EnrollStatus,
     ApplicationStatus: r.ApplicationStatus || 'Submitted',
+    DocsPct: admissionPortalDocsPct_(r), TempUntil: r.TempUntil || '',
     ProcessedBy: r.ProcessedBy, ProcessedDate: r.ProcessedDate,
     Requirements: {
       SF9: r.ReqSF9, F137: r.ReqF137, Birth: r.ReqBirth, Moral: r.ReqMoral,
@@ -967,4 +973,14 @@ function admissionPortalPublicRecord_(r) {
       Consent: r.ReqConsent, Envelope: r.ReqEnvelope
     }
   };
+}
+
+/** Share (0-100) of applicable requirements that are Received or Verified. Used by the pipeline board cards. */
+function admissionPortalDocsPct_(r) {
+  try {
+    var items = admissionDbRequirementItems_(r);
+    if (!items.length) return 0;
+    var ok = items.filter(function (i) { return i.status === 'Verified' || i.status === 'Received'; }).length;
+    return Math.round(ok / items.length * 100);
+  } catch (e) { return 0; }
 }

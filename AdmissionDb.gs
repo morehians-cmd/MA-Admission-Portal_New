@@ -463,6 +463,7 @@ function admissionGetMyApplication(token) {
     var record = admissionDbFindById_(account.studentId);
     if (!record) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
     record.RequirementItems = admissionDbRequirementItems_(record);
+    record.Holds = admissionHoldsForApplicant_(record.StudentID);   // office + instruction only, never the reason
     delete record._row;
     ADM_DB.APPLICANT_HIDDEN.forEach(function (k) { delete record[k]; });   // staff-only notes and processing fields
     return { success: true, message: 'Application loaded.', data: record };
