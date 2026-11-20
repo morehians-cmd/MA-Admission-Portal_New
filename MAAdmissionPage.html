@@ -338,7 +338,7 @@ function drawStats(s){try{drawHero(s)}catch(e){}
   if(s.role==='Owner'){
     var sexRows=Object.keys(s.bySex||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.bySex[k]||0)+'</strong></div>'}).join('');
     var genderRows=Object.keys(s.byGender||{}).sort().map(function(k){return '<div class="breakdown-row"><span>'+esc(k)+'</span><strong>'+Number(s.byGender[k]||0)+'</strong></div>'}).join('');
-    sexHtml='<div class="dash-panel"><h3>Sex Distribution</h3><div class="analytics-list">'+(sexRows||'<div class="muted">No data.</div>')+'</div></div><div class="dash-panel"><h3>Gender Distribution</h3><div class="analytics-list">'+(genderRows||'<div class="muted">No data.</div>')+'</div></div>';
+    sexHtml='<div class="dash-panel"><h3>Legal Sex Distribution</h3><div class="analytics-list">'+(sexRows||'<div class="muted">No data.</div>')+'</div></div><div class="dash-panel"><h3>Gender Identity Distribution</h3><div class="analytics-list">'+(genderRows||'<div class="muted">No data.</div>')+'</div></div>';
     schoolHtml='<div class="dash-panel"><h3>Top Previous Schools</h3><div class="analytics-list">'+(s.byPreviousSchoolTop||[]).map(function(x){return '<div class="breakdown-row"><span>'+esc(x.name)+'</span><strong>'+Number(x.count||0)+'</strong></div>'}).join('')+'</div></div>';
   }
 
