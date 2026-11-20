@@ -17,7 +17,7 @@
 var MA_ADM_SPEED = {
   VERSION: 3,
   FIELDS: [
-    'StudentID', 'FullName', 'LRN', 'GradeLevel', 'Section',
+    'StudentID', 'FullName', 'LRN', 'Classification', 'GradeLevel', 'Section',
     'EnrollStatus', 'SchoolYear', 'Category', 'Department', 'Cluster', 'PrevSchool', 'PrevSchoolType', 'PrevScholarship', 'SexualOrient', 'GenderOrient',
     'Email', 'CreatedAt', 'ApplicationStatus', 'ReqConsent', 'ReqSF9InitialStatus', 'ReqSF9CompletionStatus', 'ReqBirthInitialStatus', 'ReqBirthCompletionStatus', 'ReqPhotoStatus', 'ReqEnvelopeStatus', 'ReqF137Status', 'ReqMoralStatus', 'ReqJHSStatus', 'ReqTransfereeStatus', 'ReqConsentStatus', 'TempUntil', 'CertNo', 'VoucherCertNo', 'EscCertNo'
   ],
@@ -159,27 +159,6 @@ function maAdmissionSpeedReadStudentRow_(studentId) {
     record[h] = row[j] == null ? '' : String(row[j]);
   });
   return record;
-}
-
-function maAdmissionSpeedDashboard_() {
-  var rows = maAdmissionSpeedRecords_();
-  var byStatus = {}, byGrade = {}, byCategory = {};
-
-  rows.forEach(function (r) {
-    var s = r.EnrollStatus || 'Unspecified';
-    var g = r.GradeLevel || 'Unspecified';
-    var c = r.Category || 'Unspecified';
-    byStatus[s] = (byStatus[s] || 0) + 1;
-    byGrade[g] = (byGrade[g] || 0) + 1;
-    byCategory[c] = (byCategory[c] || 0) + 1;
-  });
-
-  return {
-    total: rows.length,
-    byStatus: byStatus,
-    byGrade: byGrade,
-    byCategory: byCategory
-  };
 }
 
 function maAdmissionSpeedTest() {
