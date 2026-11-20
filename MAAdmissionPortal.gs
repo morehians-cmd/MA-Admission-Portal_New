@@ -452,7 +452,7 @@ function admissionPortalReport(token, reportType, reportValue) {
       if(!groups[key]) groups[key]={Group:key,Total:0,Enrolled:0,NotEnrolled:0,Temporary:0,Transferred:0,Cancelled:0,Submitted:0,UnderReview:0,Approved:0,Declined:0};
       var g=groups[key]; g.Total++;
       var es=String(r.EnrollStatus||'Not Enrolled');
-      if(es==='Enrolled')g.Enrolled++;else if(es==='Temporary')g.Temporary++;else if(es==='Transferred')g.Transferred++;else if(es==='Cancelled')g.Cancelled++;else g.NotEnrolled++;
+      if(es==='Enrolled')g.Enrolled++;else if(es==='Temporary')g.Temporary++;else if(es==='Transferred'||es==='Transferred Out')g.Transferred++;else if(es==='Cancelled')g.Cancelled++;else g.NotEnrolled++;
       var as=String(r.ApplicationStatus||'Submitted');
       if(as==='Under Review')g.UnderReview++;else if(as==='Approved')g.Approved++;else if(as==='Declined')g.Declined++;else g.Submitted++;
     });
@@ -785,7 +785,7 @@ function admissionPortalFormerAdviserReport(token, formerAdviser) {
       var es = String(r.EnrollStatus || 'Not Enrolled');
       if (es === 'Enrolled') g.Enrolled++;
       else if (es === 'Temporary') g.Temporary++;
-      else if (es === 'Transferred') g.Transferred++;
+      else if (es === 'Transferred' || es === 'Transferred Out') g.Transferred++;
       else if (es === 'Cancelled') g.Cancelled++;
       else g.NotEnrolled++;
       var as = String(r.ApplicationStatus || 'Submitted');
