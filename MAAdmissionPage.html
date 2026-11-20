@@ -259,7 +259,7 @@ function $(id){return document.getElementById(id)}
 /* CSV cell: quote it, and defuse leading = + - @ (tab/CR too) so Excel/Sheets never run it as a formula. */
 function csvCell(v){var t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'}
 function exportReportCsv(rows,filename){
-  var csv=rows.map(function(row){return row.map(csvCell).join(',')}).join('\\r\\n');
+  var csv=rows.map(function(row){return row.map(csvCell).join(',')}).join('\r\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
 }
