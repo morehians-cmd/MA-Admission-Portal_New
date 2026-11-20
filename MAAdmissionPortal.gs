@@ -144,14 +144,14 @@ function admissionPortalSaveStudent(token, studentId, changes) {
       if (!sn || !fn) throw new Error('Surname and first name are required.');
       update.FullName = String(sn).toUpperCase() + ', ' + String(fn).toUpperCase() + (mn ? ' ' + String(mn).toUpperCase() : '') + (sx ? ' ' + String(sx).toUpperCase() : '');
     }
-    if (!Object.keys(update).length) { delete r._row; return { success: true, message: 'No changes were supplied.', data: r }; }
+    if (!Object.keys(update).length) { if (actor.role === 'Encoder') admissionPortalRestrictEncoderRecord_(r); delete r._row; return { success: true, message: 'No changes were supplied.', data: r }; }
 
     var sh = admissionDbSheet_(), range = sh.getRange(r._row, 1, 1, ADM_DB.HEADERS.length), vals = range.getValues();
     Object.keys(update).forEach(function (key) { vals[0][ADM_DB.HEADERS.indexOf(key)] = update[key]; });
     range.setNumberFormat('@').setValues(vals);   // one write; text format keeps "=..." from becoming a formula
     maAdmissionSpeedBump_();
     admissionDbAudit_(actor.email, 'student-updated', r.StudentID, Object.keys(update).join(', '));
-    var fresh = admissionDbFindById_(r.StudentID); delete fresh._row;
+    var fresh = admissionDbFindById_(r.StudentID); if (actor.role === 'Encoder') admissionPortalRestrictEncoderRecord_(fresh); delete fresh._row;
     return { success: true, message: 'Admission record saved.', data: fresh };
   } catch (err) {
     return authFail_(err.message || 'Could not save the admission record.');
@@ -203,6 +203,7 @@ function admissionPortalUpdateRequirementStatuses(token, studentId, changes) {
     if (updates.length) maAdmissionSpeedBump_();
     var fresh = admissionDbFindById_(record.StudentID);
     fresh.RequirementItems = admissionDbRequirementItems_(fresh);
+    if (actor.role === 'Encoder') admissionPortalRestrictEncoderRecord_(fresh);
     delete fresh._row;
     return { success: true, message: updates.length ? 'Document statuses updated and recorded.' : 'No document status changes were made.', data: fresh };
   } catch (err) {
