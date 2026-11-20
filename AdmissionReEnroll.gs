@@ -100,6 +100,10 @@ function admissionReEnrollRun(token, options) {
 }
 
 function admissionReEnrollHistory(token, studentId) {
-  try { authRequireRole_(token,['Owner','Encoder']); return {success:true,message:'History loaded.',data:admissionHistory_(studentId)}; }
-  catch(e){return authFail_(e.message || 'Could not load enrollment history.');}
+  try {
+    var actor = authRequireRole_(token,['Owner','Encoder']);
+    var history = admissionHistory_(studentId);
+    if (actor.role === 'Encoder') history.forEach(function (item) { delete item.Category; });
+    return {success:true,message:'History loaded.',data:history};
+  } catch(e){return authFail_(e.message || 'Could not load enrollment history.');}
 }
