@@ -18,6 +18,7 @@
 .photo-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}.photo-box{width:150px;height:150px;border:2px dashed #9db6e6;border-radius:12px;background:#fff;display:grid;place-items:center;text-align:center;color:var(--muted);font:600 12px var(--head);overflow:hidden;flex:none}.photo-box img{width:100%;height:100%;object-fit:cover;display:block}.photo-side{flex:1;min-width:220px}.photo-side .btn{margin:0 6px 8px 0}.photo-specs{margin:6px 0 4px 18px;padding:0;color:var(--ink);font-size:12.5px;line-height:1.7}.photo-msg{display:block;font-size:12px;color:var(--muted)}.photo-msg.err{color:var(--red)}.assess-notice{border:1px solid #f5c26b;background:#fff8e8;border-left:5px solid var(--orange);border-radius:10px;padding:12px 16px;color:var(--ink)}.assess-notice strong{display:block;font:700 13px var(--head);color:var(--navy);margin-bottom:4px}.assess-notice p{margin:3px 0;font-size:13px}
 </style>
 <?!= include('MALetterhead') ?>
+<?!= include('MAApplicationPrint') ?>
 </head>
 <body>
 <div class="shell">
@@ -649,11 +650,25 @@ function downloadApplicationForm(record){
  printWin.document.open();
  printWin.document.write('<!doctype html><html><head><title>Student Application Form</title></head><body style="font:14px Arial;padding:24px;color:#14213d"><p>Preparing application form…</p><p>Retrieving applicant photo (if available).</p></body></html>');
  printWin.document.close();
- if(applicantPhoto){MAApplicationPrint.render(r,email,applicantPhoto,printWin);return;}
+ var finished=false;
+ function showFailure(msg){
+  try{printWin.document.open();printWin.document.write('<!doctype html><html><head><title>Student Application Form</title></head><body style="font:14px Arial;padding:24px;color:#14213d"><p><strong>The application form could not be prepared.</strong></p><p>'+esc(msg||'Unknown error')+'</p><p>Please close this tab and try again. If the problem continues, contact the Admissions Office.</p></body></html>');printWin.document.close()}catch(e){}
+ }
+ function finish(photo){
+  if(finished)return;finished=true;
+  try{
+   if(typeof MAApplicationPrint==='undefined'||!MAApplicationPrint.render)throw new Error('The print template is not loaded. Please reload this page and try again.');
+   MAApplicationPrint.render(r,email,photo||'',printWin);
+  }catch(err){console.error('Application print failed:',err);showFailure(err&&err.message)}
+ }
+ if(applicantPhoto){finish(applicantPhoto);return;}
+ // Never leave the print tab waiting on the photo: print without it after 12 seconds.
+ var photoTimer=setTimeout(function(){finish('')},12000);
  run('admissionGetMyApplicationPhoto',[token()],function(result){
+  clearTimeout(photoTimer);
   var photo='';try{var bytes=result&&result.success&&result.data&&result.data.photo;if(bytes&&bytes.length){var binary='';for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.slice(i,i+8192));photo='data:image/jpeg;base64,'+btoa(binary)}}catch(e){}
-  MAApplicationPrint.render(r,email,photo,printWin);
- },function(){MAApplicationPrint.render(r,email,'',printWin);});
+  finish(photo);
+ },function(){clearTimeout(photoTimer);finish('')});
 }
 
 function signOut(){var t=token();try{if(account&&account.email)localStorage.removeItem(draftKey())}catch(e){}   /* explicit sign-out wipes the saved draft: this may be a shared computer */
