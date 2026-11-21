@@ -33,7 +33,7 @@ function sanitizePage_(p) {
   return /^[a-z0-9-]+(\/[a-z0-9-]+)?$/.test(p) ? p : 'home';
 }
 /** Template partials only. Public (callable from any served page), so it serves a fixed whitelist, never an arbitrary file name. */
-var INCLUDE_ALLOWED_ = ['MAAdmissionStyles'];
+var INCLUDE_ALLOWED_ = ['MAAdmissionStyles', 'MALetterhead'];
 function include(f) {
   if (INCLUDE_ALLOWED_.indexOf(f) < 0) throw new Error('Unknown template partial.');
   return HtmlService.createHtmlOutputFromFile(f).getContent();
