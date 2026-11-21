@@ -472,6 +472,22 @@ function admissionGetMyApplication(token) {
   }
 }
 
+/** Applicant-only retrieval of the authenticated learner's saved application photo for document printing. */
+function admissionGetMyApplicationPhoto(token) {
+  try {
+    var account = authRequireRole_(token, ['Applicant', 'Student']);
+    if (!account.studentId) return { success: true, message: 'No linked application photo.', data: { photo: '' } };
+    var record = admissionDbFindById_(account.studentId);
+    if (!record || String(record.StudentID || '') !== String(account.studentId)) throw new Error('Your account link could not be verified. Contact the Admissions Office.');
+    if (!record.IDPhotoID) return { success: true, message: 'No saved photo.', data: { photo: '' } };
+    var bytes = DriveApp.getFileById(record.IDPhotoID).getBlob().getAs('image/jpeg').getBytes();
+    return { success: true, message: 'Application photo loaded.', data: { photo: bytes } };
+  } catch (err) {
+    return authFail_(err.message || 'Could not load your application photo.');
+  }
+}
+
+
 /** Best-effort audit. Never logs passwords, OTPs, tokens, or full application payloads. */
 function admissionDbAudit_(actorEmail, action, studentId, detail) {
   try {
