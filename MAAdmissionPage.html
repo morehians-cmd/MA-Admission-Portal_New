@@ -683,11 +683,21 @@ $('exportAdviserReport').onclick=exportAdviserReport;
 function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
 function printStudentApplication(record){
+  var printWin=null;
   try{
     if(!window.MAApplicationPrint||typeof window.MAApplicationPrint.render!=='function'){
       alert('The application form print module is not loaded. Please refresh the portal and try again.');
       return;
     }
+    // Open synchronously during the click to avoid browser popup blockers.
+    printWin=window.open('','_blank');
+    if(!printWin){
+      alert('The print window was blocked. Please allow pop-ups for this site, then try again.');
+      return;
+    }
+    printWin.document.open();
+    printWin.document.write('<!doctype html><html><head><title>Student Application Form</title></head><body style="font:14px Arial;padding:24px;color:#14213d"><p>Preparing application form…</p><p>Retrieving applicant photo (if available).</p></body></html>');
+    printWin.document.close();
     call('admissionIdCardData',[TOKEN,record.StudentID],function(photoResult){
       var photo='';
       try{
@@ -698,13 +708,14 @@ function printStudentApplication(record){
           photo='data:image/jpeg;base64,'+btoa(binary);
         }
       }catch(photoError){}
-      window.MAApplicationPrint.render(record,record.Email||'',photo);
+      window.MAApplicationPrint.render(record,record.Email||'',photo,printWin);
     },function(){
-      window.MAApplicationPrint.render(record,record.Email||'');
+      window.MAApplicationPrint.render(record,record.Email||'', '',printWin);
     });
   }catch(printError){
     console.error('Student application print failed:',printError);
-    alert('Unable to open the application form. Please check pop-up permissions and try again.');
+    try{if(printWin&&!printWin.closed)printWin.close()}catch(closeError){}
+    alert('Unable to open the application form. Please try again.');
   }
 }
 function openStudent(id){
