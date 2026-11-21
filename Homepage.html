@@ -356,6 +356,7 @@ function renderPage(r){
   main=has?blocksHtml(i.blocks,r):(loading?'<p>Loading…</p>':''),
   ci=r==='contact'?'<div class="empty" style="margin-bottom:24px"><h3 style="color:var(--orange);margin-bottom:6px">Moreh Academy</h3><p style="margin:0">'+esc(f.loc)+'<br>'+esc(f.phone)+'<br><a href="mailto:'+esc(f.email)+'" style="color:#fff">'+esc(f.email)+'</a></p></div>':'',
   body=ci+main+(has&&cards?'<div style="height:24px"></div>':'')+cards;
+  if(r==='forms/downloadable-forms')body+='<section class="seg" style="margin-top:18px"><h3 class="bh">Parental Consent &amp; Data Privacy Undertaking</h3><div class="sb"><p>Download and print the required two-copy consent form. Print on Letter-size paper; the Student\'s Copy and Admission\'s Copy are arranged on one page.</p><p><a class="btn blue" href="'+link('parental-consent')+'"'+tgt()+'>Open / Print Consent Form</a></p></div></section>';
   if(!has&&!cards&&!loading&&r!=='contact')body='<div class="empty"><p style="margin:0">Content coming soon.</p></div>';
   out=crumb+'<div class="bar"></div><h2>'+esc(i.title)+'</h2><p class="lead">'+esc(i.sub?'':(i.n?i.n.lead:''))+'</p>'+body}
  return '<section class="page"><div class="wrap">'+out+'</div></section>'}
