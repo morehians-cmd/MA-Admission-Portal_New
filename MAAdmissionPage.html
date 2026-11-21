@@ -698,7 +698,16 @@ function printStudentApplication(record){
     printWin.document.open();
     printWin.document.write('<!doctype html><html><head><title>Student Application Form</title></head><body style="font:14px Arial;padding:24px;color:#14213d"><p>Preparing application form…</p><p>Retrieving applicant photo (if available).</p></body></html>');
     printWin.document.close();
+    // Do not let a stalled photo endpoint hold the print window indefinitely.
+    var printRendered=false;
+    var photoFallbackTimer=setTimeout(function(){
+      if(printRendered)return;
+      printRendered=true;
+      window.MAApplicationPrint.render(record,record.Email||'','',printWin);
+    },8000);
     call('admissionIdCardData',[TOKEN,record.StudentID],function(photoResult){
+      if(printRendered)return;
+      printRendered=true;clearTimeout(photoFallbackTimer);
       var photo='';
       try{
         var bytes=photoResult&&photoResult.data&&photoResult.data.photo;
@@ -710,6 +719,8 @@ function printStudentApplication(record){
       }catch(photoError){}
       window.MAApplicationPrint.render(record,record.Email||'',photo,printWin);
     },function(){
+      if(printRendered)return;
+      printRendered=true;clearTimeout(photoFallbackTimer);
       window.MAApplicationPrint.render(record,record.Email||'', '',printWin);
     });
   }catch(printError){
