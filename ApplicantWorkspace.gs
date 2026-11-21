@@ -63,6 +63,8 @@ function admissionApplicantWorkspaceGet(token) {
     });
     timeline.sort(function(a,b){return String(a.at).localeCompare(String(b.at));});
 
+    var rawOwnRecord = admissionDbFindById_(account.studentId);
+    var lastStatusAt = rawOwnRecord ? String(rawOwnRecord.StatusChangedAt || rawOwnRecord.CreatedAt || '') : String(record.CreatedAt || '');
     var notifications = [];
     var appStatus = String(record.ApplicationStatus||'Submitted');
     notifications.push({
@@ -72,7 +74,7 @@ function admissionApplicantWorkspaceGet(token) {
         : appStatus === 'Declined' ? 'Your application has been declined. Please contact the Admissions Office for assistance.'
         : appStatus === 'Under Review' ? 'Your application is being reviewed by the Admissions Office.'
         : 'Your application has been submitted and is awaiting review.',
-      at:String(record.StatusChangedAt||record.CreatedAt||'')
+      at:lastStatusAt
     });
     (record.RequirementItems||[]).forEach(function(item){
       var st=String(item.status||'Pending Submission');
