@@ -6,7 +6,7 @@
  * Admissions: ?page=admission (staff), ?page=applicant-portal, ?page=applicant-application (applicants)
  * Every file in ADMIN_PAGES_ that uses the baseUrl template needs: APP_BASE = '<?= baseUrl ?>'
  */
-var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'MAAdmissionPage', 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication', 'applicant-requirements': 'ApplicantWorkspace', 'applicant-tracking': 'ApplicantWorkspace', 'applicant-profile': 'ApplicantWorkspace', 'applicant-notifications': 'ApplicantWorkspace', 'student-profile': 'ApplicantWorkspace', 'current-student': 'AdmissionCurrentStudentAccount', 'student-profile': 'AdmissionStudentProfilePage' };
+var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'MAAdmissionPage', 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication', 'applicant-requirements': 'ApplicantWorkspace', 'applicant-tracking': 'ApplicantWorkspace', 'applicant-profile': 'ApplicantWorkspace', 'applicant-notifications': 'ApplicantWorkspace', 'student-profile': 'ApplicantWorkspace', 'current-student': 'AdmissionCurrentStudentAccount' };
 var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', MAAdmissionPage: 'Admissions Portal', ApplicantPortal: 'Applicant Dashboard | Moreh Academy', ApplicantApplication: 'My Application | Moreh Academy', ApplicantWorkspace: 'Student Workspace | Moreh Academy', AdmissionCurrentStudentAccount: 'Current Student Account | Moreh Academy', AdmissionStudentProfilePage: 'Student Profile | Moreh Academy' };
 
 function doGet(e) {
