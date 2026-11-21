@@ -708,7 +708,20 @@ function openStudent(id){
     $('staff').insertAdjacentHTML('afterend',h);
     var detail=$('studentDetail');
     detail.insertAdjacentHTML('beforeend','<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Admission Documents</h3><p>Generate a read-only Student Application Form using the same print layout and parent-status display rules as the applicant portal.</p><div class="actions"><button type="button" class="btn secondary" data-action="print-application">Print / Save PDF — Student Application Form (8.5 × 13)</button></div>');
-    detail.querySelector('[data-action="print-application"]').onclick=function(){MAApplicationPrint.render(x,x.Email||'');};
+    detail.querySelector('[data-action="print-application"]').onclick=function(){
+      call('admissionIdCardData',[TOKEN,x.StudentID],function(photoResult){
+        var photo='';
+        try{
+          var bytes=photoResult&&photoResult.data&&photoResult.data.photo;
+          if(bytes&&bytes.length){
+            var binary='';
+            for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.slice(i,i+8192));
+            photo='data:image/jpeg;base64,'+btoa(binary);
+          }
+        }catch(photoError){}
+        MAApplicationPrint.render(x,x.Email||'',photo);
+      },function(){MAApplicationPrint.render(x,x.Email||'');});
+    };
     detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
     detail.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(x.StudentID)};
   });
