@@ -742,8 +742,7 @@ function openStudent(id){
       if(event){event.preventDefault();event.stopPropagation();}
       printStudentApplication(x);
     };
-    // Printing is handled by the delegated click listener below, so dynamically
-    // inserted buttons remain clickable even if their inline binding is missed.
+    // Direct binding is intentional: this button is created dynamically.
     detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
     detail.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(x.StudentID)};
   });
