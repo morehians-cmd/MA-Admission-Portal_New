@@ -234,7 +234,7 @@ function buildFields(){
   field('RelRelation','Relationship to Applicant','text',null,false)+
   field('RelBirthdate','Relative / Guardian Birth Date','date')+field('RelAge','Age','text',null,false,'Automatically determined from birth date.')+
   field('RelSex','Sex Assigned at Birth / Biological Sex','select',opts(['Male','Female']))+field('RelGender','Gender Orientation / Identity','select',opts(['Masculine','Feminine','Others, specify']))+
-  field('RelGenderOther','Specify Gender Identity','text')+
+  field('RelGenderOther','Specify Gender Identity','select',opts(['Feminine','Masculine','Prefer not to disclose']))+
   field('RelCivil','Civil Status','select',opts(['Single','Married','Widowed','Separated','Divorced','Annulled','Live-in']))+
   '<div class="field full"><label class="checkline"><input type="checkbox" data-key="RelSameAddr" id="f_RelSameAddr"><span>Relative / Guardian has the same address as the applicant.</span></label></div>'+
   field('RelAddress','Relative / Guardian Address','text',null,false,'Required when the relative/guardian has a different address.',true)+
