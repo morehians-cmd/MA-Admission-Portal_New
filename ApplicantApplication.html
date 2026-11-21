@@ -211,7 +211,7 @@ function buildFields(){
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true);
  var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
- var status=opts(['Living – Involved','Living – Not Involved / No Contact','Unknown Whereabouts','Deceased','Unknown / Information Unavailable','Not Applicable']);
+ var status=opts(['Living – Involved','Living – Not Involved / No Contact','Unknown Whereabouts','Deceased','Unknown / Information Unavailable','Not Applicable','Alive']);
  var relOpts=opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']);
  document.getElementById('familyFields').innerHTML=
   '<div class="subhead">Father’s information</div>'+
@@ -642,59 +642,9 @@ function downloadConsentForm(record,pageSize){
 function downloadConsentFormA4(record){downloadConsentForm(record||existingRecord||collect(),'A4');}
 /* Student Application Form: 8.5 x 13 in (long bond), one page. Classic institutional layout: letterhead, ruled section bars, gridded boxes. */
 function downloadApplicationForm(record){
- var r=record||existingRecord||collect();
- function val(k){var v=r[k];if(v===true)v='Yes';if(v===false)v='No';return v==null?'':String(v)}
- function show(k){var v=val(k);return v?esc(v):'<i>&mdash;</i>'}
- function c(label,key,cls){return '<div class="c '+(cls||'')+'"><span class="cl">'+esc(label)+'</span><span class="cv">'+show(key)+'</span></div>'}
- function sec(n,t){return '<div class="sec"><span class="sn">'+n+'</span>'+esc(t)+'</div>'}
- var S=MALetterhead.seals,email=r.Email||(account&&account.email)||'';
- var body='<div class="pg"><header class="hd"><div class="seals"><img class="s-a" src="'+S.college1+'" alt=""><img class="s-b" src="'+S.academy+'" alt=""><img class="s-a" src="'+S.college2+'" alt=""></div>'+
-  '<div class="bn"><div class="sch">MOREH ACADEMY</div><div class="tag">SCHOOL OF RIGHTEOUSNESS &amp; EXCELLENCE</div><div class="ad">Cor. Ricahuerta St., A. Bonifacio Ave., Brgy. Upper Bicutan, Taguig City, Philippines</div></div>'+
-  '<div class="ph"><span>1&times;1 / 2&times;2<br>ID PHOTO</span></div></header><div class="rule"></div>'+
-  '<h1 class="ttl">STUDENT APPLICATION FORM</h1>'+
-  '<div class="tb ref"><div class="c"><span class="cl">School Year</span><span class="cv">'+esc(val('SchoolYear')||'2026\u20132027')+'</span></div><div class="c"><span class="cl">Application / Student ID</span><span class="cv">'+esc(val('StudentID')||'For office use')+'</span></div><div class="c"><span class="cl">Email</span><span class="cv">'+esc(email)+'</span></div></div>';
- body+=sec(1,'ACADEMIC INFORMATION')+'<div class="tb g4">'+c('Intended Grade Level','GradeLevel')+c('Department','Department')+c('SHS Strand / Cluster','Cluster')+c('Admission Category','Category')+c('Learner Reference Number','LRN')+c('Previous School','PrevSchool','s2')+c('Previous School Year','PrevSY')+c('Last Grade Completed','PrevGrade')+c('Previous SHS Strand / Cluster','PrevCluster')+c('Previous Section','PrevSection')+c('Previous Adviser','PrevAdviser')+c('Previous Scholarship','PrevScholarship')+c('Previous School ID','PrevSchoolID')+c('Previous School Address','PrevAddress','s2')+'</div>';
- body+=sec(2,'PERSONAL INFORMATION')+'<div class="tb g4 nm">'+c('Surname','Surname')+c('First Name','FirstName')+c('Middle Name','MiddleName')+c('Suffix','Suffix')+'</div><div class="tb g4 nxt">'+c('Date of Birth','Birthdate')+c('Place of Birth','BirthPlace')+c('Mobile Number','Mobile')+c('Sex','SexualOrient')+c('Gender Identity','GenderOrient')+c('Religion','Religion')+c('Religion (Other)','ReligionOther')+c('Facebook Account Link','Facebook')+c('House / Street','AddressLine1')+c('Subdivision / Village','AddressLine2')+c('Barangay','Barangay')+c('City / Municipality','City')+c('Province','Province')+'</div>';
- function prow(t,p){
-  var raw=val(p+'Status').trim(),normalized=raw.toLowerCase();
-  var involved=normalized==='living – involved'||normalized==='living - involved'||normalized==='alive'||normalized==='living';
-  var na=normalized==='not applicable'||normalized==='n/a';
-  var details=involved;
-  var statusText=raw;
-  if(normalized==='alive')statusText='Living – Involved';
-  return '<div class="rc">'+t+'</div><div class="vc">'+(na?'<i>&mdash;</i>':show(p+'Name'))+'</div><div class="vc">'+(statusText?esc(statusText):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Occupation'):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Education'):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Mobile'):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Email'):'<i>&mdash;</i>')+'</div>'
- }
- body+=sec(3,'PARENTS / FAMILY INFORMATION')+'<div class="tb pt7"><div class="hc"></div><div class="hc">Full Name</div><div class="hc">Status</div><div class="hc">Occupation</div><div class="hc">Education</div><div class="hc">Mobile</div><div class="hc">Email</div>'+prow('FATHER','Father')+prow('MOTHER','Mother')+'</div><div class="tb g5 nxt">'+c('Living Arrangement','LivingWith')+c('Relative / Guardian Name','RelName')+c('Relationship to Applicant','RelRelation')+c('Relative / Guardian Mobile','RelMobile')+c('Relative / Guardian Address','RelAddress')+'</div>';
- body+=sec(4,'PRIMARY CONTACT PERSON')+'<div class="tb gc">'+c('Full Name','EmName')+c('Relationship to Applicant','EmRelation')+c('Mobile Number','EmMobile')+c('Address','EmAddress')+'</div>';
- body+=sec(5,'DECLARATION &amp; SIGNATURE'.replace('&amp;','&'))+'<p class="decl">I hereby certify that all information provided in this application form is true and correct to the best of my knowledge. I understand that any false statement may result in the denial of admission or dismissal, if discovered later.</p>'+
-  '<div class="sigrow"><div class="sg"><div class="sgl"></div><div class="sgt">Signature over Printed Name<br><b>APPLICANT / PARENT / LEGAL GUARDIAN</b></div></div><div class="sg"><div class="sgl"></div><div class="sgt"><b>DATE</b></div></div></div>'+
-  '<div class="office"><div class="ot">FOR ADMISSIONS OFFICE USE ONLY</div><div class="tb g3"><div class="c"><span class="cl">Received By (Printed Name &amp; Signature)</span><span class="cv">&nbsp;</span></div><div class="c"><span class="cl">Date Received</span><span class="cv">&nbsp;</span></div><div class="c"><span class="cl">Remarks</span><span class="cv">&nbsp;</span></div></div></div>'+
-  '</div><footer class="ft"><span>Moreh Academy &bull; Office of Admissions</span><span>Student Application Form</span></footer>';
- var fit='<script>window.addEventListener("load",function(){var pg=document.querySelector(".pg"),ft=document.querySelector(".ft");if(!pg||!ft)return;var max=ft.offsetTop-6,h=pg.offsetHeight;if(h>max){var k=max/h;pg.style.transformOrigin="top left";pg.style.transform="scale("+k+")";pg.style.width=(100/k)+"%";pg.style.height=h+"px"}});<\/script>';
- var css='*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;color:#14213d;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
- '.print-sheet{width:8.5in;height:12.97in;overflow:hidden;background:#fff;position:relative}.pg{padding:.42in .5in 0}'+
- '.hd{display:flex;align-items:center;gap:.2in;height:.98in}.seals{display:flex;align-items:center;gap:.06in;flex:none}.seals img{display:block;border-radius:50%}.s-a{width:.58in;height:.58in}.s-b{width:.86in;height:.86in}'+
- '.bn{flex:1;min-width:0}.sch{font:700 23pt Poppins,Arial,sans-serif;color:#062E70;letter-spacing:.03em;line-height:1}.tag{font:700 7.2pt Arial,sans-serif;letter-spacing:.14em;color:#c96a00;margin-top:5px}.ad{font:7.6pt Arial,sans-serif;color:#4a5670;margin-top:4px}'+
- '.ph{width:.96in;height:.96in;border:1px solid #6d7a93;display:flex;align-items:center;justify-content:center;text-align:center;font:600 6.2pt Arial,sans-serif;letter-spacing:.06em;color:#7b879d;flex:none}'+
- '.rule{height:4px;border-top:2.5px solid #062E70;border-bottom:1px solid #FF941F;margin:.06in 0 .08in}'+
- '.ttl{margin:0 0 .09in;text-align:center;font:800 15pt Poppins,Arial,sans-serif;letter-spacing:.16em;color:#062E70}'+
- '.tb{display:grid;gap:1px;background:#d8e3f8;border:1px solid #d8e3f8}.tb i{color:#a0abbe;font-style:normal}'+
- '.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.ref{grid-template-columns:.7fr 1.1fr 1.5fr}.ref .c{min-height:.38in}'+
- '.g5{grid-template-columns:.9fr 1fr .95fr .85fr 1.6fr}.gc{grid-template-columns:1fr 1fr .8fr 1.9fr}.pt7{grid-template-columns:.6fr 1.45fr .6fr .95fr 1.15fr 1fr 1.75fr}.hc{background:#EEF4FF;font:700 6.4pt Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:#64748b;padding:.04in .08in}.rc{background:#EEF4FF;font:800 7.4pt Arial,sans-serif;letter-spacing:.1em;color:#062E70;padding:.08in .08in;display:flex;align-items:center}.vc{background:#fff;font:600 9.2pt Arial,sans-serif;padding:.07in .08in;min-height:.4in;display:flex;align-items:center;line-height:1.22;overflow-wrap:anywhere;min-width:0}.vc i{color:#a0abbe;font-style:normal}.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}'+
- '.c{background:#fff;padding:.045in .08in .04in;display:flex;flex-direction:column;min-height:.4in;min-width:0}.cl{font:700 6.6pt Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;color:#64748b;line-height:1.2}.cv{font:600 9.2pt Arial,sans-serif;color:#14213d;margin-top:2px;line-height:1.22;overflow-wrap:anywhere;word-break:normal}'+
- '.nm .c{min-height:.5in}.nm .cv{font:800 11pt Arial,sans-serif;text-transform:uppercase;color:#062E70}.nxt{margin-top:-1px;border-top:0}'+
- '.sec{display:flex;align-items:center;gap:.1in;margin:.13in 0 .05in;padding:.04in .1in;background:#062E70;color:#fff;font:800 9.2pt Arial,sans-serif;letter-spacing:.1em;border-bottom:2px solid #FF941F}.sn{display:inline-block;min-width:.2in;font:800 9.2pt Arial,sans-serif;color:#FF941F}'+
- '.par{display:grid;grid-template-columns:1fr 1fr;gap:.16in;margin-bottom:.12in}.pt{background:#EEF4FF;border:1px solid #d8e3f8;border-bottom:0;text-align:center;font:800 8pt Arial,sans-serif;letter-spacing:.14em;color:#062E70;padding:.04in 0}'+
- '.decl{font:8.8pt/1.45 Arial,sans-serif;margin:.02in 0 0;text-align:justify}'+
- '.sigrow{display:grid;grid-template-columns:2.4fr 1fr;gap:.5in;margin:.44in .1in 0}.sgl{border-top:1.2px solid #14213d}.sgt{font:7.4pt/1.4 Arial,sans-serif;text-align:center;margin-top:4px;color:#33405a}.sgt b{font-weight:800;letter-spacing:.05em;color:#14213d}'+
- '.office{margin-top:.2in}.ot{background:#EEF4FF;border:1px solid #d8e3f8;border-bottom:0;text-align:center;font:800 7.6pt Arial,sans-serif;letter-spacing:.14em;color:#062E70;padding:.04in 0}.office .c{min-height:.46in}'+
- '.ft{position:absolute;left:.5in;right:.5in;bottom:.3in;display:flex;justify-content:space-between;border-top:1px solid #FF941F;padding-top:.05in;font:7pt Arial,sans-serif;color:#64748b;letter-spacing:.04em}'+
- '@page{size:8.5in 13in;margin:0}';
- var pv=previewChrome('8.5in','Student Application Form \u00b7 8.5 \u00d7 13 in \u00b7 1 page');
- var w=window.open('','_blank');if(!w){window.alert('Please allow pop-ups for this site to open the printable form.');return}
- var html='<!doctype html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"><title>MOREH ACADEMY - STUDENT APPLICATION FORM</title><style>'+pv.css+css+'</style></head><body>'+pv.bar+'<div class="print-sheet">'+body+'</div>'+fit+'</body></html>';
- w.document.open();w.document.write(html);w.document.close();w.focus();
+ MAApplicationPrint.render(record||existingRecord||collect(),account&&account.email||'');
 }
+
 function signOut(){var t=token();try{if(account&&account.email)localStorage.removeItem(draftKey())}catch(e){}   /* explicit sign-out wipes the saved draft: this may be a shared computer */
 try{sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem('ma_boot_portal')}catch(e){}if(!t){goHome();return}var b=document.getElementById('logout');b.disabled=true;b.textContent='Signing out…';run('authSignOut',[t],goHome,goHome)}
 var existingRecord=null;
