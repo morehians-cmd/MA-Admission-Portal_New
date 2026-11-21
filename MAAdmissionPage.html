@@ -466,9 +466,7 @@ function loadDetailedReport(){
 function printDetailedReport(){
   if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
   var w=window.open('','_blank');if(!w)return;
-  w.document.write('<html><head><title>Moreh Academy Detailed Student Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:9px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — Detailed Student Report</h1><p>'+esc(currentDetailedReport.reportType)+(currentDetailedReport.selectedValue?' · '+esc(currentDetailedReport.selectedValue):'')+'<br>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('detailedReportTable').outerHTML+'
-
-</body></html>');
+  w.document.write('<html><head><title>Moreh Academy Detailed Student Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:9px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — Detailed Student Report</h1><p>'+esc(currentDetailedReport.reportType)+(currentDetailedReport.selectedValue?' · '+esc(currentDetailedReport.selectedValue):'')+'<br>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('detailedReportTable').outerHTML+'</body></html>');
   w.document.close();w.focus();w.print();
 }
 function exportDetailedReport(){
