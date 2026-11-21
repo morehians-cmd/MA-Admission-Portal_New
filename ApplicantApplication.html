@@ -601,8 +601,8 @@ function submitApplication(){
 function getPublishedLetterheadBanner(done){
  try{google.script.run.withSuccessHandler(function(data){var hero=data&&data.sections&&data.sections.hero,slides=hero&&Array.isArray(hero.slides)?hero.slides:[];done(slides[0]||'')}).withFailureHandler(function(){done('')}).getPublishedHomepage()}catch(e){done('')}
 }
-function printWindow(title,body,pageSize){
- var w=window.open('','_blank');
+function printWindow(title,body,pageSize,bannerUrl,printWin){
+ var w=printWin||window.open('','_blank');
  if(!w){window.alert('Please allow pop-ups for this site to open the printable form.');return}
  var size=pageSize||'8.5in 13in';
  var banner=bannerUrl?'<div class="letterhead-banner"><img src="'+esc(bannerUrl)+'" alt="Moreh Academy homepage photo banner"></div>':'';
