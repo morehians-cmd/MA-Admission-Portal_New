@@ -11,26 +11,19 @@
  *   admissionDbFindById_, admissionDbCleanText_, admissionDbAudit_, maAdmissionSpeedRecords_.
  *
  * ------------------------------------------------------------------------------------------------
- * 3 SMALL EDITS TO EXISTING FILES (this file does nothing until they are made)
+ * INSTALL (the edits are already made in the MAAdmissionPortal.gs and AdmissionDb.gs delivered with this file)
+ *   1) Replace MAAdmissionPortal.gs and AdmissionDb.gs with the delivered versions.
+ *        - admissionPortalSetStatus: refuses "Enrolled" while a hold is active (Temporary is still allowed).
+ *        - admissionGetMyApplication: adds record.Holds (office + instruction only, never the reason).
+ *      Both calls check that this file exists first, so nothing breaks if it is not installed yet.
+ *   2) Add this file (AdmissionHolds.gs) to the project.
+ *   3) Replace MAAdmissionPage.html with the delivered version.
  *
- * 1) Auth.gs  - allow the three office accounts (set Role in the Users sheet, same as other staff):
- *      ROLES: ['Owner', 'Website Administrator', 'Encoder', 'Student', 'Applicant', 'Guidance', 'Accounting', 'Academic'],
- *
- * 2) MAAdmissionPortal.gs, admissionPortalSetStatus - PASS 1.
- *    Just before:  var plan = [], seen = {};
- *    add:          var holdMap = admissionHoldsMap_();
- *    Then, inside normalized.forEach, right after:  var newEnroll = item.EnrollStatus || oldEnroll;
- *    add:
- *      if (newEnroll === 'Enrolled' && oldEnroll !== 'Enrolled' && holdMap[item.StudentID]) {
- *        throw new Error('Learner ' + item.StudentID + ' has an active hold (' + holdMap[item.StudentID].join(', ') +
- *                        '). Clear it first, or use Temporary enrollment.');
- *      }
- *
- * 3) AdmissionDb.gs, admissionGetMyApplication - after:  record.RequirementItems = admissionDbRequirementItems_(record);
- *    add:   record.Holds = admissionHoldsForApplicant_(record.StudentID);   // office + instruction only, never the reason
- *
- * Then run setupAdmissionHolds() once from the editor.
+ * NOT DONE YET: office-account sign-in (Guidance / Accounting / Academic). Do NOT add those roles to
+ * AUTH.ROLES yet: admissionPortalGetBootstrap and the search/record functions only admit Owner and Encoder.
+ * Until that is done, Owner and Encoder raise and clear holds on the offices' behalf.
  * ------------------------------------------------------------------------------------------------
+ * 4) Run setupAdmissionHolds() once from the editor.
  */
 
 var ADM_HOLDS = {
