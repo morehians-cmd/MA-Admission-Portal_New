@@ -467,59 +467,6 @@ function printDetailedReport(){
   if(!currentDetailedReport){setDetailedReportStatus('Generate the detailed report first.',true);return;}
   var w=window.open('','_blank');if(!w)return;
   w.document.write('<html><head><title>Moreh Academy Detailed Student Report</title><style>body{font-family:Arial;padding:24px}table{width:100%;border-collapse:collapse;font-size:9px}th,td{border:1px solid #ccc;padding:5px;text-align:left}</style></head><body><h1>Moreh Academy — Detailed Student Report</h1><p>'+esc(currentDetailedReport.reportType)+(currentDetailedReport.selectedValue?' · '+esc(currentDetailedReport.selectedValue):'')+'<br>Generated '+new Date().toLocaleString()+'</p>'+document.getElementById('detailedReportTable').outerHTML+'
-<script id="ma-sidebar-behavior">
-(function(){
-  var staff=document.getElementById('staff');
-  var side=document.querySelector('.adm-sidebar');
-  var toggle=document.getElementById('admMenuToggle');
-  if(!staff||!side||!toggle)return;
-  var storageKey='ma_admission_sidebar_collapsed';
-  function isMobile(){return window.matchMedia('(max-width:760px)').matches}
-  function setCollapsed(value){
-    staff.classList.toggle('nav-collapsed',!!value);
-    try{localStorage.setItem(storageKey,value?'1':'0')}catch(e){}
-    if(!isMobile()){
-      toggle.setAttribute('aria-expanded',value?'false':'true');
-      toggle.setAttribute('aria-label',value?'Expand navigation':'Collapse navigation');
-      toggle.textContent=value?'☰':'☰';
-      toggle.title=value?'Expand navigation':'Collapse navigation';
-    }
-  }
-  var saved=false;
-  try{saved=localStorage.getItem(storageKey)==='1'}catch(e){}
-  setCollapsed(saved);
-  toggle.onclick=function(){
-    if(isMobile()){
-      var open=side.classList.toggle('mobile-open');
-      toggle.setAttribute('aria-expanded',open?'true':'false');
-      toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');
-      toggle.textContent=open?'✕':'☰';
-    }else{
-      setCollapsed(!staff.classList.contains('nav-collapsed'));
-    }
-  };
-  window.addEventListener('resize',function(){
-    if(!isMobile()){
-      side.classList.remove('mobile-open');
-      toggle.setAttribute('aria-expanded',staff.classList.contains('nav-collapsed')?'false':'true');
-      toggle.setAttribute('aria-label',staff.classList.contains('nav-collapsed')?'Expand navigation':'Collapse navigation');
-      toggle.textContent='☰';
-    }else{
-      toggle.setAttribute('aria-expanded',side.classList.contains('mobile-open')?'true':'false');
-      toggle.setAttribute('aria-label',side.classList.contains('mobile-open')?'Close navigation':'Open navigation');
-      toggle.textContent=side.classList.contains('mobile-open')?'✕':'☰';
-    }
-  });
-  document.addEventListener('click',function(e){
-    if(isMobile()&&e.target.closest('.adm-sidebar [data-adm-view]')){
-      side.classList.remove('mobile-open');
-      toggle.setAttribute('aria-expanded','false');
-      toggle.setAttribute('aria-label','Open navigation');
-      toggle.textContent='☰';
-    }
-  });
-})();
-</script>
 
 </body></html>');
   w.document.close();w.focus();w.print();
@@ -1017,4 +964,57 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')$('rdDrawer'
 $('rdTheme').onclick=function(){var d=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',d);try{localStorage.setItem('ma_theme',d)}catch(e){}};
 
 boot();
-</script></body></html>
+</script><script id="ma-sidebar-behavior">
+(function(){
+  var staff=document.getElementById('staff');
+  var side=document.querySelector('.adm-sidebar');
+  var toggle=document.getElementById('admMenuToggle');
+  if(!staff||!side||!toggle)return;
+  var storageKey='ma_admission_sidebar_collapsed';
+  function isMobile(){return window.matchMedia('(max-width:760px)').matches}
+  function setCollapsed(value){
+    staff.classList.toggle('nav-collapsed',!!value);
+    try{localStorage.setItem(storageKey,value?'1':'0')}catch(e){}
+    if(!isMobile()){
+      toggle.setAttribute('aria-expanded',value?'false':'true');
+      toggle.setAttribute('aria-label',value?'Expand navigation':'Collapse navigation');
+      toggle.textContent=value?'☰':'☰';
+      toggle.title=value?'Expand navigation':'Collapse navigation';
+    }
+  }
+  var saved=false;
+  try{saved=localStorage.getItem(storageKey)==='1'}catch(e){}
+  setCollapsed(saved);
+  toggle.onclick=function(){
+    if(isMobile()){
+      var open=side.classList.toggle('mobile-open');
+      toggle.setAttribute('aria-expanded',open?'true':'false');
+      toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');
+      toggle.textContent=open?'✕':'☰';
+    }else{
+      setCollapsed(!staff.classList.contains('nav-collapsed'));
+    }
+  };
+  window.addEventListener('resize',function(){
+    if(!isMobile()){
+      side.classList.remove('mobile-open');
+      toggle.setAttribute('aria-expanded',staff.classList.contains('nav-collapsed')?'false':'true');
+      toggle.setAttribute('aria-label',staff.classList.contains('nav-collapsed')?'Expand navigation':'Collapse navigation');
+      toggle.textContent='☰';
+    }else{
+      toggle.setAttribute('aria-expanded',side.classList.contains('mobile-open')?'true':'false');
+      toggle.setAttribute('aria-label',side.classList.contains('mobile-open')?'Close navigation':'Open navigation');
+      toggle.textContent=side.classList.contains('mobile-open')?'✕':'☰';
+    }
+  });
+  document.addEventListener('click',function(e){
+    if(isMobile()&&e.target.closest('.adm-sidebar [data-adm-view]')){
+      side.classList.remove('mobile-open');
+      toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-label','Open navigation');
+      toggle.textContent='☰';
+    }
+  });
+})();
+</script>
+</body></html>
