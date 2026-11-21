@@ -8,13 +8,16 @@
 
 function admissionPortalGetBootstrap(token) {
   try {
-    var account = authRequireRole_(token, ['Applicant', 'Student', 'Encoder', 'Owner']);
+    var account = authRequireRole_(token, ['Applicant', 'Student', 'Encoder', 'Owner', 'Guidance', 'Accounting']);
     var data = {
       account: { email: account.email, role: account.role, studentId: account.studentId || '', fullName: account.fullName || '' },
       application: null,
       stats: null
     };
-    if (['Applicant', 'Student'].indexOf(account.role) >= 0) {
+    if (['Guidance', 'Accounting'].indexOf(account.role) >= 0) {
+      // Office accounts get the Holds Desk only: no stats, no applications, no documents.
+      data.office = account.role;
+    } else if (['Applicant', 'Student'].indexOf(account.role) >= 0) {
       var mine = admissionGetMyApplication(token);
       if (!mine.success) return mine;
       data.application = mine.data;

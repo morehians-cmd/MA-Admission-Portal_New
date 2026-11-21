@@ -1,7 +1,7 @@
 /**
  * AdmissionHolds.gs
  *
- * Office holds (Guidance / Accounting / Academic) carried over from the old portal's Flags.gs.
+ * Office holds (Guidance / Accounting) carried over from the old portal's Flags.gs.
  * An ACTIVE hold blocks EnrollStatus "Enrolled". Owner/Encoder can still use "Temporary" enrollment
  * (already in admissionPortalSetStatus: reason + end date + 120-day cap + expiry trigger).
  * The portal never stores amounts. Accounting only marks "hold" or "cleared".
@@ -19,9 +19,11 @@
  *   2) Add this file (AdmissionHolds.gs) to the project.
  *   3) Replace MAAdmissionPage.html with the delivered version.
  *
- * NOT DONE YET: office-account sign-in (Guidance / Accounting / Academic). Do NOT add those roles to
- * AUTH.ROLES yet: admissionPortalGetBootstrap and the search/record functions only admit Owner and Encoder.
- * Until that is done, Owner and Encoder raise and clear holds on the offices' behalf.
+ * OFFICE ACCOUNTS (Guidance, Accounting): these two roles are now in AUTH.ROLES (Auth.gs). They can sign in and
+ * reach ONLY the functions in this file (the "Holds Desk"). Every other server function still admits only
+ * Owner/Encoder (or Applicant/Student), so the rest of the system stays closed to them. Owner/Encoder still raise and
+ * clear holds on the offices' behalf. The Owner creates office accounts in AdmissionOfficeAccounts.gs.
+ * The Academic office was removed. Any leftover active 'Academic' hold would still block "Enrolled"; the Owner/Encoder can clear it.
  * ------------------------------------------------------------------------------------------------
  * 4) Run setupAdmissionHolds() once from the editor.
  */
@@ -29,8 +31,9 @@
 var ADM_HOLDS = {
   SHEET: 'AdmissionHolds',
   HEADERS: ['HoldID', 'StudentID', 'Office', 'Status', 'Reason', 'Instruction', 'RaisedBy', 'RaisedAt', 'ClearedBy', 'ClearedAt'],
-  OFFICES: ['Guidance', 'Accounting', 'Academic'],
-  ROLES: ['Owner', 'Encoder', 'Guidance', 'Accounting', 'Academic']
+  OFFICES: ['Guidance', 'Accounting'],
+  ROLES: ['Owner', 'Encoder', 'Guidance', 'Accounting'],
+  SEARCH_MIN: 3, SEARCH_MAX: 20
 };
 
 /** Run ONCE from the editor. Creates the sheet only; never touches existing data. */
@@ -84,7 +87,7 @@ function admissionHoldRaise(token, studentId, office, reason, instruction) {
     var actor = authRequireRole_(token, ADM_HOLDS.ROLES);
     var own = admissionHoldOwnOffice_(actor);
     office = String(office || own).trim();
-    if (ADM_HOLDS.OFFICES.indexOf(office) < 0) throw new Error('Choose Guidance, Accounting or Academic.');
+    if (ADM_HOLDS.OFFICES.indexOf(office) < 0) throw new Error('Choose Guidance or Accounting.');
     if (own && own !== office) throw new Error('You can only raise holds for your own office.');
     studentId = String(studentId || '').trim();
     reason = admissionDbCleanText_(reason, 200);
@@ -138,12 +141,13 @@ function admissionHoldClear(token, holdId) {
   }
 }
 
-/** Staff view: active holds for one learner (includes the internal reason). */
+/** Staff view: active holds for one learner (includes the internal reason). Office accounts get only their own office's holds. */
 function admissionHoldList(token, studentId) {
   try {
-    authRequireRole_(token, ADM_HOLDS.ROLES);
+    var actor = authRequireRole_(token, ADM_HOLDS.ROLES);
+    var own = admissionHoldOwnOffice_(actor);   // an office account sees only its own office's holds
     studentId = String(studentId || '').trim();
-    var list = admissionHoldsRows_().filter(function (h) { return h.StudentID === studentId && h.Status === 'Active'; });
+    var list = admissionHoldsRows_().filter(function (h) { return h.StudentID === studentId && h.Status === 'Active' && (!own || h.Office === own); });
     list.forEach(function (h) { delete h._row; });
     return { success: true, message: 'Holds loaded.', data: list };
   } catch (err) {
@@ -167,5 +171,29 @@ function admissionHoldsOverview(token) {
     return { success: true, message: 'Holds loaded.', data: { office: own, holds: list } };
   } catch (err) {
     return authFail_(err.message || 'Could not load holds.');
+  }
+}
+
+/**
+ * Holds Desk learner search for office accounts (and Owner/Encoder).
+ * Needs at least 3 characters. Matches ONLY on name or Student ID and returns ONLY {StudentID, FullName, GradeLevel}:
+ * never the LRN, birthdate, contact details, status or documents. LRN/email are deliberately not searchable.
+ */
+function admissionHoldsDeskSearch(token, q) {
+  try {
+    authRequireRole_(token, ADM_HOLDS.ROLES);
+    q = String(q == null ? '' : q).trim().toLowerCase().replace(/\s+/g, ' ');
+    if (q.length < ADM_HOLDS.SEARCH_MIN) throw new Error('Type at least ' + ADM_HOLDS.SEARCH_MIN + ' characters to search.');
+    var out = [];
+    var rows = maAdmissionSpeedRecords_();
+    for (var i = 0; i < rows.length && out.length < ADM_HOLDS.SEARCH_MAX; i++) {
+      var r = rows[i];
+      if ((String(r.StudentID || '') + ' ' + String(r.FullName || '')).toLowerCase().indexOf(q) >= 0) {
+        out.push({ StudentID: String(r.StudentID || ''), FullName: String(r.FullName || ''), GradeLevel: String(r.GradeLevel || '') });
+      }
+    }
+    return { success: true, message: out.length ? 'Learners found.' : 'No learner matches that search.', data: out };
+  } catch (err) {
+    return authFail_(err.message || 'Could not search learners.');
   }
 }

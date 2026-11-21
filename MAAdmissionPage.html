@@ -168,6 +168,22 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 </div><div class="actions"><button class="btn blue" id="submitBtn">Submit Application</button><button type="button" class="btn secondary" id="refreshApplicant">Refresh</button></div></form>
 </section>
 
+<section id="desk" class="card hidden">
+<div class="adm-panel" style="margin-bottom:14px"><h2>Holds Desk <span class="tag" id="deskOffice"></span></h2>
+<p class="muted">Search for a learner by name or Student ID (at least 3 characters). You can raise and clear holds for your own office only.</p>
+<div class="actions"><input id="deskQ" placeholder="Name or Student ID" style="max-width:360px" maxlength="60" autocomplete="off"><button class="btn blue" id="deskGo" type="button">Search</button></div>
+<div id="deskResults" style="margin-top:10px"></div></div>
+<div class="hold-grid">
+<div class="adm-panel" id="deskLearner" style="display:none"><h2 id="deskName"></h2><p class="muted" id="deskMeta"></p>
+<div id="deskLearnerHolds"></div>
+<div class="form-grid" style="grid-template-columns:1fr;margin-top:12px">
+<div><label>Reason (staff only)</label><input id="deskReason" maxlength="200"></div>
+<div><label>Instruction shown to the student</label><input id="deskInstr" maxlength="200" placeholder="e.g. Please visit the office"></div></div>
+<div class="actions"><button class="btn blue" id="deskRaise" type="button">Raise hold</button></div>
+<p class="muted" style="margin-top:10px">The student sees the office and instruction only, never the reason.</p></div>
+<div class="adm-panel"><h2>My office's active holds <span class="tag" id="deskCount">0</span></h2><div id="deskList"><div class="muted">Loading…</div></div></div>
+</div></section>
+
 <section id="staff" class="card hidden">
 <div class="adm-shell">
 <aside class="adm-sidebar" aria-label="Admission dashboard navigation">
@@ -182,6 +198,7 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 <button class="adm-nav" data-adm-view="detailed"><span class="adm-ico">☷</span><span>Detailed Student Report</span></button>
 <button class="adm-nav" data-adm-view="matrix"><span class="adm-ico">▦</span><span>Matrix Reports</span></button>
 <button class="adm-nav" data-adm-view="adviser"><span class="adm-ico">♙</span><span>Former Adviser Report</span></button></div>
+<div class="adm-nav-group hidden" id="officeNavGroup"><div class="adm-nav-heading">ADMINISTRATION</div><button class="adm-nav" data-adm-view="offices"><span class="adm-ico">⚙</span><span>Office Accounts</span></button></div>
 <div class="adm-sidebar-footer"><span>Moreh Academy</span><small>Admissions Management</small></div>
 </aside>
 <div class="adm-content">
@@ -193,11 +210,21 @@ body:has(#staff:not(.hidden)){background:var(--rd-bg)}
 <div class="adm-panel"><h2>Active holds <span class="action-tag submitted" id="holdsCount">0</span></h2><p class="muted">A hold blocks "Enrolled". Use Temporary enrollment (reason, end date, 120 days max) to allow an exception.</p><div id="holdsList"><div class="muted">Loading…</div></div></div>
 <div class="adm-panel"><h2>Raise a hold</h2><div class="form-grid" style="grid-template-columns:1fr">
 <div><label>Student ID</label><input id="holdStudent" placeholder="e.g. MAT2627-0001"></div>
-<div><label>Office</label><select id="holdOffice"><option>Guidance</option><option>Accounting</option><option>Academic</option></select></div>
+<div><label>Office</label><select id="holdOffice"><option>Guidance</option><option>Accounting</option></select></div>
 <div><label>Reason (staff only)</label><input id="holdReason" maxlength="200"></div>
 <div><label>Instruction shown to the student</label><input id="holdInstr" maxlength="200"></div></div>
 <div class="actions"><button class="btn blue" id="holdRaiseBtn">Raise hold</button></div>
 <p class="muted" style="margin-top:10px">Students see the office and instruction only, never the reason.</p></div>
+</div></div>
+<div class="adm-view" id="adm-view-offices"><div class="hold-grid">
+<div class="adm-panel"><h2>Office accounts <span class="tag" id="officeCount">0</span></h2><p class="muted">Guidance and Accounting staff sign in to the Holds Desk only. They cannot see applications, documents or full records.</p><div id="officeList"><div class="muted">Open this view to load accounts.</div></div></div>
+<div class="adm-panel"><h2>Create an office account</h2><div class="form-grid" style="grid-template-columns:1fr">
+<div><label>Full name</label><input id="ofName" maxlength="100"></div>
+<div><label>Email</label><input id="ofEmail" type="email" maxlength="254" autocomplete="off"></div>
+<div><label>Office</label><select id="ofOffice"><option>Guidance</option><option>Accounting</option></select></div>
+<div><label>Temporary password (12+ characters, letters and numbers)</label><input id="ofPw" type="text" maxlength="200" autocomplete="off"></div></div>
+<div class="actions"><button class="btn blue" id="ofCreate" type="button">Create account</button></div>
+<p class="muted" style="margin-top:10px">Give the password to the staff member privately. Use Reset password if they forget it.</p></div>
 </div></div>
 <div class="adm-view" id="adm-view-records"><div class="adm-panel"><h2>Admission Records</h2><p class="muted">Search, filter, and open admission records.</p><div class="actions"><input id="q" placeholder="Search name, LRN, Student ID, email" style="max-width:360px"><select id="status"><option value="">All enrollment statuses</option><option>Not Enrolled</option><option>Enrolled</option><option>Cancelled</option><option>Transferred</option></select><select id="applicationStatus"><option value="">All application statuses</option><option>Submitted</option><option>Under Review</option><option>Approved</option><option>Declined</option></select><button class="btn blue" id="searchBtn">Search</button></div>
 <div class="scroll" style="margin-top:18px"><table class="table"><thead><tr><th>Student ID</th><th>Applicant</th><th>Grade</th><th>Category</th><th>SY</th><th>Application Status</th><th>Enrollment Status</th><th></th></tr></thead><tbody id="results"></tbody></table></div></div></div>
@@ -309,7 +336,7 @@ function call(fn,args,ok,fail){google.script.run.withSuccessHandler(function(r){
 function saveToken(t){TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
 function getToken(){try{return sessionStorage.getItem('ma_token')||''}catch(e){return TOKEN}}
 function boot(){TOKEN=getToken();if(!TOKEN){$('welcome').textContent='Your session is missing. Please sign in from the Moreh Academy Homepage.';msg('Please sign in from the Moreh Academy Homepage first.',true);return}load()}   /* one round trip: the bootstrap call already verifies the session */
-function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
+function load(){call('admissionPortalGetBootstrap',[TOKEN],function(r){try{var a=r.data.account;if(!a)throw new Error('The portal did not return an account profile.');$('welcome').textContent=(a.fullName||a.email)+' · '+a.role;if(a.role==='Guidance'||a.role==='Accounting'){$('applicant').classList.add('hidden');$('staff').classList.add('hidden');$('desk').classList.remove('hidden');deskInit(a)}else if(a.role==='Applicant'||a.role==='Student'){ $('applicant').classList.remove('hidden');$('staff').classList.add('hidden');if(r.data.application)fill(r.data.application)}else{$('staff').classList.remove('hidden');$('applicant').classList.add('hidden');$('officeNavGroup').classList.toggle('hidden',a.role!=='Owner');try{drawStats(r.data.stats||{})}catch(err){$('stats').innerHTML='<div class="stat"><span>Total Applications</span><strong>'+Number((r.data.stats||{}).total||0)+'</strong></div>';$('dashboardBreakdown').innerHTML='<div class="breakdown"><h3>Dashboard</h3><div class="muted">Some analytics could not be displayed. Admissions records remain available below.</div></div>';$('needsAction').innerHTML=''}search()}}catch(err){$('welcome').textContent='The admission portal could not finish loading.';msg(err.message||'The admission portal could not finish loading.',true)}},function(error){$('welcome').textContent='The admission portal could not finish loading.';msg(error||'Could not load admission data. Please refresh or sign in again.',true)})}
 function fill(r){try{showHolds(r.Holds)}catch(e){}document.querySelectorAll('#applicationForm [name]').forEach(function(e){if(r[e.name]!=null)e.value=r[e.name]});$('appState').textContent='Application ID: '+r.StudentID+' · Status: '+(r.EnrollStatus||'Not Enrolled');$('submitBtn').disabled=true;$('submitBtn').textContent='Application Submitted'}
 function obj(){var o={};new FormData($('applicationForm')).forEach(function(v,k){o[k]=v});return o}
 $('applicationForm').onsubmit=function(e){e.preventDefault();$('submitBtn').disabled=true;call('admissionCreateApplication',[TOKEN,obj()],function(r){msg(r.message);load()})};
@@ -716,6 +743,7 @@ var ADM_VIEW_META={
  dashboard:['Admission Dashboard','Admissions overview, pipeline statistics, and items requiring attention.'],
  pipeline:['Application Pipeline','Review applications by stage. Open a card to verify documents or change status.'],
  holds:['Enrollment Holds','Office holds that block enrollment until cleared.'],
+ offices:['Office Accounts','Create and manage Guidance and Accounting accounts.'],
  records:['Admission Records','Search, filter, and open admission records.'],
  general:['General Report','Summarized admission and enrollment statistics by selected dimension.'],
  specialized:['Specialized Reports','Operational, demographic, requirements, scholarship, and school reports.'],
@@ -766,6 +794,78 @@ $('holdRaiseBtn').onclick=function(){
     b.disabled=false;msg(r.message);$('holdReason').value='';$('holdInstr').value='';holdsLoad(true)
   },function(m){b.disabled=false;msg(m,true)});
 };
+
+/* ===== Holds Desk (Guidance / Accounting accounts) ===== */
+var DESK_CUR=null;
+function deskInit(a){
+  $('deskOffice').textContent=a.role;
+  document.querySelector('.head h1').textContent='Holds Desk';
+  $('welcome').textContent=(a.fullName||a.email)+' · '+a.role+' Office';
+  deskListLoad();
+}
+function deskListLoad(){
+  call('admissionHoldsOverview',[TOKEN],function(r){
+    var L=(r.data&&r.data.holds)||[];$('deskCount').textContent=L.length;
+    $('deskList').innerHTML=L.length?L.map(function(h){return '<div class="hold-row"><div class="grow"><b>'+esc(h.FullName||h.StudentID)+'</b><span>'+esc(h.StudentID)+(h.GradeLevel?' · '+esc(h.GradeLevel):'')+' — '+esc(h.Reason)+'</span></div><button type="button" class="btn secondary" data-desk-clear="'+esc(h.HoldID)+'">Clear</button></div>'}).join(''):'<div class="muted">No active holds.</div>';
+  },function(e){$('deskList').innerHTML='<div class="muted">'+esc(e)+'</div>'});
+}
+function deskSearch(){
+  var q=$('deskQ').value.trim();
+  if(q.length<3){$('deskResults').innerHTML='<div class="muted">Type at least 3 characters.</div>';return}
+  $('deskResults').innerHTML='<div class="muted">Searching…</div>';
+  call('admissionHoldsDeskSearch',[TOKEN,q],function(r){
+    var L=r.data||[];
+    $('deskResults').innerHTML=L.length?L.map(function(x){return '<div class="hold-row"><div class="grow"><b>'+esc(x.FullName)+'</b><span>'+esc(x.StudentID)+(x.GradeLevel?' · '+esc(x.GradeLevel):'')+'</span></div><button type="button" class="btn secondary" data-desk-pick="'+esc(x.StudentID)+'" data-n="'+esc(x.FullName)+'" data-g="'+esc(x.GradeLevel)+'">Select</button></div>'}).join(''):'<div class="muted">No learner matches that search.</div>';
+  },function(e){$('deskResults').innerHTML='<div class="muted">'+esc(e)+'</div>'});
+}
+function deskPick(id,n,g){
+  DESK_CUR=id;$('deskLearner').style.display='block';
+  $('deskName').textContent=n||id;$('deskMeta').textContent=id+(g?' · '+g:'');
+  $('deskReason').value='';$('deskInstr').value='';
+  deskLearnerHolds();
+}
+function deskLearnerHolds(){
+  var id=DESK_CUR;
+  call('admissionHoldList',[TOKEN,id],function(r){
+    if(DESK_CUR!==id)return;
+    $('deskLearnerHolds').innerHTML=(r.data||[]).map(function(h){return '<div class="hold-note"><b>Active hold:</b> '+esc(h.Instruction)+'<br><span class="muted">Reason (staff only): '+esc(h.Reason)+'</span><div style="margin-top:8px"><button type="button" class="btn secondary" data-desk-clear="'+esc(h.HoldID)+'">Clear hold</button></div></div>'}).join('');
+  },function(){$('deskLearnerHolds').innerHTML=''});
+}
+$('deskGo').onclick=deskSearch;
+$('deskQ').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();deskSearch()}});
+$('deskRaise').onclick=function(){
+  var b=this;if(!DESK_CUR)return;b.disabled=true;
+  call('admissionHoldRaise',[TOKEN,DESK_CUR,'',$('deskReason').value,$('deskInstr').value],function(r){
+    b.disabled=false;msg(r.message);$('deskReason').value='';$('deskInstr').value='';deskLearnerHolds();deskListLoad();
+  },function(m){b.disabled=false;msg(m,true)});
+};
+document.addEventListener('click',function(e){
+  var p=e.target.closest('[data-desk-pick]');
+  if(p)deskPick(p.getAttribute('data-desk-pick'),p.getAttribute('data-n'),p.getAttribute('data-g'));
+  var c=e.target.closest('[data-desk-clear]');
+  if(c){c.disabled=true;call('admissionHoldClear',[TOKEN,c.getAttribute('data-desk-clear')],function(r){msg(r.message);if(DESK_CUR)deskLearnerHolds();deskListLoad()},function(m){c.disabled=false;msg(m,true)})}
+});
+
+/* ===== Office accounts (Owner only) ===== */
+function officesLoad(){
+  call('admissionOfficeAccountList',[TOKEN],function(r){
+    var L=r.data||[];$('officeCount').textContent=L.length;
+    $('officeList').innerHTML=L.length?L.map(function(u){var on=u.Status==='Active';return '<div class="hold-row"><div class="grow"><b>'+esc(u.FullName||u.Email)+' · '+esc(u.Office)+'</b><span>'+esc(u.Email)+' — '+esc(u.Status)+'</span></div><button type="button" class="btn secondary" data-of-status="'+esc(u.Email)+'" data-to="'+(on?'Disabled':'Active')+'">'+(on?'Disable':'Enable')+'</button> <button type="button" class="btn secondary" data-of-reset="'+esc(u.Email)+'">Reset password</button></div>'}).join(''):'<div class="muted">No office accounts yet.</div>';
+  },function(e){$('officeList').innerHTML='<div class="muted">'+esc(e)+'</div>'});
+}
+$('ofCreate').onclick=function(){
+  var b=this;b.disabled=true;
+  call('admissionOfficeAccountCreate',[TOKEN,$('ofName').value,$('ofEmail').value,$('ofOffice').value,$('ofPw').value],function(r){
+    b.disabled=false;msg(r.message);$('ofName').value='';$('ofEmail').value='';$('ofPw').value='';officesLoad();
+  },function(m){b.disabled=false;msg(m,true)});
+};
+document.addEventListener('click',function(e){
+  if(e.target.closest('[data-adm-view="offices"]'))officesLoad();
+  var s=e.target.closest('[data-of-status]');
+  if(s){s.disabled=true;call('admissionOfficeAccountSetStatus',[TOKEN,s.getAttribute('data-of-status'),s.getAttribute('data-to')],function(r){msg(r.message);officesLoad()},function(m){s.disabled=false;msg(m,true)})}
+  var x=e.target.closest('[data-of-reset]');
+  if(x){var pw=window.prompt('New password for '+x.getAttribute('data-of-reset')+' (12+ characters, letters and numbers):');if(!pw)return;x.disabled=true;call('admissionOfficeAccountResetPassword',[TOKEN,x.getAttribute('data-of-reset'),pw],function(r){x.disabled=false;msg(r.message)},function(m){x.disabled=false;msg(m,true)})}
+});
 
 /* ===== Pipeline board + detail drawer (real data) ===== */
 var RD_STATUSES=['Pending Submission','Received','Verified','Incomplete'],RD_CUR=null;

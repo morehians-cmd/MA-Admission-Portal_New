@@ -1,7 +1,7 @@
 /**
  * Auth.gs - Auth foundation: Users sheet, sign-in, sessions, sign-out, password change, Owner bootstrap.
  *
- * Roles: Owner, Encoder, Student. This file only answers "who is this and what is their role".
+ * Roles: Owner, Encoder, Student, Applicant, Website Administrator, and the office roles Guidance and Accounting. This file only answers "who is this and what is their role".
  * What each role may DO is decided by the feature files (e.g. HomepageMgmt.gs requires Owner).
  *
  * PUBLIC (callable from the browser):  authSignIn, authSignOut, authWhoAmI, authChangePassword
@@ -19,7 +19,7 @@ var AUTH = {
   USERS: 'Users', AUDIT: 'AuthAudit',
   HEADERS: ['Email', 'Role', 'Status', 'PasswordHash', 'TokenVersion', 'CreatedAt', 'LastLoginAt', 'PasswordChangedAt',
             'FullName', 'Mobile', 'TermsAcceptedAt', 'OtpHash', 'OtpExpires', 'OtpTries', 'OtpPurpose', 'StudentID'],
-  ROLES: ['Owner', 'Website Administrator', 'Encoder', 'Student', 'Applicant'],
+  ROLES: ['Owner', 'Website Administrator', 'Encoder', 'Student', 'Applicant', 'Guidance', 'Accounting'],   // Guidance/Accounting = office accounts: Holds Desk only (AdmissionHolds.gs)
   ITER: 300000,                 // default for NEW hashes. Tune with authBenchmark().
   MIN_PW: 8, MIN_PW_OWNER: 12, MAX_PW: 200,
   IDLE_SEC: 7200,             // a session dies after 2 hours without use
