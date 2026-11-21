@@ -642,12 +642,18 @@ function downloadConsentForm(record,pageSize){
 function downloadConsentFormA4(record){downloadConsentForm(record||existingRecord||collect(),'A4');}
 /* Student Application Form: 8.5 x 13 in (long bond), one page. Classic institutional layout: letterhead, ruled section bars, gridded boxes. */
 function downloadApplicationForm(record){
- var r=record||existingRecord||collect(),email=account&&account.email||'';
- if(applicantPhoto){MAApplicationPrint.render(r,email,applicantPhoto);return;}
+ var r=record||existingRecord||collect(),email=account&&account.email||'',printWin=null;
+ // Open synchronously from the applicant's click to avoid popup blocking.
+ printWin=window.open('','_blank');
+ if(!printWin){window.alert('The print window was blocked. Please allow pop-ups for this site, then try again.');return;}
+ printWin.document.open();
+ printWin.document.write('<!doctype html><html><head><title>Student Application Form</title></head><body style="font:14px Arial;padding:24px;color:#14213d"><p>Preparing application form…</p><p>Retrieving applicant photo (if available).</p></body></html>');
+ printWin.document.close();
+ if(applicantPhoto){MAApplicationPrint.render(r,email,applicantPhoto,printWin);return;}
  run('admissionGetMyApplicationPhoto',[token()],function(result){
   var photo='';try{var bytes=result&&result.success&&result.data&&result.data.photo;if(bytes&&bytes.length){var binary='';for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.slice(i,i+8192));photo='data:image/jpeg;base64,'+btoa(binary)}}catch(e){}
-  MAApplicationPrint.render(r,email,photo);
- },function(){MAApplicationPrint.render(r,email,'');});
+  MAApplicationPrint.render(r,email,photo,printWin);
+ },function(){MAApplicationPrint.render(r,email,'',printWin);});
 }
 
 function signOut(){var t=token();try{if(account&&account.email)localStorage.removeItem(draftKey())}catch(e){}   /* explicit sign-out wipes the saved draft: this may be a shared computer */
