@@ -1,4 +1,9 @@
 <script>
+function previewChrome(widthCss,label){
+ var css='@media screen{html{background:#dfe5f0}body{background:#dfe5f0;padding-bottom:30px}.page,.print-sheet{width:'+widthCss+'!important;max-width:none;margin:18px auto!important;background:#fff;box-shadow:0 4px 22px rgba(6,46,112,.28)}.pv-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 20px;background:#062E70;color:#fff;font:600 13px \"Open Sans\",Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25)}.pv-bar button{border:0;border-radius:6px;padding:8px 16px;font:700 13px \"Open Sans\",Arial,sans-serif;cursor:pointer;background:#FF941F;color:#fff;margin-left:8px}.pv-bar button.alt{background:transparent;border:1px solid #fff}}@media print{.pv-bar{display:none!important}}';
+ var bar='<div class="pv-bar"><span>'+esc(label)+'</span><span><button type="button" onclick="window.print()">Print / Save PDF</button><button type="button" class="alt" onclick="window.close()">Close</button></span></div>';
+ return {css:css,bar:bar};
+}
 function render(record,fallbackEmail){
  var r=record||{};
  function val(k){var v=r[k];if(v===true)v='Yes';if(v===false)v='No';return v==null?'':String(v)}
