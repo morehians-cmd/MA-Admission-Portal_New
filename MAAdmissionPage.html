@@ -736,7 +736,7 @@ function openStudent(id){
     window.MA_PRINT_RECORDS=window.MA_PRINT_RECORDS||{};
     window.MA_PRINT_RECORDS[encodeURIComponent(x.StudentID)]=x;
     detail.insertAdjacentHTML('beforeend','<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Admission Documents</h3><p>Generate a read-only Student Application Form using the same print layout and parent-status display rules as the applicant portal.</p><div class="actions"><button type="button" class="btn secondary" data-action="print-application">Print / Save PDF — Student Application Form (8.5 × 13)</button></div>');
-    var applicationPrintButton=detail.querySelector('[data-action="print-application']");
+    var applicationPrintButton=detail.querySelector('[data-action="print-application"]');
     applicationPrintButton._maStudentRecord=x;
     applicationPrintButton.onclick=function(event){
       if(event){event.preventDefault();event.stopPropagation();}
