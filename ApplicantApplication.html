@@ -211,7 +211,7 @@ function buildFields(){
   field('AddressLine2','Subdivision / Village / Phase','text')+field('Barangay','Barangay','text',null,true)+
   field('City','City / Municipality','text',null,true);
  var edu=opts(['Elementary Level','High School Level','High School Graduate','College Level','College Graduate','Vocational Level','Vocational Graduate','Master Degree','Doctorate Degree']);
- var status=opts(['Alive','Deceased']);
+ var status=opts(['Living – Involved','Living – Not Involved / No Contact','Unknown Whereabouts','Deceased','Unknown / Information Unavailable','Not Applicable']);
  var relOpts=opts(['Catholic','Islam','Iglesia ni Cristo','Iglesia Filipina Independiente','The Episcopal Church in the Philippines','Seventh-day Adventist Church','Jehovah\'s Witnesses','The Church of Jesus Christ of Latter-day Saints','Born Again Christian','Methodist Christian','Protestant','Others, specify']);
  document.getElementById('familyFields').innerHTML=
   '<div class="subhead">Father’s information</div>'+
@@ -654,8 +654,16 @@ function downloadApplicationForm(record){
   '<h1 class="ttl">STUDENT APPLICATION FORM</h1>'+
   '<div class="tb ref"><div class="c"><span class="cl">School Year</span><span class="cv">'+esc(val('SchoolYear')||'2026\u20132027')+'</span></div><div class="c"><span class="cl">Application / Student ID</span><span class="cv">'+esc(val('StudentID')||'For office use')+'</span></div><div class="c"><span class="cl">Email</span><span class="cv">'+esc(email)+'</span></div></div>';
  body+=sec(1,'ACADEMIC INFORMATION')+'<div class="tb g4">'+c('Intended Grade Level','GradeLevel')+c('Department','Department')+c('SHS Strand / Cluster','Cluster')+c('Admission Category','Category')+c('Learner Reference Number','LRN')+c('Previous School','PrevSchool','s2')+c('Previous School Year','PrevSY')+c('Last Grade Completed','PrevGrade')+c('Previous SHS Strand / Cluster','PrevCluster')+c('Previous Section','PrevSection')+c('Previous Adviser','PrevAdviser')+c('Previous Scholarship','PrevScholarship')+c('Previous School ID','PrevSchoolID')+c('Previous School Address','PrevAddress','s2')+'</div>';
- body+=sec(2,'PERSONAL INFORMATION')+'<div class="tb g4 nm">'+c('Surname','Surname')+c('First Name','FirstName')+c('Middle Name','MiddleName')+c('Suffix','Suffix')+'</div><div class="tb g4 nxt">'+c('Date of Birth','Birthdate')+c('Place of Birth','BirthPlace')+c('Mobile Number','Mobile')+c('Sex','SexualOrient')+c('Gender Identity','GenderOrient')+c('Religion','Religion')+c('Religion (Other)','ReligionOther')+c('Facebook Account Link','Facebook')+c('House / Street','AddressLine1')+c('Subdivision / Village','AddressLine2')+c('Barangay','Barangay')+c('City / Municipality','City')+'</div>';
- function prow(t,p){return '<div class="rc">'+t+'</div><div class="vc">'+show(p+'Name')+'</div><div class="vc">'+show(p+'Status')+'</div><div class="vc">'+show(p+'Occupation')+'</div><div class="vc">'+show(p+'Education')+'</div><div class="vc">'+show(p+'Mobile')+'</div><div class="vc">'+show(p+'Email')+'</div>'}
+ body+=sec(2,'PERSONAL INFORMATION')+'<div class="tb g4 nm">'+c('Surname','Surname')+c('First Name','FirstName')+c('Middle Name','MiddleName')+c('Suffix','Suffix')+'</div><div class="tb g4 nxt">'+c('Date of Birth','Birthdate')+c('Place of Birth','BirthPlace')+c('Mobile Number','Mobile')+c('Sex','SexualOrient')+c('Gender Identity','GenderOrient')+c('Religion','Religion')+c('Religion (Other)','ReligionOther')+c('Facebook Account Link','Facebook')+c('House / Street','AddressLine1')+c('Subdivision / Village','AddressLine2')+c('Barangay','Barangay')+c('City / Municipality','City')+c('Province','Province')+'</div>';
+ function prow(t,p){
+  var raw=val(p+'Status').trim(),normalized=raw.toLowerCase();
+  var involved=normalized==='living – involved'||normalized==='living - involved'||normalized==='alive'||normalized==='living';
+  var na=normalized==='not applicable'||normalized==='n/a';
+  var details=involved;
+  var statusText=raw;
+  if(normalized==='alive')statusText='Living – Involved';
+  return '<div class="rc">'+t+'</div><div class="vc">'+(na?'<i>&mdash;</i>':show(p+'Name'))+'</div><div class="vc">'+(statusText?esc(statusText):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Occupation'):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Education'):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Mobile'):'<i>&mdash;</i>')+'</div><div class="vc">'+(details?show(p+'Email'):'<i>&mdash;</i>')+'</div>'
+ }
  body+=sec(3,'PARENTS / FAMILY INFORMATION')+'<div class="tb pt7"><div class="hc"></div><div class="hc">Full Name</div><div class="hc">Status</div><div class="hc">Occupation</div><div class="hc">Education</div><div class="hc">Mobile</div><div class="hc">Email</div>'+prow('FATHER','Father')+prow('MOTHER','Mother')+'</div><div class="tb g5 nxt">'+c('Living Arrangement','LivingWith')+c('Relative / Guardian Name','RelName')+c('Relationship to Applicant','RelRelation')+c('Relative / Guardian Mobile','RelMobile')+c('Relative / Guardian Address','RelAddress')+'</div>';
  body+=sec(4,'PRIMARY CONTACT PERSON')+'<div class="tb gc">'+c('Full Name','EmName')+c('Relationship to Applicant','EmRelation')+c('Mobile Number','EmMobile')+c('Address','EmAddress')+'</div>';
  body+=sec(5,'DECLARATION &amp; SIGNATURE'.replace('&amp;','&'))+'<p class="decl">I hereby certify that all information provided in this application form is true and correct to the best of my knowledge. I understand that any false statement may result in the denial of admission or dismissal, if discovered later.</p>'+
