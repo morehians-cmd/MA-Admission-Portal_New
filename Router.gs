@@ -7,7 +7,7 @@
  * Every file in ADMIN_PAGES_ that uses the baseUrl template needs: APP_BASE = '<?= baseUrl ?>'
  */
 var ADMIN_PAGES_ = { 'admin-homepage': 'HomepageAdmin', 'admin-pages': 'PagesAdmin', 'admission': 'MAAdmissionPage', 'applicant-portal': 'ApplicantPortal', 'applicant-application': 'ApplicantApplication', 'applicant-requirements': 'StudentWorkspaceView', 'applicant-tracking': 'StudentWorkspaceView', 'applicant-profile': 'StudentWorkspaceView', 'applicant-notifications': 'StudentWorkspaceView', 'parental-consent': 'ParentalConsentForm', 'student-profile': 'StudentWorkspaceView', 'current-student': 'AdmissionCurrentStudentAccount' };
-var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', MAAdmissionPage: 'Admissions Portal', ApplicantPortal: 'Applicant Dashboard | Moreh Academy', ApplicantApplication: 'My Application | Moreh Academy', StudentWorkspaceView: 'Student Workspace | Moreh Academy', AdmissionCurrentStudentAccount: 'Current Student Account | Moreh Academy', AdmissionStudentProfilePage: 'Student Profile | Moreh Academy' };
+var ADMIN_TITLES_ = { HomepageAdmin: 'Homepage Management', PagesAdmin: 'Website Pages Management', MAAdmissionPage: 'Admissions Portal', ApplicantPortal: 'Applicant Dashboard | Moreh Academy', ApplicantApplication: 'My Application | Moreh Academy', StudentWorkspaceView: 'Student Workspace | Moreh Academy', AdmissionCurrentStudentAccount: 'Current Student Account | Moreh Academy', AdmissionStudentProfilePage: 'Student Profile | Moreh Academy', ParentalConsentForm: 'Parental Consent & Data Privacy Undertaking | Moreh Academy' };
 
 function doGet(e) {
   var p = (e && e.parameter) || {};
