@@ -682,6 +682,47 @@ $('exportAdviserReport').onclick=exportAdviserReport;
 
 function search(){call('admissionPortalSearch',[TOKEN,$('q').value,$('status').value,$('applicationStatus').value,100,'',''],function(r){$('results').innerHTML=r.data.length?r.data.map(function(x){return '<tr><td>'+esc(x.StudentID)+'</td><td>'+esc(x.FullName)+'</td><td>'+esc(x.GradeLevel)+'</td><td>'+esc(x.Category)+'</td><td>'+esc(x.SchoolYear)+'</td><td>'+esc(x.ApplicationStatus||'Submitted')+'</td><td>'+esc(x.EnrollStatus)+'</td><td><button class="btn blue" style="padding:6px 10px" onclick="openStudent(\''+encodeURIComponent(x.StudentID)+'\')">Open</button></td></tr>'}).join(''):'<tr><td colspan="8">No records found.</td></tr>'})}
 $('searchBtn').onclick=search;
+function printStudentApplication(record){
+  try{
+    if(!window.MAApplicationPrint||typeof window.MAApplicationPrint.render!=='function'){
+      alert('The application form print module is not loaded. Please refresh the portal and try again.');
+      return;
+    }
+    call('admissionIdCardData',[TOKEN,record.StudentID],function(photoResult){
+      var photo='';
+      try{
+        var bytes=photoResult&&photoResult.data&&photoResult.data.photo;
+        if(bytes&&bytes.length){
+          var binary='';
+          for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.slice(i,i+8192));
+          photo='data:image/jpeg;base64,'+btoa(binary);
+        }
+      }catch(photoError){}
+      window.MAApplicationPrint.render(record,record.Email||'',photo);
+    },function(){
+      window.MAApplicationPrint.render(record,record.Email||'');
+    });
+  }catch(printError){
+    console.error('Student application print failed:',printError);
+    alert('Unable to open the application form. Please check pop-up permissions and try again.');
+  }
+}
+// Capture clicks on dynamically added print buttons before other handlers.
+document.addEventListener('click',function(event){
+  var button=event.target&&event.target.closest&&event.target.closest('[data-action="print-application"]');
+  if(!button)return;
+  event.preventDefault();
+  event.stopPropagation();
+  if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+  var detail=button.closest('#studentDetail');
+  if(!detail)return;
+  var recordId=detail.getAttribute('data-student-id');
+  var record=window.MA_PRINT_RECORDS&&window.MA_PRINT_RECORDS[recordId];
+  if(record){printStudentApplication(record);return;}
+  // Fallback to the current openStudent record, cached when the detail is rendered.
+  if(button._maStudentRecord){printStudentApplication(button._maStudentRecord);return;}
+  alert('Could not load this student record for printing. Close the record and open it again.');
+},true);
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
@@ -707,21 +748,13 @@ function openStudent(id){
       '<div class="actions"><button type="button" class="btn blue" data-action="save-requirements">Update Document Statuses</button><span id="reqSaveStatus" class="status hidden" style="display:inline-flex;margin:0;align-items:center"></span></div></div>';
     $('staff').insertAdjacentHTML('afterend',h);
     var detail=$('studentDetail');
+    detail.setAttribute('data-student-id',encodeURIComponent(x.StudentID));
+    window.MA_PRINT_RECORDS=window.MA_PRINT_RECORDS||{};
+    window.MA_PRINT_RECORDS[encodeURIComponent(x.StudentID)]=x;
     detail.insertAdjacentHTML('beforeend','<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Admission Documents</h3><p>Generate a read-only Student Application Form using the same print layout and parent-status display rules as the applicant portal.</p><div class="actions"><button type="button" class="btn secondary" data-action="print-application">Print / Save PDF — Student Application Form (8.5 × 13)</button></div>');
-    detail.querySelector('[data-action="print-application"]').onclick=function(){
-      call('admissionIdCardData',[TOKEN,x.StudentID],function(photoResult){
-        var photo='';
-        try{
-          var bytes=photoResult&&photoResult.data&&photoResult.data.photo;
-          if(bytes&&bytes.length){
-            var binary='';
-            for(var i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.slice(i,i+8192));
-            photo='data:image/jpeg;base64,'+btoa(binary);
-          }
-        }catch(photoError){}
-        MAApplicationPrint.render(x,x.Email||'',photo);
-      },function(){MAApplicationPrint.render(x,x.Email||'');});
-    };
+    detail.querySelector('[data-action="print-application"]')._maStudentRecord=x;
+    // Printing is handled by the delegated click listener below, so dynamically
+    // inserted buttons remain clickable even if their inline binding is missed.
     detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
     detail.querySelector('[data-action="save-requirements"]').onclick=function(){saveRequirementStatuses(x.StudentID)};
   });
