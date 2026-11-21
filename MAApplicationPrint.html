@@ -4,7 +4,7 @@ function previewChrome(widthCss,label){
  var bar='<div class="pv-bar"><span>'+esc(label)+'</span><span><button type="button" onclick="window.print()">Print / Save PDF</button><button type="button" class="alt" onclick="window.close()">Close</button></span></div>';
  return {css:css,bar:bar};
 }
-function render(record,fallbackEmail,photoDataUrl){
+function render(record,fallbackEmail,photoDataUrl,preopenedWindow){
  var r=record||{};
  function val(k){var v=r[k];if(v===true)v='Yes';if(v===false)v='No';return v==null?'':String(v)}
  function show(k){var v=val(k);return v?esc(v):'<i>&mdash;</i>'}
@@ -54,7 +54,7 @@ function render(record,fallbackEmail,photoDataUrl){
  '.ft{position:absolute;left:.5in;right:.5in;bottom:.3in;display:flex;justify-content:space-between;border-top:1px solid #FF941F;padding-top:.05in;font:7pt Arial,sans-serif;color:#64748b;letter-spacing:.04em}'+
  '@page{size:8.5in 13in;margin:0}';
  var pv=previewChrome('8.5in','Student Application Form \u00b7 8.5 \u00d7 13 in \u00b7 1 page');
- var w=window.open('','_blank');if(!w){window.alert('Please allow pop-ups for this site to open the printable form.');return}
+ var w=preopenedWindow||window.open('','_blank');if(!w){window.alert('Please allow pop-ups for this site to open the printable form.');return}
  var html='<!doctype html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"><title>MOREH ACADEMY - STUDENT APPLICATION FORM</title><style>'+pv.css+css+'</style></head><body>'+pv.bar+'<div class="print-sheet">'+body+'</div>'+fit+'</body></html>';
  w.document.open();w.document.write(html);w.document.close();w.focus();
 }
