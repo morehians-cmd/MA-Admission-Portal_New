@@ -642,7 +642,7 @@ function downloadConsentForm(record,pageSize){
 function downloadConsentFormA4(record){downloadConsentForm(record||existingRecord||collect(),'A4');}
 /* Student Application Form: 8.5 x 13 in (long bond), one page. Classic institutional layout: letterhead, ruled section bars, gridded boxes. */
 function downloadApplicationForm(record){
- MAApplicationPrint.render(record||existingRecord||collect(),account&&account.email||'');
+ MAApplicationPrint.render(record||existingRecord||collect(),account&&account.email||'',applicantPhoto||'');
 }
 
 function signOut(){var t=token();try{if(account&&account.email)localStorage.removeItem(draftKey())}catch(e){}   /* explicit sign-out wipes the saved draft: this may be a shared computer */
