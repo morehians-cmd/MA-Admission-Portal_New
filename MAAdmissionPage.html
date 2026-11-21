@@ -707,22 +707,6 @@ function printStudentApplication(record){
     alert('Unable to open the application form. Please check pop-up permissions and try again.');
   }
 }
-// Capture clicks on dynamically added print buttons before other handlers.
-document.addEventListener('click',function(event){
-  var button=event.target&&event.target.closest&&event.target.closest('[data-action="print-application"]');
-  if(!button)return;
-  event.preventDefault();
-  event.stopPropagation();
-  if(event.stopImmediatePropagation)event.stopImmediatePropagation();
-  var detail=button.closest('#studentDetail');
-  if(!detail)return;
-  var recordId=detail.getAttribute('data-student-id');
-  var record=window.MA_PRINT_RECORDS&&window.MA_PRINT_RECORDS[recordId];
-  if(record){printStudentApplication(record);return;}
-  // Fallback to the current openStudent record, cached when the detail is rendered.
-  if(button._maStudentRecord){printStudentApplication(button._maStudentRecord);return;}
-  alert('Could not load this student record for printing. Close the record and open it again.');
-},true);
 function openStudent(id){
   call('admissionPortalGetStudent',[TOKEN,decodeURIComponent(id)],function(r){
     var x=r.data,old=$('studentDetail');if(old)old.remove();
@@ -752,7 +736,12 @@ function openStudent(id){
     window.MA_PRINT_RECORDS=window.MA_PRINT_RECORDS||{};
     window.MA_PRINT_RECORDS[encodeURIComponent(x.StudentID)]=x;
     detail.insertAdjacentHTML('beforeend','<hr style="border:0;border-top:1px solid #e5eaf2;margin:22px 0"><h3>Admission Documents</h3><p>Generate a read-only Student Application Form using the same print layout and parent-status display rules as the applicant portal.</p><div class="actions"><button type="button" class="btn secondary" data-action="print-application">Print / Save PDF — Student Application Form (8.5 × 13)</button></div>');
-    detail.querySelector('[data-action="print-application"]')._maStudentRecord=x;
+    var applicationPrintButton=detail.querySelector('[data-action="print-application']");
+    applicationPrintButton._maStudentRecord=x;
+    applicationPrintButton.onclick=function(event){
+      if(event){event.preventDefault();event.stopPropagation();}
+      printStudentApplication(x);
+    };
     // Printing is handled by the delegated click listener below, so dynamically
     // inserted buttons remain clickable even if their inline binding is missed.
     detail.querySelector('[data-action="save-student"]').onclick=function(){saveStudent(x.StudentID)}; detail.querySelector('[data-action="open-id-card"]').onclick=function(){openIdCard(encodeURIComponent(x.StudentID))}; detail.querySelector('[data-action="re-enroll"]').onclick=function(){runLifecycleAction('admissionReEnrollRun',[TOKEN,{studentIds:[x.StudentID]}],'lifecycleStatus')};
