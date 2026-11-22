@@ -92,12 +92,8 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 .blocks>.split2{grid-column:1/-1;max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,360px);gap:32px;align-items:start}.split2 .txt{display:grid;gap:16px;max-width:760px}.split2 .txt>*{margin:0}.split2 .side{display:grid;gap:18px}.split2 .side .bf{width:100%;margin:0}.split2 .side .bf img{aspect-ratio:4/3}@media(max-width:800px){.blocks>.split2{grid-template-columns:minmax(0,1fr)}}
 .blocks>.bf.banner{grid-column:1/-1;max-width:none;width:100%;margin:0}.bf.banner img{aspect-ratio:2048/768;max-height:none;object-position:center}@media(max-width:600px){.bf.banner img{aspect-ratio:16/9}}
 .blocks>.cards{grid-column:1/-1;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:24px;align-items:start}.seg{background:#f6f9ff;border:1px solid #d8e3f8;border-left:5px solid var(--orange);border-radius:12px;padding:22px 26px}.seg .bh{margin:0 0 12px;font-size:22px}.seg .sb>*{margin:0 0 14px}.seg .sb>*:last-child{margin-bottom:0}.seg ul{padding-left:22px}.cards>.seg:last-child:nth-child(odd){grid-column:1/-1}.cards>.seg:last-child:nth-child(odd) .sb{columns:2 400px;column-gap:44px}.cards>.seg:last-child:nth-child(odd) .sb>*{break-inside:avoid}
-.blocks>.tl{grid-column:1/-1;max-width:none}.tl-rail{overflow-x:auto;padding:6px 0 4px;scrollbar-width:thin}.tl-in{position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(104px,1fr));min-width:calc(var(--n)*104px)}.tl-track{position:absolute;top:19px;left:calc(50%/var(--n));right:calc(50%/var(--n));height:4px;background:#d3def5;border-radius:4px}.tl-fill{height:100%;width:0;background:var(--blue);border-radius:4px;transition:width .45s ease}.tl-n{position:relative;background:none;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 4px 8px;color:#51607d;font:600 15px var(--head)}.tl-n .dot{width:24px;height:24px;margin-top:9px;border-radius:50%;background:#fff;border:4px solid #9db5e3;transition:all .25s}.tl-n:hover .dot{border-color:var(--blue)}.tl-n.past .dot{background:var(--blue);border-color:var(--blue)}.tl-n.on{color:var(--navy)}.tl-n.on .dot{background:var(--orange);border-color:var(--orange);box-shadow:0 0 0 6px rgba(255,148,31,.28);transform:scale(1.15)}.tl-stage{position:relative;margin-top:18px;background:var(--navy);color:#fff;border-radius:16px;padding:clamp(20px,3.5vw,38px);padding-bottom:clamp(68px,8vw,80px)}.tl-p{display:none}.tl-p.on{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:8px 36px;align-items:start;animation:tlin .4s ease}.tl-big{font:800 clamp(34px,5vw,52px)/1.05 var(--head);color:var(--orange);white-space:nowrap}.tl-tx h3{color:#fff;font-size:clamp(20px,2.4vw,26px);margin:0 0 10px}.tl-tx .sb>*{margin:0 0 12px;color:#e6eeff}.tl-tx .sb>*:last-child{margin-bottom:0}.tl-tx .btn{background:var(--orange);border-color:var(--orange)}.tl-ctl{position:absolute;right:clamp(16px,3vw,28px);bottom:16px;display:flex;align-items:center;gap:10px}.tl-cnt{font:600 13px var(--head);opacity:.8;margin-right:6px}.tl-a{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer}.tl-a:hover{background:var(--orange);border-color:var(--orange)}@keyframes tlin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(max-width:800px){.tl-p.on{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.tl-p.on{animation:none}.tl-fill{transition:none}}
 .navgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px;margin-top:8px}.nc{position:relative;display:flex;flex-direction:column;gap:10px;padding:26px 24px 22px;background:#fff;border:1px solid #d8e3f8;border-radius:16px;text-decoration:none;color:var(--ink);overflow:hidden;transition:transform .2s,box-shadow .2s,border-color .2s}.nc::before{content:"";position:absolute;left:0;top:0;height:4px;width:44px;background:var(--orange);border-radius:0 0 4px 0;transition:width .3s}.nc .ni{width:52px;height:52px;border-radius:14px;background:var(--light);display:grid;place-items:center;font-size:26px;line-height:1}.nc h3{color:var(--navy);font-size:19px;margin:4px 0 0}.nc p{margin:0;font-size:15px;color:#51607d;flex:1}.nc .go{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:14px;border-top:1px solid #e3ebfa;font:600 14px var(--head);color:var(--blue)}.nc .go i{width:30px;height:30px;border-radius:50%;background:var(--light);display:grid;place-items:center;font-style:normal;font-size:18px;line-height:1;transition:background .2s,color .2s,transform .2s}.nc:hover{transform:translateY(-4px);border-color:var(--blue);box-shadow:0 14px 28px rgba(6,46,112,.14)}.nc:hover::before{width:100%}.nc:hover .go i{background:var(--blue);color:#fff;transform:translateX(3px)}@media(prefers-reduced-motion:reduce){.nc,.nc::before,.nc .go i{transition:none}.nc:hover{transform:none}}
-.blocks>details.fq{max-width:900px;margin:0;background:#fff;border:1px solid #d8e3f8;border-radius:12px;overflow:hidden}.blocks>.fq+.fq{margin-top:-12px}.fq summary{list-style:none;cursor:pointer;position:relative;padding:16px 60px 16px 20px;font:600 17px/1.4 var(--head);color:var(--navy)}.fq summary::-webkit-details-marker{display:none}.fq summary:hover{background:#f6f9ff}.fq summary::after{content:"+";position:absolute;right:16px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--light);color:var(--blue);display:grid;place-items:center;font-size:20px;line-height:1}.fq[open]{border-color:var(--blue)}.fq[open] summary::after{content:"–";background:var(--orange);color:var(--navy)}.fq .sb{padding:14px 20px 18px;border-top:1px solid #e3ebfa}.fq .sb>*{margin:0 0 12px}.fq .sb>*:last-child{margin-bottom:0}
-.blocks>.tb{grid-column:1/-1;max-width:none}.tb-cap{margin:0 0 10px;font:600 14px var(--head);color:#51607d}.tb-list{display:flex;flex-wrap:wrap;gap:10px}.tb-t{cursor:pointer;border:2px solid #c9d6ee;background:#fff;color:var(--navy);font:600 15px var(--head);padding:10px 20px;border-radius:999px;transition:background .2s,color .2s,border-color .2s}.tb-t:hover{border-color:var(--blue)}.tb-t.on{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 4px 0 var(--orange)}.tb-p{display:none;margin-top:18px;background:#fff;border:1px solid #d8e3f8;border-top:5px solid var(--navy);border-radius:14px;padding:clamp(18px,3vw,30px)}.tb-p.on{display:block;animation:tlin .35s ease}.tb-p>*{margin:0 0 14px;max-width:760px}.tb-p>*:last-child{margin-bottom:0}.tb-p .bh{font-size:18px;margin-top:20px}.tb-p>.bh:first-child{margin-top:0}.tb-p ul{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:10px;max-width:none}.tb-p li{position:relative;padding:12px 14px 12px 46px;background:#f6f9ff;border:1px solid #e3ebfa;border-radius:10px}.tb-p li::before{content:"✓";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--orange);color:var(--navy);display:grid;place-items:center;font:700 14px var(--head)}.tb-p .bf{max-width:260px;margin:12px 0}@media(prefers-reduced-motion:reduce){.tb-p.on{animation:none}}
 .rt>*{margin:0 0 12px}.rt>*:last-child{margin-bottom:0}.rt ul,.rt ol{padding-left:22px}.rt li{margin:0 0 4px}.rt a{color:var(--blue);text-decoration:underline;font-weight:600}
-.tb-p>details.fq{background:#fff;border:1px solid #d8e3f8;border-radius:12px;overflow:hidden;max-width:none}
 /* wave + footer */
 .wave{display:block;width:100%;height:70px;margin-bottom:-1px}
 .foot{background:var(--navy);color:#fff;padding:34px 0 20px}
@@ -160,7 +156,7 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 
 <div class="modal" id="mSignin" role="dialog" aria-modal="true" aria-labelledby="siT"><div class="box">
   <button class="x" data-close aria-label="Close">×</button><h2 id="siT">Sign in</h2>
-  <div class="f"><label for="siUser">Email</label><input id="siUser" autocomplete="username"></div>
+  <div class="f"><label for="siUser">Username or email</label><input id="siUser" autocomplete="username"></div>
   <div class="f"><label for="siPass">Password</label><input id="siPass" type="password" autocomplete="current-password"></div>
   <p class="err" id="siErr" role="alert"></p>
   <button class="btn blue" id="siGo" style="width:100%">Sign in</button>
@@ -169,12 +165,22 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 </div></div>
 <div class="modal" id="mCreate" role="dialog" aria-modal="true" aria-labelledby="caT"><div class="box">
   <button class="x" data-close aria-label="Close">×</button><h2 id="caT">Create account</h2>
-  <div class="f"><label for="caName">Full name</label><input id="caName" autocomplete="name"></div>
-  <div class="f"><label for="caMail">Email</label><input id="caMail" type="email" autocomplete="email"></div>
+  <div class="f"><label for="caSurname">Surname</label><input id="caSurname" autocomplete="family-name"></div>
+  <div class="f"><label for="caFirst">First name</label><input id="caFirst" autocomplete="given-name"></div>
+  <div class="f"><label for="caLrn">LRN (12 digits)</label><input id="caLrn" inputmode="numeric" maxlength="12" placeholder="123456789012"></div>
+  <div class="f"><label for="caBirth">Birth date</label><input id="caBirth" type="date" autocomplete="bday" onchange="caGuard()"></div>
+  <div class="f"><label for="caMail">Email (your username)</label><input id="caMail" type="email" autocomplete="email"></div>
   <div class="f"><label for="caMobile">Mobile number</label><input id="caMobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="09171234567"></div>
   <div class="f"><label for="caPass">Password</label><input id="caPass" type="password" autocomplete="new-password"></div>
   <p class="note">8 or more characters, with at least one letter and one number.</p>
   <div class="f"><label for="caPass2">Confirm password</label><input id="caPass2" type="password" autocomplete="new-password"></div>
+  <div id="caGuardBox" style="display:none">
+    <p class="note">Applicant below 18: a parent / legal guardian is required.</p>
+    <div class="f"><label for="caGuardName">Parent / guardian full name</label><input id="caGuardName" autocomplete="name"></div>
+    <div class="f"><label for="caGuardRel">Relationship</label><input id="caGuardRel" placeholder="e.g. Mother"></div>
+    <div class="f"><label for="caGuardEmail">Parent / guardian email</label><input id="caGuardEmail" type="email"></div>
+    <div class="f"><label for="caGuardMobile">Parent / guardian mobile (11 digits)</label><input id="caGuardMobile" type="tel" inputmode="numeric" maxlength="11"></div>
+  </div>
   <div class="hp" aria-hidden="true"><label for="caHp">Leave this empty</label><input id="caHp" tabindex="-1" autocomplete="off"></div>
   <label class="chk"><input type="checkbox" id="caTerms"><span>I agree to the <a id="lnkTerms" href="#" target="_blank" rel="noopener">Terms of Service</a> and <a id="lnkPriv" href="#" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
   <p class="err" id="caErr" role="alert"></p>
@@ -193,7 +199,7 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 <div class="modal" id="mForgot" role="dialog" aria-modal="true" aria-labelledby="fT"><div class="box">
   <button class="x" data-close aria-label="Close">×</button><h2 id="fT">Forgot password</h2>
   <p class="note">Enter your account email. We will send a 6-digit code.</p>
-  <div class="f"><label for="fgMail">Email</label><input id="fgMail" type="email" autocomplete="email"></div>
+  <div class="f"><label for="fgMail">Username or email</label><input id="fgMail" autocomplete="username"></div>
   <p class="err" id="fErr" role="alert"></p>
   <button class="btn blue" id="fGo" style="width:100%">Send code</button>
   <button class="swap" data-swap="mSignin">Back to sign in</button>
@@ -210,7 +216,8 @@ img,svg,video,table{max-width:100%}.card,.step,.box,.id span{min-width:0;overflo
 
 <script>
 /* ===== Backend hooks. Sign-in functions live in Auth.gs. createAccount is still a placeholder (item 3, later). ===== */
-var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',getPage:'getPublishedPage',getPageDraft:'getDraftPage',signIn:'authSignIn',signOut:'authSignOut',whoAmI:'authWhoAmI',register:'authRegister',verify:'authVerifyEmail',resend:'authResendCode',forgot:'authForgotPassword',reset:'authResetPassword'};
+/* Auth is Old AP's single account system, reached through HomepageBridge.gs. */
+var API={getHomepage:'getPublishedHomepage',getDraft:'getDraftHomepage',getPage:'getPublishedPage',getPageDraft:'getDraftPage',getPolicy:'getPublishedPolicy',signIn:'homepageSignIn',signOut:'homepageSignOut',whoAmI:'',register:'homepageRegister',verify:'homepageVerifyCode',confirmReg:'homepageConfirmRegistration',forgot:'homepageForgotPassword',reset:'homepageResetPassword'};
 
 /* ===== Content model (Phase 2 will load this from Sheets, published copy) ===== */
 var DEFAULT_HOME={
@@ -242,25 +249,41 @@ var APP_BASE='<?= baseUrl ?>';
 var APP_PAGE='<?= page ?>';
 var APP_PREVIEW='<?= preview ?>';
 var APP_TICKET='<?= ticket ?>';
+var APP_OPEN='<?= openm ?>';
 var HOME=DEFAULT_HOME,$=function(i){return document.getElementById(i)};
 function safeUrl(u){return /^(https?:|mailto:|#|route:)/i.test(u||'')?u:'#'}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML.replace(/"/g,'&quot;')}
 function slug(s){return s.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+/* A menu card's address is fixed (index 3 of its nav tuple) so renaming it in Website
+   Management never breaks the URL or the page content saved under it. */
+function subSlug(s){return s[3]||slug(s[0])}
 function toast(m,bad){var t=$('toast');t.textContent=m;t.className=bad?'bad':'';t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display='none'},3500)}
 function call(fn,args,ok,fail){
  if(typeof google==='undefined'||!google.script){fail&&fail('Backend not connected (preview mode).');return}
  google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){fail&&fail(e&&e.message||'Something went wrong. Try again.')})[fn].apply(null,args)}
 
 /* ===== Routing: home + dedicated pages (server doGet passes APP_PAGE; hash used in preview) ===== */
-function link(r){return APP_BASE?APP_BASE+'?page='+r:'#/'+r}
-function tgt(){return APP_BASE?' target="_top"':''}
+/* Navigation must stay on the address the visitor already opened. ScriptApp.getService().getUrl()
+   can return a /dev deployment address, which only the script's editors are allowed to open, so a
+   signed-in visitor would land on Google Drive's "You need access" page instead of the portal. */
+function hereBase(){try{if(location.host==='script.google.com'&&/^\/macros\/s\/[^\/]+\/(exec|dev)$/.test(location.pathname))return location.origin+location.pathname}catch(e){}return ''}
+function appUrl(q){var b=hereBase()||APP_BASE;return b?b+(q||''):''}
+/* Apps Script serves this page inside a sandboxed iframe. Setting location.href here loads script.google.com
+   INSIDE that iframe, and Google refuses framing: "script.google.com refused to connect". Navigate the TOP window. */
+function goPortal(h){var u=appUrl('?page=portal'+(h?'&h='+encodeURIComponent(h):''));if(!u){toast('Portal link unavailable.',true);return}
+ try{window.top.location.href=u;return}catch(e){}
+ try{var w=window.open(u,'_top');if(w)return}catch(e){}
+ var m=$('siErr');if(m){m.innerHTML='Signed in. <a href="'+esc(u)+'" target="_top" rel="noopener">Continue to the portal</a>'}
+ toast('Signed in. Tap "Continue to the portal".')}
+function link(r){return appUrl('?page='+r)||('#/'+r)}
+function tgt(){return (hereBase()||APP_BASE)?' target="_top"':''}
 function cur_route(){return APP_PAGE||location.hash.replace(/^#\/?/,'')||'home'}
 function routeHref(to){return to.indexOf('route:')===0?link(to.slice(6)):safeUrl(to)}
 var PG={loading:''};
 function pageInfo(r){
  var parts=r.split('/'),n=HOME.nav.filter(function(x){return x.id===parts[0]})[0],sub=null,title='';
  if(r==='contact')title='Contact Information';else if(r==='terms')title='Terms of Service';else if(r==='privacy')title='Privacy Policy';
- else if(n){if(parts[1]){sub=n.subs.filter(function(s){return slug(s[0])===parts[1]})[0];title=sub?sub[0]:''}else title=n.label}
+ else if(n){if(parts[1]){sub=n.subs.filter(function(s){return subSlug(s)===parts[1]})[0];title=sub?sub[0]:''}else title=n.label}
  return {n:n,sub:sub,title:title,blocks:(HOME.pages&&HOME.pages[r])||[]}}
 function rtFmt(t){return esc(t).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/__([^_]+)__/g,'<u>$1</u>').replace(/\*([^*]+)\*/g,'<em>$1</em>')}
 function rtInl(s){var out='',re=/\[([^\]\n]+)\]\(([^)\s]+)\)/g,last=0,m;
@@ -280,83 +303,35 @@ function blockHtml(b){var t=b.type;
  if(t==='img'&&/^https:\/\//i.test(b.url||''))return '<figure class="bf'+(b.place==='banner'?' banner':'')+'"><img src="'+esc(b.url)+'" alt="'+esc(b.alt||b.name)+'" loading="lazy">'+((b.name||b.caption)?'<figcaption>'+(b.name?'<strong>'+esc(b.name)+'</strong>':'')+esc(b.caption)+'</figcaption>':'')+'</figure>';
  if(t==='link'||t==='download'){var isR=/^route:/i.test(b.url||'');return '<p><a class="btn blue" href="'+esc(routeHref(b.url||''))+'"'+(isR?tgt():' target="_blank" rel="noopener"')+'>'+(t==='download'?'⬇ ':'')+esc(b.label)+'</a></p>'}
  return ''}
-var TLN=0;
-function tlParse(t){var m=/^(.*?)\s*\|\s*((?:19|20)\d{2}(?:\s*[–—-]\s*(?:(?:19|20)\d{2}|\d{2}))?)\s*$/.exec(t||'');return m&&m[1]?{title:m[1],year:m[2]}:null}
-function tlHtml(it){
- var n=it.length,id='tl'+(++TLN);
- return '<div class="tl" data-tl="'+id+'" data-k="0" style="--n:'+n+'"><div class="tl-rail"><div class="tl-in" role="tablist" aria-label="Timeline"><div class="tl-track"><div class="tl-fill"></div></div>'
-  +it.map(function(x,k){return '<button type="button" role="tab" class="tl-n'+(k?'':' on')+'" id="'+id+'t'+k+'" aria-controls="'+id+'p'+k+'" aria-selected="'+(k?'false':'true')+'" tabindex="'+(k?'-1':'0')+'" data-tlk="'+k+'"><span class="dot"></span><span class="yr">'+esc(x.year)+'</span></button>'}).join('')
-  +'</div></div><div class="tl-stage">'
-  +it.map(function(x,k){return '<article class="tl-p'+(k?'':' on')+'" role="tabpanel" id="'+id+'p'+k+'" aria-labelledby="'+id+'t'+k+'"><div class="tl-big" aria-hidden="true">'+esc(x.year)+'</div><div class="tl-tx"><h3>'+esc(x.title)+'</h3><div class="sb">'+x.body+'</div></div></article>'}).join('')
-  +'<div class="tl-ctl"><span class="tl-cnt" aria-live="polite">1 / '+n+'</span><button type="button" class="tl-a" data-tlp="-1" aria-label="Previous milestone">‹</button><button type="button" class="tl-a" data-tlp="1" aria-label="Next milestone">›</button></div></div></div>'}
-function tlGo(root,k){
- var ns=root.querySelectorAll('.tl-n'),ps=root.querySelectorAll('.tl-p'),n=ns.length;k=Math.max(0,Math.min(n-1,k));
- ns.forEach(function(b,i){b.classList.toggle('on',i===k);b.classList.toggle('past',i<k);b.setAttribute('aria-selected',i===k?'true':'false');b.tabIndex=i===k?0:-1});
- ps.forEach(function(p,i){p.classList.toggle('on',i===k)});
- root.querySelector('.tl-fill').style.width=(n>1?k/(n-1)*100:0)+'%';
- root.querySelector('.tl-cnt').textContent=(k+1)+' / '+n;
- root.dataset.k=k;
- if(ns[k].scrollIntoView)ns[k].scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
- return k}
-document.addEventListener('click',function(e){var r=e.target.closest('[data-tl]');if(!r)return;
- var t=e.target.closest('[data-tlk]'),p=e.target.closest('[data-tlp]');
- if(t)tlGo(r,+t.dataset.tlk);else if(p)tlGo(r,(+r.dataset.k||0)+(+p.dataset.tlp))});
-document.addEventListener('keydown',function(e){var b=e.target.closest&&e.target.closest('.tl-n');if(!b)return;
- var r=b.closest('[data-tl]'),k=+r.dataset.k||0,d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-k:e.key==='End'?1000:0;
- if(!d)return;e.preventDefault();k=tlGo(r,k+d);r.querySelectorAll('.tl-n')[k].focus()});
-var NO_ACC_ROUTES=['academics','academics/kindergarten','academics/elementary','academics/junior-high-school','academics/senior-high-school','academics/college-program','campus-life','campus-life/student-organizations','campus-life/school-activities-and-events','campus-life/sports-and-athletics','campus-life/clubs-and-societies','campus-life/campus-facilities-and-tour','news','news/school-announcements','news/latest-news','news/upcoming-events','news/enrollment-announcements','news/school-achievements','contact','terms','privacy'];
-var TBN=0;
-function tbParse(t){var m=/^tab\s*:\s*(.+)$/i.exec(String(t||'').trim());if(!m)return null;var l=m[1].trim();return /^end$/i.test(l)?'end':l}
-function tbHtml(it){
- var id='tb'+(++TBN);
- return '<div class="tb" data-tb="'+id+'" data-k="0"><p class="tb-cap">Select an option</p><div class="tb-list" role="tablist" aria-label="Options">'
-  +it.map(function(x,k){return '<button type="button" role="tab" class="tb-t'+(k?'':' on')+'" id="'+id+'t'+k+'" aria-controls="'+id+'p'+k+'" aria-selected="'+(k?'false':'true')+'" tabindex="'+(k?'-1':'0')+'" data-tbk="'+k+'">'+esc(x.label)+'</button>'}).join('')
-  +'</div>'+it.map(function(x,k){return '<div class="tb-p'+(k?'':' on')+'" role="tabpanel" id="'+id+'p'+k+'" aria-labelledby="'+id+'t'+k+'" tabindex="0">'+x.body+'</div>'}).join('')+'</div>'}
-function tbGo(root,k){var ts=root.querySelectorAll('.tb-t'),ps=root.querySelectorAll('.tb-p');k=Math.max(0,Math.min(ts.length-1,k));
- ts.forEach(function(b,i){b.classList.toggle('on',i===k);b.setAttribute('aria-selected',i===k?'true':'false');b.tabIndex=i===k?0:-1});
- ps.forEach(function(p,i){p.classList.toggle('on',i===k)});root.dataset.k=k;return k}
-document.addEventListener('click',function(e){var t=e.target.closest('[data-tbk]');if(!t)return;var r=t.closest('[data-tb]');if(r)tbGo(r,+t.dataset.tbk)});
-document.addEventListener('keydown',function(e){var b=e.target.closest&&e.target.closest('.tb-t');if(!b)return;
- var r=b.closest('[data-tb]'),k=+r.dataset.k||0,n=r.querySelectorAll('.tb-t').length,d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:e.key==='Home'?-k:e.key==='End'?n:0;
- if(!d)return;e.preventDefault();k=tbGo(r,k+d);r.querySelectorAll('.tb-t')[k].focus()});
-function accHtml(s){return '<details class="fq"><summary>'+esc(s[0].text)+'</summary><div class="sb">'+s.slice(1).map(blockHtml).join('')+'</div></details>'}
-function blocksHtml(bl,route){
- var acc=NO_ACC_ROUTES.indexOf(route)<0,segs=[],c=[],out=[],cards=[],tl=[],tabs=[];
+function blocksHtml(bl){
+ var segs=[],c=[],out=[],cards=[];
  bl.forEach(function(b){if(b.type==='img'&&b.place==='banner'){if(c.length){segs.push(c);c=[]}segs.push([b]);return}if(b.type==='h2'&&c.length){segs.push(c);c=[]}c.push(b)});
  if(c.length)segs.push(c);
- function flush(){if(cards.length){out.push('<div class="cards">'+cards.join('')+'</div>');cards=[]}if(tl.length){out.push(tlHtml(tl));tl=[]}}
- function flushTabs(){if(tabs.length){out.push(tbHtml(tabs));tabs=[]}}
+ function flush(){if(cards.length){out.push('<div class="cards">'+cards.join('')+'</div>');cards=[]}}
  segs.forEach(function(s){
-  var tb=s[0].type==='h2'?tbParse(s[0].text):null;
-  if(tb&&tb!=='end'){flush();tabs.push({label:tb,body:s.slice(1).map(blockHtml).join('')});return}
-  if(tabs.length){
-   if(tb==='end'){flushTabs();out.push(s.slice(1).map(blockHtml).join(''));return}
-   if(!(s[0].type==='img'&&s[0].place==='banner')){tabs[tabs.length-1].body+=(acc&&s[0].type==='h2')?accHtml(s):s.map(blockHtml).join('');return}
-   flushTabs()}
-  if(tb==='end'){out.push(s.slice(1).map(blockHtml).join(''));return}
   var side=s.filter(function(b){return b.type==='img'&&b.place==='side'}),hasImg=s.some(function(b){return b.type==='img'});
   if(side.length){flush();var rest=s.filter(function(b){return side.indexOf(b)<0});
    out.push('<div class="split2"><div class="txt">'+rest.map(blockHtml).join('')+'</div><div class="side">'+side.map(blockHtml).join('')+'</div></div>');return}
-  if(s[0].type==='h2'&&!hasImg&&(/\?\s*$/.test(s[0].text)||(acc&&!tlParse(s[0].text)))){flush();out.push('<details class="fq"><summary>'+esc(s[0].text)+'</summary><div class="sb">'+s.slice(1).map(blockHtml).join('')+'</div></details>');return}
-  if(s[0].type==='h2'&&!hasImg){var y=tlParse(s[0].text);
-   if(y){if(cards.length){out.push('<div class="cards">'+cards.join('')+'</div>');cards=[]}
-    tl.push({year:y.year,title:y.title,body:s.slice(1).map(blockHtml).join('')});return}
-   if(tl.length){out.push(tlHtml(tl));tl=[]}
-   cards.push('<section class="seg"><h3 class="bh">'+esc(s[0].text)+'</h3><div class="sb">'+s.slice(1).map(blockHtml).join('')+'</div></section>');return}
+  if(s[0].type==='h2'&&!hasImg){cards.push('<section class="seg">'+blockHtml(s[0])+'<div class="sb">'+s.slice(1).map(blockHtml).join('')+'</div></section>');return}
   flush();out.push(s.map(blockHtml).join(''))});
  flush();
- flushTabs();return '<div class="blocks">'+out.join('')+'</div>'}
+ return '<div class="blocks">'+out.join('')+'</div>'}
+/* The Privacy page is not editable content: it shows the policy the portal stores. */
+function policyHtml(loading){
+ if(HOME.policy==null)return loading?'<p>Loading…</p>':'';
+ return HOME.policy?'<div class="rt">'+HOME.policy+'</div>':'<div class="empty"><p style="margin:0">The Data Privacy Policy has not been published yet.</p></div>'}
 function renderPage(r){
  var i=pageInfo(r),f=HOME.footer,out;
  if(!i.title){out='<h2>Page not found</h2><p class="lead">This page does not exist. <a href="'+link('home')+'"'+tgt()+'>Return home</a>.</p>'}
  else{
   var crumb='<div class="crumb"><a href="'+link('home')+'"'+tgt()+'>Home</a>'+(i.n?' › <a href="'+link(i.n.id)+'"'+tgt()+'>'+esc(i.n.label)+'</a>':'')+(i.sub?' › '+esc(i.title):'')+'</div>';
   var has=i.blocks.length>0,loading=PG.loading===r,
-  cards=i.n&&!i.sub?'<div class="navgrid">'+i.n.subs.map(function(s){return '<a class="nc" href="'+link(i.n.id+'/'+slug(s[0]))+'"'+tgt()+'>'+(s[2]?'<span class="ni" aria-hidden="true">'+esc(s[2])+'</span>':'')+'<h3>'+esc(s[0])+'</h3>'+(s[1]?'<p>'+esc(s[1])+'</p>':'')+'<span class="go">Open page<i aria-hidden="true">›</i></span></a>'}).join('')+'</div>':'',
-  main=has?blocksHtml(i.blocks,r):(loading?'<p>Loading…</p>':''),
+  cards=i.n&&!i.sub?'<div class="navgrid">'+i.n.subs.map(function(s){return '<a class="nc" href="'+link(i.n.id+'/'+subSlug(s))+'"'+tgt()+'>'+(s[2]?'<span class="ni" aria-hidden="true">'+esc(s[2])+'</span>':'')+'<h3>'+esc(s[0])+'</h3>'+(s[1]?'<p>'+esc(s[1])+'</p>':'')+'<span class="go">Open page<i aria-hidden="true">›</i></span></a>'}).join('')+'</div>':'',
+  main=r==='privacy'?policyHtml(loading):has?blocksHtml(i.blocks):(loading?'<p>Loading…</p>':''),
   ci=r==='contact'?'<div class="empty" style="margin-bottom:24px"><h3 style="color:var(--orange);margin-bottom:6px">Moreh Academy</h3><p style="margin:0">'+esc(f.loc)+'<br>'+esc(f.phone)+'<br><a href="mailto:'+esc(f.email)+'" style="color:#fff">'+esc(f.email)+'</a></p></div>':'',
   body=ci+main+(has&&cards?'<div style="height:24px"></div>':'')+cards;
-  if(!has&&!cards&&!loading&&r!=='contact')body='<div class="empty"><p style="margin:0">Content coming soon.</p></div>';
+  if(r==='forms/downloadable-forms')body+='<section class="seg" style="margin-top:18px"><h3 class="bh">Parental Consent &amp; Data Privacy Undertaking</h3><div class="sb"><p>Download and print the required two-copy consent form. Print on Letter-size paper; the Student\'s Copy and Admission\'s Copy are arranged on one page.</p><p><a class="btn blue" href="'+link('parental-consent')+'"'+tgt()+'>Open / Print Consent Form</a></p></div></section>';
+  if(!has&&!cards&&!loading&&r!=='contact'&&r!=='privacy')body='<div class="empty"><p style="margin:0">Content coming soon.</p></div>';
   out=crumb+'<div class="bar"></div><h2>'+esc(i.title)+'</h2><p class="lead">'+esc(i.sub?'':(i.n?i.n.lead:''))+'</p>'+body}
  return '<section class="page"><div class="wrap">'+out+'</div></section>'}
 function renderHome(){
@@ -366,7 +341,7 @@ function renderHome(){
  items=(nw.items||[]).filter(function(x){return x.title});
  var S={
  admission:'<section class="sec" id="admission-process"><div class="wrap"><div class="bar"></div><h2>'+esc(h.sectionTitle)+'</h2><p class="lead">'+esc(h.sectionSub)+'</p><ol class="steps">'+h.steps.map(function(s,k){return '<li class="step"><div class="n">'+(k+1)+'</div><div class="si" aria-hidden="true">'+esc(s.i)+'</div><h3>'+esc(s.t)+'</h3><p>'+esc(s.d)+'</p></li>'}).join('')+'</ol><a class="btn blue" href="#create">Enroll Now!</a></div></section>',
- about:'<section class="sec" id="about-preview"><div class="wrap split"><div class="photo" style="'+(ab.photo?'background-image:url('+esc(ab.photo)+')':'')+'" role="img" aria-label="Moreh Academy students"></div><div><div class="bar"></div><h2>'+esc(ab.heading)+'</h2><p>'+esc(ab.text)+'</p><a class="btn blue" href="'+link('about')+'"'+T+'>'+esc(ab.linkLabel||'Learn More')+'</a></div></div></section>',
+ about:'<section class="sec" id="about-preview"><div class="wrap split"><div class="photo" style="'+(ab.photo&&!/^media:/.test(ab.photo)?'background-image:url('+esc(ab.photo)+')':'')+'" role="img" aria-label="Moreh Academy students" '+(ab.photo&&/^media:/.test(ab.photo)?'data-media-ref="'+esc(ab.photo.slice(6))+'"':'')+'></div><div><div class="bar"></div><h2>'+esc(ab.heading)+'</h2><p>'+esc(ab.text)+'</p><a class="btn blue" href="'+link('about')+'"'+T+'>'+esc(ab.linkLabel||'Learn More')+'</a></div></div></section>',
  programs:'<section class="sec" id="academics-preview"><div class="wrap"><div class="bar"></div><h2>'+esc((h.programs&&h.programs.title)||'Academic Programs')+'</h2><p class="lead">'+esc(ac.lead)+'</p><div class="grid five">'+prog.map(function(x){return '<article class="card"><h3>'+esc(x.name)+'</h3><p>'+esc(x.desc)+'</p><a class="more" href="'+link('academics/'+slug(x.name))+'"'+T+'>Learn more</a></article>'}).join('')+'</div></div></section>',
  news:'<section class="sec" id="news-preview"><div class="wrap"><div class="bar"></div><h2>'+esc(nw.title||'News & Announcements')+'</h2>'+(items.length?'<div class="grid">'+items.map(function(x){return '<article class="card"><h3>'+esc(x.title)+'</h3>'+(x.date?'<p style="font-size:13px;opacity:.7">'+esc(x.date)+'</p>':'')+'<p>'+esc(x.summary)+'</p>'+(x.link?'<a class="more" href="'+esc(routeHref(x.link))+'"'+T+'>Read more</a>':'')+'</article>'}).join('')+'</div><p style="margin-top:18px"><a class="btn blue" href="'+link('news/latest-news')+'"'+T+'>View all news</a></p>':'<div class="empty"><strong>No announcements yet.</strong><p style="margin:4px 0 12px">Follow Moreh Academy for future updates.</p><a class="btn" href="'+link('news/latest-news')+'"'+T+'>View all news</a></div>')+'</div></section>'};
  var order=(d.order||[]).filter(function(k){return S[k]});Object.keys(S).forEach(function(k){if(order.indexOf(k)<0)order.push(k)});
@@ -375,36 +350,49 @@ function renderHome(){
 /* ===== Published / draft content from the backend ===== */
 function applyContent(c){
  if(!c||!c.sections)return;var s=c.sections,H=HOME;
- if(s.masthead){if(Array.isArray(s.masthead.ids)&&s.masthead.ids.length)H.ids=s.masthead.ids;if(s.masthead.tagline!=null)H.tagline=s.masthead.tagline}
- if(s.hero){var o=s.hero;['title','name','subtitle','desc','intervalMs'].forEach(function(k){if(o[k]!=null&&o[k]!=='')H.hero[k]=o[k]});['enroll','discover'].forEach(function(k){if(o[k])H.hero[k]=Object.assign({},H.hero[k],o[k])});if(Array.isArray(o.slides)&&o.slides.length)H.hero.slides=o.slides}
+ if(s.masthead){if(Array.isArray(s.masthead.ids))H.ids=s.masthead.ids;if(s.masthead.tagline!=null)H.tagline=s.masthead.tagline}
+ if(s.hero){var o=s.hero;['title','name','subtitle','desc','intervalMs'].forEach(function(k){if(o[k]!=null)H.hero[k]=o[k]});['enroll','discover'].forEach(function(k){if(o[k])H.hero[k]=Object.assign({},H.hero[k],o[k])});if(Array.isArray(o.slides)&&o.slides.length)H.hero.slides=o.slides}
  if(s.values&&Array.isArray(s.values.items))H.values=s.values.items;
- if(s.admission){var a=s.admission;if(a.title)H.sectionTitle=a.title;if(a.sub!=null)H.sectionSub=a.sub;if(Array.isArray(a.steps))H.steps=a.steps.filter(function(x){return x.on!==false})}
+ if(s.admission){var a=s.admission;if(a.title!=null)H.sectionTitle=a.title;if(a.sub!=null)H.sectionSub=a.sub;if(Array.isArray(a.steps))H.steps=a.steps.filter(function(x){return x.on!==false})}
  if(s.about)H.aboutPreview=Object.assign({},H.aboutPreview,s.about);
  if(s.programs)H.programs=s.programs;if(s.news)H.newsPreview=s.news;
+ if(s.nav&&Array.isArray(s.nav.menus))H.nav.forEach(function(n,i){var m=s.nav.menus[i];if(!m)return;
+  n.label=m.label;n.lead=m.lead;
+  n.subs.forEach(function(x,j){var e=(m.subs||[])[j];if(!e)return;x[3]=x[3]||slug(x[0]);
+   x[0]=e.label;x[1]=e.lead;x[2]=e.icon})});
  if(s.footer)H.footer=Object.assign({},H.footer,s.footer);if(s.display)H.display=s.display}
 
 /* ===== Render ===== */
+function resolvePublicMedia(){
+ var nodes=document.querySelectorAll('[data-media-ref]');
+ if(!nodes.length||!window.google||!google.script||!google.script.run)return;
+ nodes.forEach(function(el){var id=el.getAttribute('data-media-ref');if(!id||el.dataset.mediaLoading)return;el.dataset.mediaLoading='1';
+  google.script.run.withSuccessHandler(function(r){if(!r||!r.ok||!r.data)return;var v=r.data;
+   if(el.tagName==='IMG')el.src=v;else el.style.backgroundImage='url('+v+')';
+  }).withFailureHandler(function(){}).getPublishedWebsiteMediaPhoto(id);
+ });
+}
 function render(){
  var h=HOME;
- $('ids').innerHTML=h.ids.map(function(i){return '<a class="id" href="'+esc(safeUrl(i.fb))+'" target="_blank" rel="noopener">'+(i.logo?'<img class="logo" src="'+esc(i.logo)+'" alt="">':'<span class="logo">'+esc(i.short)+'</span>')+'<span>'+esc(i.name)+'</span></a>'}).join('');
+ $('ids').innerHTML=h.ids.map(function(i){return '<a class="id" href="'+esc(safeUrl(i.fb))+'" target="_blank" rel="noopener">'+(i.logo&&!/^media:/.test(i.logo)?'<img class="logo" src="'+esc(i.logo)+'" alt="">':i.logo&&/^media:/.test(i.logo)?'<img class="logo" data-media-ref="'+esc(i.logo.slice(6))+'" alt="">':'<span class="logo">'+esc(i.short)+'</span>')+'<span>'+esc(i.name)+'</span></a>'}).join('');
  $('tag').textContent=h.tagline;
  var soc='<a href="'+esc(safeUrl(h.footer.fb))+'" target="_blank" rel="noopener" aria-label="Facebook">f</a><a href="'+esc(safeUrl(h.footer.yt))+'" target="_blank" rel="noopener" aria-label="YouTube">▶</a><a href="mailto:'+esc(h.footer.email)+'" aria-label="Email">✉</a>';
  $('soc').innerHTML=soc;$('fSoc').innerHTML=soc;
  $('menu').innerHTML='<li><a href="'+link('home')+'"'+tgt()+'>Home</a></li>'+h.nav.map(function(n){
-  return '<li><button aria-haspopup="true" aria-expanded="false">'+esc(n.label)+'</button><ul class="sub">'+n.subs.map(function(s){return '<li><a href="'+link(n.id+'/'+slug(s[0]))+'"'+tgt()+'>'+esc(s[0])+'</a></li>'}).join('')+'</ul></li>'}).join('')
+  return '<li><button aria-haspopup="true" aria-expanded="false">'+esc(n.label)+'</button><ul class="sub">'+n.subs.map(function(s){return '<li><a href="'+link(n.id+'/'+subSlug(s))+'"'+tgt()+'>'+esc(s[0])+'</a></li>'}).join('')+'</ul></li>'}).join('')
   +'<li><a href="'+link('contact')+'"'+tgt()+'>Contact Information</a></li>';
  $('hTitle').innerHTML=esc(h.hero.title)+'<span>'+esc(h.hero.name)+'</span>';
  $('hSub').textContent=h.hero.subtitle;$('hDesc').textContent=h.hero.desc;
  $('hEnroll').textContent=h.hero.enroll.label;$('hEnroll').href=routeHref(h.hero.enroll.to);
  $('hDiscover').textContent=h.hero.discover.label;$('hDiscover').href=routeHref(h.hero.discover.to);if(APP_BASE)$('hDiscover').target='_top';
  var fall=['linear-gradient(135deg,#062E70,#0648AD)','linear-gradient(135deg,#0648AD,#062E70)','linear-gradient(135deg,#062E70,#FF941F)'];
- $('slides').innerHTML=h.hero.slides.map(function(u,i){return '<div class="slide" style="background-image:'+(u?'url('+esc(u)+')':fall[i%3])+'"></div>'}).join('');
+ $('slides').innerHTML=h.hero.slides.map(function(u,i){return '<div class="slide" '+(/^media:/.test(u)?'data-media-ref="'+esc(u.slice(6))+'"':'')+' style="background-image:'+(u&&!/^media:/.test(u)?'url('+esc(u)+')':fall[i%3])+'"></div>'}).join('');
  $('dots').innerHTML=h.hero.slides.map(function(_,i){return '<button aria-label="Go to slide '+(i+1)+'" data-i="'+i+'"></button>'}).join('');
  $('values').innerHTML=h.values.filter(function(v){return v.on}).map(function(v){return '<li><span class="ic" aria-hidden="true">'+esc(v.icon)+'</span>'+esc(v.label)+'</li>'}).join('');
  var r=cur_route(),home=(r==='home');$('hero').hidden=!home;$('homepage-values').hidden=!home||((HOME.display||{}).hidden||[]).indexOf('values')>-1;if(APP_PREVIEW&&!$('pvBar')){var pb=document.createElement('div');pb.id='pvBar';pb.textContent='Draft preview. Visitors do not see this version.';pb.style.cssText='background:#FF941F;color:#062E70;text-align:center;font:700 13px Poppins,sans-serif;padding:6px';document.body.insertBefore(pb,document.body.firstChild)}$('sections').innerHTML=home?renderHome():renderPage(r);document.title=(home?'Moreh Academy':pageInfo(r).title+' | Moreh Academy');if(!home)window.scrollTo(0,0);
  $('fLoc').textContent=h.footer.loc;$('fPhone').textContent=h.footer.phone;$('fMail').textContent=h.footer.email;$('fMail').href='mailto:'+h.footer.email;
  $('fCopy').textContent='© '+new Date().getFullYear()+' Moreh Academy. All rights reserved.'; $('lnkTerms').href=link('terms');$('lnkPriv').href=link('privacy');
- bindNav();if(home)initCarousel();else clearInterval(timer);
+ bindNav();resolvePublicMedia();if(home)initCarousel();else clearInterval(timer);
 }
 
 /* ===== Navigation ===== */
@@ -442,25 +430,32 @@ document.querySelectorAll('[data-swap]').forEach(function(b){b.onclick=function(
 document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('mousedown',function(e){if(e.target===m)closeM()})});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeM()});
 $('loginBtn').onclick=function(e){e.preventDefault();openM('mSignin')};
+if(APP_OPEN==='create')openM('mCreate');else if(APP_OPEN==='signin')openM('mSignin');
 document.addEventListener('click',function(e){var a=e.target.closest('a[href="#create"],a[href="#signin"]');if(a){e.preventDefault();openM(a.getAttribute('href')==='#create'?'mCreate':'mSignin')}});
 
 /* ===== Session: the token lives in this tab only (sessionStorage, memory fallback). Never in a URL. ===== */
 var MEM_TOKEN='';
-function getToken(){try{return sessionStorage.getItem('ma_token')||MEM_TOKEN}catch(e){return MEM_TOKEN}}
-function saveToken(t){MEM_TOKEN=t;try{sessionStorage.setItem('ma_token',t)}catch(e){}}
-function clearToken(){MEM_TOKEN='';try{sessionStorage.removeItem('ma_token')}catch(e){}}
+/* Same tab-scoped key the portal resumes from (Script: sessionStorage 'mrh_t'). */
+function getToken(){try{return sessionStorage.getItem('mrh_t')||MEM_TOKEN}catch(e){return MEM_TOKEN}}
+function saveToken(t){MEM_TOKEN=t;try{sessionStorage.setItem('mrh_t',t)}catch(e){}}
+function clearToken(){MEM_TOKEN='';try{sessionStorage.removeItem('mrh_t')}catch(e){}}
+/* Trusted device (so staff on a device they already used are not asked for a code every time). */
+function devId(){try{var d=localStorage.getItem('mrh_dev');if(!d||!/^[A-Za-z0-9]{16,40}$/.test(d)){d=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(24)),function(b){return (b%36).toString(36)}).join('');localStorage.setItem('mrh_dev',d)}return d}catch(e){return ''}}
+function devTok(u){try{return localStorage.getItem('mrh_dt_'+u)||''}catch(e){return ''}}
+function devSave(u,t){try{if(u&&t)localStorage.setItem('mrh_dt_'+String(u).toLowerCase(),t)}catch(e){}}
 function resetLoginBtn(){$('outBtn').style.display='none';var b=$('loginBtn');b.textContent='Portal Login';b.removeAttribute('target');b.href='#';b.onclick=function(e){e.preventDefault();openM('mSignin')}}
 /* Signed-in users keep the existing Homepage controls, with a direct entry to the
    migrated Admissions Portal. */
 function showSignedIn(u,quiet){
  var b=$('loginBtn');
  var menu=$('menu');
- if(u.role==='Owner'){
-  b.textContent='Homepage Management';b.onclick=null;
-  if(APP_BASE){b.href=APP_BASE+'?page=admin-homepage';b.target='_top'}else{b.href='#'}
+ if(u.role==='Owner'||u.role==='Website Administrator'){
+  b.textContent='Website Management';b.onclick=null;
+  /* Website Management lives in the portal (Website → Website Management); this page has no admin route. */
+  if(APP_BASE){b.href=appUrl('?page=portal');b.target='_top'}else{b.href='#'}
  }else{
   b.textContent='Admissions Portal';b.onclick=null;
-  b.href=APP_BASE?APP_BASE+'?page='+(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission'):'#/'+(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission');
+  b.href=link(u.role==='Applicant'||u.role==='Student'?'applicant-portal':'admission');
   if(APP_BASE)b.target='_top';
  }
  $('outBtn').style.display='';
@@ -474,69 +469,91 @@ function showSignedIn(u,quiet){
 function mark(ids,bad){ids.forEach(function(i){$(i).classList.toggle('bad',bad.indexOf(i)>-1)})}
 $('siGo').onclick=function(){
  var u=$('siUser').value.trim(),p=$('siPass').value,bad=[];if(!u)bad.push('siUser');if(!p)bad.push('siPass');
- mark(['siUser','siPass'],bad);$('siErr').textContent=bad.length?'Enter your email and password.':'';if(bad.length)return;
+ mark(['siUser','siPass'],bad);$('siErr').textContent=bad.length?'Enter your username and password.':'';if(bad.length)return;
  var b=this;b.disabled=true;b.textContent='Signing in…';
- call(API.signIn,[u,p],function(r){b.disabled=false;b.textContent='Sign in';
-  if(r&&r.code==='unverified'){startVerify((r.data&&r.data.email)||u,'Your email is not verified yet. We sent you a new code.',true);return}
-  if(!r||r.success!==true){$('siErr').textContent=(r&&r.message)||'Sign-in failed.';return}
-  $('siPass').value='';saveToken(r.data.token);closeM();showSignedIn(r.data,false)},
+ call(API.signIn,[u,p,{id:devId(),tok:devTok(u.toLowerCase())}],function(r){b.disabled=false;b.textContent='Sign in';
+  if(r&&r.otp){PEND.mode='otp';PEND.email=u;PEND.challenge=r.challenge;startVerify('Staff sign-in: enter the 6-digit code sent to '+(r.hint||u)+'.');return}
+  if(!r||r.success!==true){$('siErr').textContent=(r&&r.error)||'Invalid username or password.';return}
+  $('siPass').value='';saveToken(r.token);devSave(r.username||u,r.dev);closeM();
+  /* Signing in leaves the homepage and opens the portal with the same session. */
+  goPortal(r.handoff)},
   function(m){b.disabled=false;b.textContent='Sign in';$('siErr').textContent=m})};
 /* ===== Accounts: register, verify email, forgot / reset password ===== */
-var PEND={email:''},rsT=null,PWRULE='Use 8 or more characters with at least one letter and one number.';
+var PEND={email:'',challenge:'',mode:'',form:null},rsT=null,PWRULE='Use 8 or more characters with at least one letter and one number.';
 function pwBad(p){return p.length<8||p.length>200||!/[A-Za-z]/.test(p)||!/\d/.test(p)}
 function mobileOk(v){return /^(09\d{9}|\+639\d{9}|639\d{9})$/.test(String(v).replace(/[\s\-()]/g,''))}
 function busyBtn(b,on,txt){if(on){b.dataset.t=b.textContent;b.textContent=txt}else b.textContent=b.dataset.t||b.textContent;b.disabled=on}
 function cool(sec){var b=$('vResend'),s=sec;clearInterval(rsT);b.disabled=true;b.textContent='Resend code ('+s+')';
  rsT=setInterval(function(){s--;if(s<=0){clearInterval(rsT);b.disabled=false;b.textContent='Resend code'}else b.textContent='Resend code ('+s+')'},1000)}
-function startVerify(email,msg,send){PEND.email=email;$('vMsg').textContent=msg||'Enter the 6-digit code we sent to '+email+'.';$('vCode').value='';$('vErr').textContent='';openM('mVerify');cool(60);
- if(send)call(API.resend,[email],function(){},function(){})}
+function ageFrom(iso){if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||''))return '';var d=new Date(iso),n=new Date(),a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return a>=0&&a<=120?a:''}
+function caGuard(){var box=$('caGuardBox'),a=ageFrom($('caBirth').value);if(box)box.style.display=(a!==''&&a<18)?'block':'none'}
+function startVerify(msg){$('vMsg').textContent=msg||('Enter the 6-digit code we sent to '+PEND.email+'.');$('vCode').value='';$('vErr').textContent='';openM('mVerify');cool(60);
+ $('vResend').style.visibility=(PEND.mode==='reg')?'visible':'hidden'}
 $('caGo').onclick=function(){
- var n=$('caName').value.trim(),m=$('caMail').value.trim(),mo=$('caMobile').value.trim(),p=$('caPass').value,p2=$('caPass2').value,bad=[],msg='';
- if(n.length<2)bad.push('caName');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))bad.push('caMail');if(!mobileOk(mo))bad.push('caMobile');
+ var sn=$('caSurname').value.trim(),fn=$('caFirst').value.trim(),lrn=$('caLrn').value.trim(),bd=$('caBirth').value,m=$('caMail').value.trim(),mo=$('caMobile').value.trim(),p=$('caPass').value,p2=$('caPass2').value,bad=[],msg='',age=ageFrom(bd);
+ if(sn.length<1)bad.push('caSurname');if(fn.length<1)bad.push('caFirst');if(!/^[1-5]\d{11}$/.test(lrn))bad.push('caLrn');if(age==='')bad.push('caBirth');
+ if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))bad.push('caMail');if(!mobileOk(mo))bad.push('caMobile');
  if(pwBad(p))bad.push('caPass');if(p2!==p)bad.push('caPass2');
- if(bad.length)msg=(bad.length===1&&bad[0]==='caPass2')?'Passwords do not match.':bad.indexOf('caPass')>-1?PWRULE:'Complete all fields. Use a valid email and a mobile number like 09171234567.';
+ var g={};
+ if(age!==''&&age<18){g={guardName:$('caGuardName').value.trim(),guardRel:$('caGuardRel').value.trim(),guardEmail:$('caGuardEmail').value.trim(),guardMobile:$('caGuardMobile').value.trim()};
+  if(!g.guardName)bad.push('caGuardName');if(!g.guardRel)bad.push('caGuardRel');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(g.guardEmail))bad.push('caGuardEmail');if(!/^\d{11}$/.test(g.guardMobile))bad.push('caGuardMobile')}
+ if(bad.length)msg=(bad.length===1&&bad[0]==='caPass2')?'Passwords do not match.':bad.indexOf('caPass')>-1?PWRULE:'Complete all fields. LRN must be 12 digits and start with 1-5; guardian details are required below 18.';
  else if(!$('caTerms').checked)msg='Please accept the Terms of Service and Privacy Policy.';
- mark(['caName','caMail','caMobile','caPass','caPass2'],bad);$('caErr').textContent=msg;if(msg)return;
+ mark(['caSurname','caFirst','caLrn','caBirth','caMail','caMobile','caPass','caPass2','caGuardName','caGuardRel','caGuardEmail','caGuardMobile'],bad);$('caErr').textContent=msg;if(msg)return;
  var b=this;busyBtn(b,true,'Creating…');
- call(API.register,[{name:n,email:m,mobile:mo,password:p,terms:true,hp:$('caHp').value}],function(r){busyBtn(b,false);
-  if(!r||r.success!==true){$('caErr').textContent=(r&&r.message)||'Could not create the account.';return}
-  $('caPass').value=$('caPass2').value='';startVerify((r.data&&r.data.email)||m,r.message,false)},
+ PEND.form={surname:sn,firstName:fn,lrn:lrn,birthdate:bd,email:m,mobile:mo,password:p,password2:p2,consent:true,guardName:g.guardName||'',guardRel:g.guardRel||'',guardEmail:g.guardEmail||'',guardMobile:g.guardMobile||''};
+ call(API.register,[PEND.form],function(r){busyBtn(b,false);
+  if(!r||r.success!==true){$('caErr').textContent=(r&&r.error)||'Could not create the account.';return}
+  $('caPass').value=$('caPass2').value='';
+  if(!r.challenge){closeM();$('siUser').value=m;toast(r.message||'Account created. Please sign in.');openM('mSignin');return}
+  PEND.mode='reg';PEND.email=m;PEND.challenge=r.challenge;startVerify(r.message||('Enter the 6-digit code we sent to '+m+'.'))},
   function(e){busyBtn(b,false);$('caErr').textContent=e})};
 $('vGo').onclick=function(){var c=$('vCode').value.replace(/\D/g,'');if(c.length!==6){$('vErr').textContent='Enter the 6-digit code.';return}
  var b=this;busyBtn(b,true,'Verifying…');
- call(API.verify,[PEND.email,c],function(r){busyBtn(b,false);
-  if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Verification failed.';return}
-  saveToken(r.data.token);closeM();showSignedIn(r.data,true);if(r.data&&(r.data.role==='Applicant'||r.data.role==='Student')&&APP_BASE){location.href=APP_BASE+'?page=applicant-portal';return}toast('Email verified. Welcome to Moreh Academy!')},
+ var fn=(PEND.mode==='otp')?API.verify:API.confirmReg;
+ call(fn,[PEND.challenge,c],function(r){busyBtn(b,false);
+  if(!r||r.success!==true){$('vErr').textContent=(r&&r.error)||'Verification failed.';return}
+  if(PEND.mode==='otp'&&r.token){saveToken(r.token);closeM();goPortal(r.handoff);return}
+  closeM();PEND.mode='';PEND.challenge='';
+  $('siUser').value=PEND.email;$('siPass').value='';
+  toast(r.message||'Email verified. Please sign in.');openM('mSignin')},
   function(e){busyBtn(b,false);$('vErr').textContent=e})};
-$('vResend').onclick=function(){call(API.resend,[PEND.email],function(r){
-  if(!r||r.success!==true){$('vErr').textContent=(r&&r.message)||'Could not send the code.';return}
-  $('vErr').textContent='';toast(r.message);cool(60)},function(e){$('vErr').textContent=e})};
+$('vResend').onclick=function(){
+ if(PEND.mode!=='reg'||!PEND.form){$('vErr').textContent='Use "Forgot password?" if you need a new sign-in code.';return}
+ call(API.register,[PEND.form],function(r){
+  if(!r||r.success!==true){$('vErr').textContent=(r&&r.error)||'Could not send the code.';return}
+  if(r.challenge){PEND.challenge=r.challenge;cool(60)}
+  $('vErr').textContent='';toast(r.message||'A new code was sent.')},function(e){$('vErr').textContent=e})};
 $('fGo').onclick=function(){var m=$('fgMail').value.trim();
- if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){$('fErr').textContent='Enter a valid email address.';return}
+ if(!m){$('fErr').textContent='Enter your username or registered email.';return}
  var b=this;busyBtn(b,true,'Sending…');
  call(API.forgot,[m],function(r){busyBtn(b,false);
-  if(!r||r.success!==true){$('fErr').textContent=(r&&r.message)||'Could not send the code.';return}
-  PEND.email=m;$('fErr').textContent='';$('rErr').textContent='';$('rCode').value=$('rPass').value=$('rPass2').value='';toast(r.message);openM('mReset')},
+  if(!r||r.success!==true){$('fErr').textContent=(r&&r.error)||'Could not send the code.';return}
+  PEND.email=m;$('fErr').textContent='';$('rErr').textContent='';$('rCode').value=$('rPass').value=$('rPass2').value='';toast(r.message||'If the account exists, a code has been sent.');openM('mReset')},
   function(e){busyBtn(b,false);$('fErr').textContent=e})};
 $('rGo').onclick=function(){var c=$('rCode').value.replace(/\D/g,''),p=$('rPass').value,p2=$('rPass2').value,msg='';
  if(c.length!==6)msg='Enter the 6-digit code.';else if(pwBad(p))msg=PWRULE;else if(p!==p2)msg='Passwords do not match.';
  $('rErr').textContent=msg;if(msg)return;
  var b=this;busyBtn(b,true,'Saving…');
  call(API.reset,[PEND.email,c,p],function(r){busyBtn(b,false);
-  if(!r||r.success!==true){$('rErr').textContent=(r&&r.message)||'Could not reset the password.';return}
+  if(!r||r.success!==true){$('rErr').textContent=(r&&r.error)||'Could not reset the password.';return}
   $('rPass').value=$('rPass2').value='';$('siUser').value=PEND.email;toast('Password changed. Please sign in.');openM('mSignin')},
   function(e){busyBtn(b,false);$('rErr').textContent=e})};
 document.querySelectorAll('.modal input').forEach(function(i){i.addEventListener('keydown',function(e){
  if(e.key==='Enter'&&i.type!=='checkbox'){var b=i.closest('.box').querySelector('.btn.blue');if(b)b.click()}})});
 
-window.addEventListener('hashchange',function(){if(!APP_PAGE)render()});
+function loadPolicy(){HOME.policy=null;PG.loading=cur_route();
+ call(API.getPolicy,[],function(h){HOME.policy=h||'';PG.loading='';render()},function(){HOME.policy='';PG.loading='';render()})}
+window.addEventListener('hashchange',function(){if(APP_PAGE)return;if(cur_route()==='privacy'){loadPolicy();return}render()});
 /* ===== Boot: published content from backend, falling back to defaults ===== */
 PG.loading=(cur_route()!=='home')?cur_route():'';render();
-(function(){var r=cur_route();if(r==='home')return;
+(function(){var r=cur_route();if(r==='home'||r==='privacy')return;
  call(APP_PREVIEW?API.getPageDraft:API.getPage,APP_PREVIEW?[r,APP_TICKET]:[r],
   function(d){PG.loading='';HOME.pages=HOME.pages||{};HOME.pages[r]=(d&&d.blocks)||[];render()},
   function(m){PG.loading='';render();if(APP_PREVIEW)toast(m,true)})})();
-(function(){var t=getToken();if(t&&!APP_PREVIEW)call(API.whoAmI,[t],function(r){if(r&&r.success===true)showSignedIn(r.data,true);else clearToken()})})();
+/* The website's Privacy page reads the policy the portal stores, not a copy of its own. */
+if(cur_route()==='privacy')loadPolicy();
+/* Sessions are held by the portal; the homepage only signs in and hands over. */
 call(APP_PREVIEW?API.getDraft:API.getHomepage,APP_PREVIEW?[APP_TICKET]:[],function(d){applyContent(d);render()},function(m){if(APP_PREVIEW)toast(m,true)});
 </script>
 </body>
