@@ -69,43 +69,58 @@ function pipeCard(c) {
   '</div>';
 }
 
-act.pipesearch = function () { pipeLoad(($('pq') && $('pq').value) || ''); };
+/* Register the pipeline actions on the portal's `act` handler map. `act` is a const declared in the
+   main portal script; look it up safely so this partial can never throw "act is not defined" —
+   if it is not ready yet, retry until it is. */
+function pipeRegister() {
+  var A;
+  try { A = (typeof act !== 'undefined') ? act : null; } catch (e) { A = null; }
+  if (!A) return false;
+  A.pipesearch = function () { pipeLoad(($('pq') && $('pq').value) || ''); };
 
-act.pipestat = function (v) {
-  var parts = String(v || '').split('|'), id = parts[0], status = parts[1];
-  if (!id || !status) return;
-  var rec = null;
-  ((S.pipe && S.pipe.stages) || []).forEach(function (col) {
-    (col.cards || []).forEach(function (c) { if (c.StudentID === id) rec = c; });
-  });
-  var old = document.getElementById('pm');
-  if (old) old.remove();
-  var m = document.createElement('div');
-  m.className = 'mod';
-  m.id = 'pm';
-  m.innerHTML = '<div style="max-width:470px"><div class="bd">' +
-    '<h3 style="color:var(--navy);margin:0 0 6px">Move to ' + esc(PIPE_LABEL[status] || status) + '</h3>' +
-    '<p style="color:var(--mut);margin:0 0 14px">' + esc(rec ? tc(rec.FullName) + (rec.LRN ? ' \u00b7 ' + rec.LRN : '') : id) + '</p>' +
-    '<div class="f"><label for="prs">Reason / note' + (status === 'Declined' ? ' (required)' : ' (optional)') + '</label>' +
-    '<textarea id="prs" maxlength="300" style="text-transform:none" placeholder="Why is this application moving to ' + esc(PIPE_LABEL[status] || status) + '?"></textarea></div>' +
-    '<p style="color:var(--mut);font-size:12.5px;margin:10px 0 0">The change is written to the Students sheet and the Application Status Log.</p>' +
-    '</div><div class="ft"><button class="btn alt" data-act="pipex">Cancel</button>' +
-    '<button class="btn" data-act="pipsave" data-v="' + esc(id) + '|' + esc(status) + '">Save status</button></div></div>';
-  document.body.appendChild(m);
-};
+  A.pipestat = function (v) {
+    var parts = String(v || '').split('|'), id = parts[0], status = parts[1];
+    if (!id || !status) return;
+    var rec = null;
+    ((S.pipe && S.pipe.stages) || []).forEach(function (col) {
+      (col.cards || []).forEach(function (c) { if (c.StudentID === id) rec = c; });
+    });
+    var old = document.getElementById('pm');
+    if (old) old.remove();
+    var m = document.createElement('div');
+    m.className = 'mod';
+    m.id = 'pm';
+    m.innerHTML = '<div style="max-width:470px"><div class="bd">' +
+      '<h3 style="color:var(--navy);margin:0 0 6px">Move to ' + esc(PIPE_LABEL[status] || status) + '</h3>' +
+      '<p style="color:var(--mut);margin:0 0 14px">' + esc(rec ? tc(rec.FullName) + (rec.LRN ? ' \u00b7 ' + rec.LRN : '') : id) + '</p>' +
+      '<div class="f"><label for="prs">Reason / note' + (status === 'Declined' ? ' (required)' : ' (optional)') + '</label>' +
+      '<textarea id="prs" maxlength="300" style="text-transform:none" placeholder="Why is this application moving to ' + esc(PIPE_LABEL[status] || status) + '?"></textarea></div>' +
+      '<p style="color:var(--mut);font-size:12.5px;margin:10px 0 0">The change is written to the Students sheet and the Application Status Log.</p>' +
+      '</div><div class="ft"><button class="btn alt" data-act="pipex">Cancel</button>' +
+      '<button class="btn" data-act="pipsave" data-v="' + esc(id) + '|' + esc(status) + '">Save status</button></div></div>';
+    document.body.appendChild(m);
+  };
 
-act.pipex = function () { var m = $('pm'); if (m) m.remove(); };
+  A.pipex = function () { var m = $('pm'); if (m) m.remove(); };
 
-act.pipsave = function (v) {
-  var parts = String(v || '').split('|'), id = parts[0], status = parts[1];
-  var why = ($('prs') && $('prs').value.trim()) || '';
-  if (status === 'Declined' && !why) { toast('Enter a reason for declining the application.', false); return; }
-  call('admissionApplicationStatusSet', [T(), id, status, why], function (r) {
-    var m = $('pm'); if (m) m.remove();
-    toast(r.message || 'Application status saved.');
-    pipeLoad(S.pq);
-  });
-};
+  A.pipsave = function (v) {
+    var parts = String(v || '').split('|'), id = parts[0], status = parts[1];
+    var why = ($('prs') && $('prs').value.trim()) || '';
+    if (status === 'Declined' && !why) { toast('Enter a reason for declining the application.', false); return; }
+    call('admissionApplicationStatusSet', [T(), id, status, why], function (r) {
+      var m = $('pm'); if (m) m.remove();
+      toast(r.message || 'Application status saved.');
+      pipeLoad(S.pq);
+    });
+  };
+
+  return true;
+}
+(function () {
+  if (pipeRegister()) return;
+  var tries = 0, t = setInterval(function () { if (pipeRegister() || ++tries > 100) clearInterval(t); }, 100);
+  document.addEventListener('DOMContentLoaded', function () { pipeRegister(); });
+})();
 
 /* The portal's login screen keeps its "Back to homepage" links working after the merge. */
 (function () {
